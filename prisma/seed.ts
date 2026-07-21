@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { buildDemoContent } from "./demo-repo";
 
 const prisma = new PrismaClient();
 
@@ -284,14 +285,19 @@ async function main() {
     where: { ownerId: user.id, name: "Example Payment MCP" },
   });
 
+  // Architecture, tech stack, and dataflow are derived from the bundled demo
+  // server at demo/payment-mcp-server (SBOM generated from its package.json).
+  const demo = buildDemoContent();
+
   const project = await prisma.project.create({
     data: {
       name: "Example Payment MCP",
       description:
         "A sample threat model for a payment-processing MCP server exposing charge, refund, and receipt tools to an LLM agent.",
       mcpServerUrl: "https://payments.example.com/mcp",
-      architecture:
-        "LLM agent connects over streamable HTTP to the Payment MCP server, which fronts a payment processor, an internal ledger service, and a RAG document store for receipts. Sessions are multi-tenant across merchant accounts.",
+      architecture: demo.architecture,
+      techStack: demo.techStack,
+      analyzedAt: new Date(),
       status: "ACTIVE",
       acceptancePolicy: "DUAL",
       ownerId: user.id,
@@ -307,6 +313,7 @@ async function main() {
         create: {
           notes:
             "Initial threat model covering the five key trust boundaries of the payment MCP deployment.",
+          dataflow: demo.dataflow,
         },
       },
     },
