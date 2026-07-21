@@ -21,7 +21,7 @@ import { ATTACHMENT_ACCEPT, humanSize } from "@/lib/attachments";
 import { describeAuditEvent } from "@/lib/audit-format";
 import { findingColor } from "@/lib/finding-colors";
 import type { PartySide } from "@/lib/taxonomy";
-import { McpCategoryBadge, SeverityBadge, StatusPill } from "@/components/shared/badges";
+import { AiBadge, ConfidenceBadge, McpCategoryBadge, SeverityBadge, StatusPill } from "@/components/shared/badges";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
@@ -56,6 +56,8 @@ export interface FindingRow {
   recommendation: string;
   severity: string;
   status: string;
+  source?: string;
+  confidence?: string | null;
   owner: string;
   dueDate: string | null;
   evidence: string;
@@ -549,6 +551,12 @@ export function FindingsTable({
                   <div className="font-medium">{f.title}</div>
                   {f.threatVector ? (
                     <div className="text-xs text-muted-foreground">{f.threatVector.title}</div>
+                  ) : null}
+                  {f.source === "AI" ? (
+                    <div className="mt-1 flex flex-wrap items-center gap-1">
+                      <AiBadge />
+                      {f.confidence ? <ConfidenceBadge confidence={f.confidence} /> : null}
+                    </div>
                   ) : null}
                   {f.reviewDueAt ? (
                     <div className="mt-0.5 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">

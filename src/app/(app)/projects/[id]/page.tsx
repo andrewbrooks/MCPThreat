@@ -1,4 +1,4 @@
-import { Boxes, FileText, ShieldAlert } from "lucide-react";
+import { Boxes, FileText, Network, ShieldAlert, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BoundaryAccordion } from "@/components/app/boundary-accordion";
@@ -36,6 +36,13 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   const pct = completionPct(vectors, project.findings);
   const openCount = openFindingCount(project.findings);
 
+  const aiBoundaries = boundaries.filter((b) => b.source === "AI").length;
+  const aiVectors = vectors.filter((v) => v.source === "AI").length;
+  const aiFindings = project.findings.filter((f) => f.source === "AI").length;
+  const aiTotal = aiBoundaries + aiVectors + aiFindings;
+  const isGithub = project.sourceType === "GITHUB";
+  const repoShort = project.repoUrl?.replace(/^https:\/\/github\.com\//, "") ?? "";
+
   const findingRows = project.findings.map(mapFindingRow);
   const vectorOptions = vectors.map((v) => ({ id: v.id, title: v.title }));
   const riskVectors = vectors.map((v) => ({
@@ -63,6 +70,33 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
+      {isGithub && project.analysisStatus === "READY" && aiTotal > 0 ? (
+        <div className="flex flex-wrap items-start gap-2 rounded-md border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">
+          <Sparkles className="mt-0.5 size-4 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">Generated from {repoShort || "a GitHub repository"}</p>
+            <p className="text-xs text-violet-700/90 dark:text-violet-300/90">
+              {aiTotal} AI-suggested item{aiTotal === 1 ? "" : "s"} to review
+              {" — "}
+              {aiBoundaries} boundar{aiBoundaries === 1 ? "y" : "ies"}, {aiVectors} vector
+              {aiVectors === 1 ? "" : "s"}, {aiFindings} finding{aiFindings === 1 ? "" : "s"}.
+              Verify each before relying on it.
+            </p>
+          </div>
+          <Link
+            href={`/projects/${project.id}/architecture`}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            <Network className="size-4" /> Architecture
+          </Link>
+        </div>
+      ) : null}
+      {isGithub && project.analysisStatus === "FAILED" ? (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+          <p className="font-medium">Automated analysis failed</p>
+          <p className="text-xs">{project.analysisError ?? "The analysis did not complete."} Open Architecture to retry.</p>
+        </div>
+      ) : null}
       <div className="flex flex-col gap-4">
         <ProjectDetailsEditor
           projectId={project.id}

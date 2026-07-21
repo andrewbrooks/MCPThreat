@@ -83,6 +83,22 @@ export const ACCEPTANCE_POLICY_DESCRIPTIONS: Record<AcceptancePolicy, string> = 
   DUAL: "High/Critical findings require one assessor and one client sign-off; lower severities require a single approver.",
 };
 
+// Provenance of a boundary/vector/finding: hand-authored, or suggested by the
+// GitHub auto-analysis. AI-suggested items carry a confidence and cited evidence.
+export const SOURCES = ["MANUAL", "AI"] as const;
+export type Source = (typeof SOURCES)[number];
+
+export const CONFIDENCE_LEVELS = ["LOW", "MEDIUM", "HIGH"] as const;
+export type Confidence = (typeof CONFIDENCE_LEVELS)[number];
+
+// Status of a project's GitHub-driven analysis run.
+export const ANALYSIS_STATUSES = ["NONE", "ANALYZING", "READY", "FAILED"] as const;
+export type AnalysisStatus = (typeof ANALYSIS_STATUSES)[number];
+
+// How a project was created: hand-built, or bootstrapped from a GitHub repo.
+export const SOURCE_TYPES = ["MANUAL", "GITHUB"] as const;
+export type SourceType = (typeof SOURCE_TYPES)[number];
+
 export const PARTY_SIDES = ["ASSESSOR", "CLIENT"] as const;
 export type PartySide = (typeof PARTY_SIDES)[number];
 
@@ -173,6 +189,12 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   ARCHIVED: "Archived",
 };
 
+export const CONFIDENCE_LABELS: Record<Confidence, string> = {
+  LOW: "Low confidence",
+  MEDIUM: "Medium confidence",
+  HIGH: "High confidence",
+};
+
 // --- Color tokens (Tailwind class fragments) --------------------------------
 // Severity: CRITICAL=red, HIGH=orange, MEDIUM=yellow, LOW=blue, INFO=gray.
 
@@ -213,6 +235,14 @@ export const PROJECT_STATUS_CLASSES: Record<ProjectStatus, string> = {
     "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400",
   ARCHIVED:
     "border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-500/30 dark:bg-slate-500/15 dark:text-slate-400",
+};
+
+// AI-suggested confidence chips — muted so they read as metadata, not severity.
+export const CONFIDENCE_BADGE_CLASSES: Record<Confidence, string> = {
+  HIGH: "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300",
+  MEDIUM:
+    "border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-500/30 dark:bg-slate-500/15 dark:text-slate-400",
+  LOW: "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-500/20 dark:bg-slate-500/10 dark:text-slate-500",
 };
 
 // Severity ordering for sorting (higher = more severe).

@@ -35,6 +35,8 @@ interface RawFinding {
   recommendation: string;
   severity: string;
   status: string;
+  source: string;
+  confidence: string | null;
   owner: string;
   dueDate: Date | null;
   evidence: string;
@@ -57,6 +59,8 @@ export function mapFindingRow(f: RawFinding) {
     recommendation: f.recommendation,
     severity: f.severity,
     status: f.status,
+    source: f.source,
+    confidence: f.confidence,
     owner: f.owner,
     dueDate: f.dueDate ? f.dueDate.toISOString() : null,
     evidence: f.evidence,

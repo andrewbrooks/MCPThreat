@@ -83,6 +83,15 @@ model Project {
   status       String   @default("ACTIVE") // ProjectStatus: ACTIVE | ARCHIVED
   // Risk-acceptance approval policy: OFF (direct accept) | SINGLE | DUAL (assessor + client)
   acceptancePolicy String @default("OFF")
+  // GitHub-driven auto threat modeling. sourceType MANUAL | GITHUB; analysisStatus
+  // NONE | ANALYZING | READY | FAILED. techStack is a comma-separated tag list.
+  repoUrl        String?
+  repoRef        String?
+  sourceType     String    @default("MANUAL")
+  analysisStatus String    @default("NONE")
+  analysisError  String?
+  analyzedAt     DateTime?
+  techStack      String    @default("")
   ownerId      String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -99,6 +108,9 @@ model ThreatModel {
   id        String   @id @default(cuid())
   projectId String   @unique
   notes     String   @default("")
+  // Dataflow diagram JSON: { nodes:[{id,label,type,tier,trustZone}],
+  // edges:[{id,from,to,label,dataClass,crossesBoundary}] }. See src/lib/dataflow.ts.
+  dataflow  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -112,6 +124,7 @@ model TrustBoundary {
   label         String
   description   String   @default("")
   type          String // TrustBoundaryType
+  source        String   @default("MANUAL") // Source: MANUAL | AI
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -130,6 +143,8 @@ model ThreatVector {
   mcpCategory     String // McpCategory
   likelihood      String   @default("MEDIUM") // RiskLevel
   impact          String   @default("MEDIUM") // RiskLevel
+  source          String   @default("MANUAL") // Source: MANUAL | AI
+  confidence      String? // Confidence: LOW | MEDIUM | HIGH (AI-suggested only)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -148,6 +163,8 @@ model Finding {
   recommendation String    @default("")
   severity       String    @default("MEDIUM") // Severity
   status         String    @default("OPEN") // FindingStatus
+  source         String    @default("MANUAL") // Source: MANUAL | AI
+  confidence     String? // Confidence: LOW | MEDIUM | HIGH (AI-suggested only)
   owner          String    @default("")
   dueDate        DateTime?
   evidence       String    @default("")
