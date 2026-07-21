@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ACCEPTANCE_POLICIES,
+  CONFIDENCE_LEVELS,
   FINDING_STATUSES,
   MCP_CATEGORIES,
   PARTY_SIDES,
@@ -8,6 +9,7 @@ import {
   PROJECT_STATUSES,
   RISK_LEVELS,
   SEVERITIES,
+  SOURCES,
   STRIDE_CATEGORIES,
   TRUST_BOUNDARY_TYPES,
 } from "@/lib/taxonomy";
@@ -23,6 +25,18 @@ export const zStatus = z.enum(FINDING_STATUSES);
 export const zRole = z.enum(PROJECT_ROLES);
 export const zAcceptancePolicy = z.enum(ACCEPTANCE_POLICIES);
 export const zPartySide = z.enum(PARTY_SIDES);
+export const zSource = z.enum(SOURCES);
+export const zConfidence = z.enum(CONFIDENCE_LEVELS);
+
+// --- GitHub auto-analysis import -------------------------------------------
+// Repo URL is validated for host (github.com) in src/lib/github.ts; here we only
+// bound length/shape. The optional token is used per-request and never persisted.
+export const analyzeRepoSchema = z
+  .object({
+    repoUrl: z.string().trim().min(1, "Repository URL is required").max(2048),
+    token: z.string().trim().max(255).optional(),
+  })
+  .strict();
 
 const optionalUrl = z
   .string()

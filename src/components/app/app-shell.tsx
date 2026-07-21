@@ -9,11 +9,13 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Network,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
   Shield,
   ShieldAlert,
+  Workflow,
   X,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -81,6 +83,8 @@ export function AppShell({ user, projects, children }: AppShellProps) {
     ? [
         { href: `/projects/${activeProjectId}`, label: "Overview", icon: FolderKanban, exact: true },
         { href: `/projects/${activeProjectId}/model`, label: "Threat Model", icon: Boxes },
+        { href: `/projects/${activeProjectId}/architecture`, label: "Architecture", icon: Network },
+        { href: `/projects/${activeProjectId}/dataflow`, label: "Dataflow", icon: Workflow },
         { href: `/projects/${activeProjectId}/findings`, label: "Findings", icon: ShieldAlert },
         { href: `/projects/${activeProjectId}/activity`, label: "Activity", icon: History },
         { href: `/projects/${activeProjectId}/report`, label: "Report", icon: FileText },

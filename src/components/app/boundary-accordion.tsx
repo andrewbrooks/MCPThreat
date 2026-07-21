@@ -2,7 +2,7 @@
 
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import { useState } from "react";
-import { McpCategoryBadge, RiskBadge, StrideBadge } from "@/components/shared/badges";
+import { AiBadge, ConfidenceBadge, McpCategoryBadge, RiskBadge, StrideBadge } from "@/components/shared/badges";
 import { Badge } from "@/components/ui/badge";
 import { TRUST_BOUNDARY_LABELS, type TrustBoundaryType } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ interface VectorData {
   mcpCategory: string;
   likelihood: string;
   impact: string;
+  source?: string;
+  confidence?: string | null;
   findings: { status: string }[];
 }
 interface BoundaryData {
@@ -22,6 +24,7 @@ interface BoundaryData {
   label: string;
   type: string;
   description: string;
+  source?: string;
   vectors: VectorData[];
 }
 
@@ -35,6 +38,8 @@ function VectorRow({ v }: { v: VectorData }) {
         <span className="font-medium">{v.title}</span>
         <StrideBadge category={v.strideCategory} />
         <McpCategoryBadge category={v.mcpCategory} />
+        {v.source === "AI" ? <AiBadge /> : null}
+        {v.source === "AI" && v.confidence ? <ConfidenceBadge confidence={v.confidence} /> : null}
       </div>
       {v.description ? (
         <p className="mt-1.5 text-sm text-muted-foreground">{v.description}</p>
@@ -69,6 +74,7 @@ function BoundaryItem({ b }: { b: BoundaryData }) {
             <Badge className="border-border bg-muted text-muted-foreground">
               {TRUST_BOUNDARY_LABELS[b.type as TrustBoundaryType] ?? b.type}
             </Badge>
+            {b.source === "AI" ? <AiBadge /> : null}
           </div>
           {b.description ? (
             <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">{b.description}</p>

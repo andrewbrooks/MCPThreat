@@ -1,6 +1,7 @@
 import { FolderKanban, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ImportRepoDialog } from "@/components/app/import-repo-dialog";
 import { NewProjectDialog } from "@/components/app/new-project-dialog";
 import { ProjectStatusBadge } from "@/components/shared/badges";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -80,7 +81,10 @@ export default async function DashboardPage() {
             Threat models across your MCP server projects.
           </p>
         </div>
-        <NewProjectDialog />
+        <div className="flex flex-wrap gap-2">
+          <ImportRepoDialog />
+          <NewProjectDialog />
+        </div>
       </div>
 
       {projects.length === 0 ? (
@@ -88,7 +92,12 @@ export default async function DashboardPage() {
           icon={FolderKanban}
           title="No projects yet"
           description="Create your first project to start modeling threats for an MCP server."
-          action={<NewProjectDialog />}
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <ImportRepoDialog />
+              <NewProjectDialog />
+            </div>
+          }
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

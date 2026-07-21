@@ -88,12 +88,8 @@ export function ProjectDetailsEditor({ projectId, initial }: Props) {
             <Pencil className="size-4" /> Edit
           </Button>
         </div>
-        <div>
-          <h2 className="mb-1 text-sm font-medium text-muted-foreground">Architecture Notes</h2>
-          <p className="whitespace-pre-wrap rounded-md border bg-muted/30 p-3 text-sm">
-            {initial.architecture || "No architecture notes yet."}
-          </p>
-        </div>
+        {/* Architecture is shown on the dedicated Architecture tab, not here. It
+            stays editable via the edit form below. */}
       </div>
     );
   }

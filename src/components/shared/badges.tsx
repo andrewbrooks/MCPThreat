@@ -1,6 +1,9 @@
+import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
+  CONFIDENCE_BADGE_CLASSES,
+  CONFIDENCE_LABELS,
   MCP_CATEGORY_LABELS,
   PROJECT_STATUS_CLASSES,
   PROJECT_STATUS_LABELS,
@@ -11,6 +14,7 @@ import {
   STATUS_BADGE_CLASSES,
   STATUS_LABELS,
   STRIDE_LABELS,
+  type Confidence,
   type McpCategory,
   type ProjectStatus,
   type RiskLevel,
@@ -76,6 +80,34 @@ export function StrideBadge({ category, className }: { category: string; classNa
       {STRIDE_LABELS[c] ?? category}
     </Badge>
   );
+}
+
+/** Marks an item that was suggested by the GitHub auto-analysis, not hand-authored. */
+export function AiBadge({ className }: { className?: string }) {
+  return (
+    <Badge
+      className={cn(
+        "gap-1 border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300",
+        className,
+      )}
+      title="Suggested by automated analysis — review before relying on it"
+    >
+      <Sparkles className="size-3" /> AI-suggested
+    </Badge>
+  );
+}
+
+export function ConfidenceBadge({
+  confidence,
+  className,
+}: {
+  confidence: string;
+  className?: string;
+}) {
+  const c = confidence as Confidence;
+  const classes = CONFIDENCE_BADGE_CLASSES[c];
+  if (!classes) return null;
+  return <Badge className={cn(classes, className)}>{CONFIDENCE_LABELS[c] ?? confidence}</Badge>;
 }
 
 export function McpCategoryBadge({
