@@ -1,26 +1,36 @@
+"use client";
+
+import { Maximize2, ZoomIn, ZoomOut } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DATAFLOW_NODE_TYPE_LABELS,
   type Dataflow,
   type DataflowNode,
 } from "@/lib/dataflow";
 
-// Hand-built layered data-flow diagram (DFD), in the same theme-safe SVG style as
+// Interactive layered data-flow diagram (DFD), in the same theme-safe SVG style as
 // TrustBoundaryMap: hsl(var(--…)) fills + currentColor text so it reads in both
 // light and dark. Nodes are laid out left→right by `tier`; flows that cross a trust
-// boundary are drawn dashed + red. Pure render — no client interactivity.
+// boundary are drawn dashed + red. Pan by dragging; zoom with the buttons or wheel.
 
-const NODE_W = 156;
-const NODE_H = 52;
-const COL_GAP = 220; // horizontal distance between tiers
-const ROW_GAP = 82; // vertical distance between nodes in a tier
-const MARGIN_X = 24;
-const MARGIN_Y = 44;
+const NODE_W = 184;
+const NODE_H = 66;
+const COL_GAP = 288; // horizontal distance between tiers
+const ROW_GAP = 128; // vertical distance between nodes in a tier
+const MARGIN_X = 48;
+const MARGIN_Y = 60;
+const VIEWPORT_H = 500; // px height of the scroll/zoom viewport
 const RED = "#E24B4A";
+
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 3;
 
 const zoneStyle = { fill: "hsl(var(--muted))", stroke: "hsl(var(--border))" };
 const processStyle = { fill: "hsl(var(--accent) / 0.12)", stroke: "hsl(var(--accent) / 0.5)" };
 const storeStyle = { fill: "hsl(var(--secondary))", stroke: "hsl(var(--border))" };
 const edgeStroke = "hsl(var(--muted-foreground) / 0.6)";
+const cardBg = "hsl(var(--card))";
 
 function styleFor(type: DataflowNode["type"]) {
   if (type === "process") return processStyle;
@@ -48,138 +58,250 @@ function anchor(p: Placed, towardX: number): { x: number; y: number } {
 
 export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
   const { nodes, edges } = dataflow;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [scale, setScale] = useState(1);
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const drag = useRef<{ x0: number; y0: number; tx0: number; ty0: number } | null>(null);
 
-  // Group by tier, then stack within each tier column.
-  const tiers = [...new Set(nodes.map((n) => n.tier))].sort((a, b) => a - b);
-  const byTier = new Map<number, DataflowNode[]>();
-  for (const n of nodes) {
-    const arr = byTier.get(n.tier) ?? [];
-    arr.push(n);
-    byTier.set(n.tier, arr);
-  }
-
-  const placed = new Map<string, Placed>();
-  let maxRows = 0;
-  tiers.forEach((tier, col) => {
-    const group = byTier.get(tier) ?? [];
-    maxRows = Math.max(maxRows, group.length);
-    group.forEach((node, row) => {
-      const x = MARGIN_X + col * COL_GAP;
-      const y = MARGIN_Y + row * ROW_GAP;
-      placed.set(node.id, { node, x, y, cx: x + NODE_W / 2, cy: y + NODE_H / 2 });
+  const { placed, width, height } = useMemo(() => {
+    const tiers = [...new Set(nodes.map((n) => n.tier))].sort((a, b) => a - b);
+    const byTier = new Map<number, DataflowNode[]>();
+    for (const n of nodes) {
+      const arr = byTier.get(n.tier) ?? [];
+      arr.push(n);
+      byTier.set(n.tier, arr);
+    }
+    const map = new Map<string, Placed>();
+    let maxRows = 0;
+    tiers.forEach((tier, col) => {
+      const group = byTier.get(tier) ?? [];
+      maxRows = Math.max(maxRows, group.length);
+      group.forEach((node, row) => {
+        const x = MARGIN_X + col * COL_GAP;
+        const y = MARGIN_Y + row * ROW_GAP;
+        map.set(node.id, { node, x, y, cx: x + NODE_W / 2, cy: y + NODE_H / 2 });
+      });
     });
-  });
+    const w = MARGIN_X * 2 + Math.max(1, tiers.length) * COL_GAP - (COL_GAP - NODE_W);
+    const h = MARGIN_Y * 2 + Math.max(1, maxRows) * ROW_GAP - (ROW_GAP - NODE_H);
+    return { placed: map, width: w, height: h };
+  }, [nodes]);
 
-  const width = MARGIN_X * 2 + Math.max(1, tiers.length) * COL_GAP - (COL_GAP - NODE_W);
-  const height = MARGIN_Y * 2 + Math.max(1, maxRows) * ROW_GAP - (ROW_GAP - NODE_H);
+  // Map a client (screen) point into the SVG viewBox coordinate space.
+  const clientToSvg = useCallback((clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const p = pt.matrixTransform(ctm.inverse());
+    return { x: p.x, y: p.y };
+  }, []);
+
+  const zoomTo = useCallback(
+    (nextScale: number, center?: { x: number; y: number }) => {
+      const s2 = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
+      setScale((s) => {
+        if (center) {
+          // Keep the world point under `center` fixed while scaling.
+          setTx((t) => center.x - ((center.x - t) / s) * s2);
+          setTy((t) => center.y - ((center.y - t) / s) * s2);
+        }
+        return s2;
+      });
+    },
+    [],
+  );
+
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const center = clientToSvg(e.clientX, e.clientY);
+    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+    zoomTo(scale * factor, center);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    drag.current = { x0: e.clientX, y0: e.clientY, tx0: tx, ty0: ty };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!drag.current) return;
+    const svg = svgRef.current;
+    if (!svg) return;
+    // Convert the client-pixel delta into viewBox units so panning tracks the cursor.
+    const scaleX = svg.viewBox.baseVal.width / svg.clientWidth || 1;
+    const scaleY = svg.viewBox.baseVal.height / svg.clientHeight || 1;
+    setTx(drag.current.tx0 + (e.clientX - drag.current.x0) * scaleX);
+    setTy(drag.current.ty0 + (e.clientY - drag.current.y0) * scaleY);
+  };
+  const endDrag = () => {
+    drag.current = null;
+  };
+
+  const reset = () => {
+    setScale(1);
+    setTx(0);
+    setTy(0);
+  };
 
   return (
-    <div className="overflow-x-auto">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        style={{ minWidth: Math.min(width, 720) }}
-        className="block h-auto rounded-md border bg-card text-foreground"
-        role="img"
-        aria-label="Application data-flow diagram"
-      >
-        <defs>
-          <marker id="dfd-end" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
-            <path d="M0,0 L6.5,3 L0,6 z" style={{ fill: edgeStroke }} />
-          </marker>
-          <marker id="dfd-red" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
-            <path d="M0,0 L7,3.5 L0,7 z" fill={RED} />
-          </marker>
-        </defs>
+    <div>
+      <div className="relative overflow-hidden rounded-md border bg-card">
+        {/* Zoom controls */}
+        <div className="absolute right-2 top-2 z-10 flex flex-col gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8 bg-background/90"
+            onClick={() => zoomTo(scale * 1.2, { x: width / 2, y: height / 2 })}
+            aria-label="Zoom in"
+          >
+            <ZoomIn className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8 bg-background/90"
+            onClick={() => zoomTo(scale / 1.2, { x: width / 2, y: height / 2 })}
+            aria-label="Zoom out"
+          >
+            <ZoomOut className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8 bg-background/90"
+            onClick={reset}
+            aria-label="Reset view"
+          >
+            <Maximize2 className="size-4" />
+          </Button>
+        </div>
 
-        {/* Edges (drawn first, under nodes) */}
-        {edges.map((e) => {
-          const from = placed.get(e.from);
-          const to = placed.get(e.to);
-          if (!from || !to) return null;
-          const a = anchor(from, to.cx);
-          const b = anchor(to, from.cx);
-          const midX = (a.x + b.x) / 2;
-          const midY = (a.y + b.y) / 2;
-          const crossing = e.crossesBoundary;
-          return (
-            <g key={e.id}>
-              <line
-                x1={a.x}
-                y1={a.y}
-                x2={b.x}
-                y2={b.y}
-                fill="none"
-                strokeWidth={crossing ? 1.6 : 1.4}
-                stroke={crossing ? RED : edgeStroke}
-                strokeDasharray={crossing ? "6 4" : undefined}
-                markerEnd={crossing ? "url(#dfd-red)" : "url(#dfd-end)"}
-              />
-              {e.label || e.dataClass ? (
-                <text
-                  x={midX}
-                  y={midY - 4}
-                  textAnchor="middle"
-                  style={{ fontSize: "10px", fontWeight: 500 }}
-                  fill={crossing ? RED : "hsl(var(--muted-foreground))"}
-                >
-                  {truncate([e.label, e.dataClass].filter(Boolean).join(" · "), 26)}
-                </text>
-              ) : null}
-            </g>
-          );
-        })}
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${width} ${height}`}
+          width="100%"
+          style={{ height: VIEWPORT_H, touchAction: "none", cursor: drag.current ? "grabbing" : "grab" }}
+          className="block text-foreground"
+          role="img"
+          aria-label="Application data-flow diagram — drag to pan, scroll or use the buttons to zoom"
+          onWheel={onWheel}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerLeave={endDrag}
+        >
+          <defs>
+            <marker id="dfd-end" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
+              <path d="M0,0 L6.5,3 L0,6 z" style={{ fill: edgeStroke }} />
+            </marker>
+            <marker id="dfd-red" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 z" fill={RED} />
+            </marker>
+          </defs>
 
-        {/* Nodes */}
-        {[...placed.values()].map(({ node, x, y }) => {
-          const s = styleFor(node.type);
-          const isProcess = node.type === "process";
-          return (
-            <g key={node.id}>
-              <rect
-                x={x}
-                y={y}
-                width={NODE_W}
-                height={NODE_H}
-                rx={isProcess ? NODE_H / 2 : 3}
-                strokeWidth={1.4}
-                style={s}
-              />
-              {/* Datastore hint: an inner left bar, evoking the classic open store. */}
-              {node.type === "datastore" ? (
-                <line
-                  x1={x + 8}
-                  y1={y + 6}
-                  x2={x + 8}
-                  y2={y + NODE_H - 6}
-                  stroke="hsl(var(--border))"
-                  strokeWidth={1.2}
-                />
-              ) : null}
-              <text
-                x={x + NODE_W / 2}
-                y={y + NODE_H / 2 - 3}
-                textAnchor="middle"
-                style={{ fontSize: "12px", fontWeight: 600 }}
-                fill="currentColor"
-              >
-                {truncate(node.label, 22)}
-                <title>{node.label}</title>
-              </text>
-              <text
-                x={x + NODE_W / 2}
-                y={y + NODE_H / 2 + 12}
-                textAnchor="middle"
-                style={{ fontSize: "9px", fontWeight: 500, letterSpacing: "0.03em" }}
-                fill="hsl(var(--muted-foreground))"
-              >
-                {DATAFLOW_NODE_TYPE_LABELS[node.type].toUpperCase()}
-                {node.trustZone ? ` · ${truncate(node.trustZone, 16)}` : ""}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+          <g transform={`translate(${tx} ${ty}) scale(${scale})`}>
+            {/* Edges (drawn first, under nodes) */}
+            {edges.map((e) => {
+              const from = placed.get(e.from);
+              const to = placed.get(e.to);
+              if (!from || !to) return null;
+              const a = anchor(from, to.cx);
+              const b = anchor(to, from.cx);
+              const midX = (a.x + b.x) / 2;
+              const midY = (a.y + b.y) / 2;
+              const crossing = e.crossesBoundary;
+              const labelText = truncate([e.label, e.dataClass].filter(Boolean).join(" · "), 30);
+              return (
+                <g key={e.id}>
+                  <line
+                    x1={a.x}
+                    y1={a.y}
+                    x2={b.x}
+                    y2={b.y}
+                    fill="none"
+                    strokeWidth={crossing ? 1.8 : 1.5}
+                    stroke={crossing ? RED : edgeStroke}
+                    strokeDasharray={crossing ? "6 4" : undefined}
+                    markerEnd={crossing ? "url(#dfd-red)" : "url(#dfd-end)"}
+                  />
+                  {labelText ? (
+                    <text
+                      x={midX}
+                      y={midY - 6}
+                      textAnchor="middle"
+                      // Halo via paint-order so the label stays legible over the line.
+                      stroke={cardBg}
+                      strokeWidth={3}
+                      paintOrder="stroke"
+                      style={{ fontSize: "11px", fontWeight: 500 }}
+                      fill={crossing ? RED : "hsl(var(--muted-foreground))"}
+                    >
+                      {labelText}
+                    </text>
+                  ) : null}
+                </g>
+              );
+            })}
+
+            {/* Nodes */}
+            {[...placed.values()].map(({ node, x, y }) => {
+              const s = styleFor(node.type);
+              const isProcess = node.type === "process";
+              return (
+                <g key={node.id}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={NODE_W}
+                    height={NODE_H}
+                    rx={isProcess ? NODE_H / 2 : 4}
+                    strokeWidth={1.5}
+                    style={s}
+                  />
+                  {node.type === "datastore" ? (
+                    <line
+                      x1={x + 10}
+                      y1={y + 8}
+                      x2={x + 10}
+                      y2={y + NODE_H - 8}
+                      stroke="hsl(var(--border))"
+                      strokeWidth={1.3}
+                    />
+                  ) : null}
+                  <text
+                    x={x + NODE_W / 2}
+                    y={y + NODE_H / 2 - 4}
+                    textAnchor="middle"
+                    style={{ fontSize: "13px", fontWeight: 600 }}
+                    fill="currentColor"
+                  >
+                    {truncate(node.label, 24)}
+                    <title>{node.label}</title>
+                  </text>
+                  <text
+                    x={x + NODE_W / 2}
+                    y={y + NODE_H / 2 + 14}
+                    textAnchor="middle"
+                    style={{ fontSize: "9.5px", fontWeight: 500, letterSpacing: "0.03em" }}
+                    fill="hsl(var(--muted-foreground))"
+                  >
+                    {DATAFLOW_NODE_TYPE_LABELS[node.type].toUpperCase()}
+                    {node.trustZone ? ` · ${truncate(node.trustZone, 18)}` : ""}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        </svg>
+      </div>
 
       {/* Legend */}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
@@ -196,6 +318,7 @@ export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
           <span className="inline-block w-6 border-t border-dashed" style={{ borderColor: RED }} />
           Crosses trust boundary
         </span>
+        <span className="ml-auto text-muted-foreground/80">Drag to pan · scroll to zoom</span>
       </div>
     </div>
   );
