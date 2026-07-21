@@ -103,9 +103,15 @@ Generated from \`demo/payment-mcp-server/package.json\`. Runtime is Node.js ≥ 
 
 ${sbomTable(pkg)}
 
-## Trust boundaries
+## Trust Boundaries
 
-The deployment crosses five trust boundaries, each modeled in this project's Threat Model: agent → server (LLM_TO_MCP), server → downstream APIs (MCP_TO_TOOL), server → client session (MCP_TO_USER), tool output → agent context (TOOL_OUTPUT_TO_LLM), and third-party server packages (EXTERNAL).`;
+The deployment crosses five trust boundaries, each modeled in this project's Threat Model:
+
+- **Agent → Server** (LLM to MCP server)
+- **Server → Downstream APIs** (MCP server to tools)
+- **Server → Client Session** (MCP server to user)
+- **Tool Output → Agent Context** (tool output back into the LLM)
+- **Third-Party Server Packages** (external / supply chain)`;
 
   const techStack = [
     "TypeScript",
