@@ -40,7 +40,7 @@ export default async function DataflowPage({ params }: { params: { id: string } 
         <>
           <Card>
             <CardContent className="pt-4">
-              <DataflowDiagram dataflow={dataflow} />
+              <DataflowDiagram dataflow={dataflow} filename={`${project.name}-dataflow`} />
             </CardContent>
           </Card>
 

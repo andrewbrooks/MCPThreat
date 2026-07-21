@@ -1,6 +1,6 @@
 "use client";
 
-import { Maximize2, ZoomIn, ZoomOut } from "lucide-react";
+import { Download, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,7 +58,22 @@ function anchor(p: Placed, towardX: number): { x: number; y: number } {
   return { x, y: p.cy };
 }
 
-export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
+function slugify(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "dataflow"
+  );
+}
+
+export function DataflowDiagram({
+  dataflow,
+  filename = "dataflow",
+}: {
+  dataflow: Dataflow;
+  filename?: string;
+}) {
   const { nodes, edges } = dataflow;
   const svgRef = useRef<SVGSVGElement>(null);
   const [scale, setScale] = useState(1);
@@ -149,6 +164,59 @@ export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
     setTy(0);
   };
 
+  // Export the full diagram as a self-contained SVG. The live SVG references
+  // theme CSS variables (hsl(var(--…))) and currentColor, which don't resolve
+  // outside the app — so we clone it, reset pan/zoom, add a background, and
+  // substitute each variable with its computed color before serializing.
+  const exportSvg = useCallback(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const cs = getComputedStyle(svg);
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("width", String(width));
+    clone.setAttribute("height", String(height));
+    clone.removeAttribute("style"); // drop viewport height + grab cursor
+
+    const root = clone.querySelector("#dfd-export-root");
+    root?.removeAttribute("transform"); // export the whole diagram, not the pan/zoom view
+
+    // Opaque card-colored background so the export isn't transparent.
+    const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    bg.setAttribute("width", String(width));
+    bg.setAttribute("height", String(height));
+    bg.setAttribute("fill", `hsl(${cs.getPropertyValue("--card").trim()})`);
+    clone.insertBefore(bg, clone.firstChild);
+
+    let out = new XMLSerializer().serializeToString(clone);
+    // Longest names first is harmless; the trailing ")" already disambiguates.
+    const vars = [
+      "muted-foreground",
+      "accent-foreground",
+      "card",
+      "foreground",
+      "muted",
+      "accent",
+      "secondary",
+      "border",
+    ];
+    for (const v of vars) {
+      const val = cs.getPropertyValue(`--${v}`).trim();
+      if (val) out = out.split(`var(--${v})`).join(val);
+    }
+    out = out.split("currentColor").join(`hsl(${cs.getPropertyValue("--foreground").trim()})`);
+    out = `<?xml version="1.0" encoding="UTF-8"?>\n${out}`;
+
+    const url = URL.createObjectURL(new Blob([out], { type: "image/svg+xml;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${slugify(filename)}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [width, height, filename]);
+
   return (
     <div>
       <div className="relative overflow-hidden rounded-md border bg-card">
@@ -184,6 +252,17 @@ export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
           >
             <Maximize2 className="size-4" />
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8 bg-background/90"
+            onClick={exportSvg}
+            aria-label="Export diagram as SVG"
+            title="Export as SVG"
+          >
+            <Download className="size-4" />
+          </Button>
         </div>
 
         <svg
@@ -209,7 +288,7 @@ export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
             </marker>
           </defs>
 
-          <g transform={`translate(${tx} ${ty}) scale(${scale})`}>
+          <g id="dfd-export-root" transform={`translate(${tx} ${ty}) scale(${scale})`}>
             {/* Edges (drawn first, under nodes) */}
             {edges.map((e) => {
               const from = placed.get(e.from);
