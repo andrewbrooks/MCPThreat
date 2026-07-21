@@ -10,6 +10,7 @@ import {
   StatusPill,
   StrideBadge,
 } from "@/components/shared/badges";
+import { Markdown } from "@/components/shared/markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -212,9 +213,9 @@ export function ReportView({ data, markdown }: { data: ReportData; markdown: str
                   <h3 className="mb-1 text-sm font-medium text-muted-foreground">
                     Architecture Notes
                   </h3>
-                  <p className="whitespace-pre-wrap rounded-md border bg-muted/30 p-3 text-sm">
-                    {data.architecture}
-                  </p>
+                  <div className="rounded-md border bg-muted/30 p-3 text-sm">
+                    <Markdown source={data.architecture} />
+                  </div>
                 </div>
               ) : null}
             </div>
