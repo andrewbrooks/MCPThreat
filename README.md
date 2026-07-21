@@ -2,9 +2,9 @@
 
 **MCPThreat is a highly functional prototype for rapid threat modeling of Model Context Protocol (MCP) servers**
 
-MCP connects LLM agents to real tools, data, and downstream systems, and in doing so introduces a class of risks that traditional threat modeling doesn't cover well: prompt injection through tool output, tool poisoning, confused-deputy tool calls, token passthrough, and context bleed between tenants. MCPThreat turns reasoning about those risks into a structured, repeatable workflow. You map the trust boundaries, chart the dataflows, catalog the threats against a purpose-built taxonomy, and track every finding to mitigation, then hand a report to a stakeholder at the end.
+MCP connects LLM agents to real tools, data, and downstream systems, and in doing so introduces a class of risks that traditional threat modeling doesn't cover well such as prompt injection, tool poisoning, token passthrough, context bleed between tenants, and more. MCPThreat turns reasoning about those risks into a structured, repeatable workflow. You map the trust boundaries, chart the dataflows, catalog the threats against a purpose-built taxonomy, and track every finding to mitigation, then hand a report to a stakeholder at the end.
 
-It can also **point at a public GitHub repository and bootstrap the whole model for you**, distilling the architecture, drawing the dataflow, and conservatively proposing threats for review.
+It can also **point at a GitHub repository and bootstrap the whole model for you**, distilling the architecture, drawing the dataflow, and intelligently prepopulating threats for review.
 
 ---
 
@@ -18,11 +18,11 @@ It can also **point at a public GitHub repository and bootstrap the whole model 
 
 ![Threat model workspace](docs/screenshots/threat-model.png)
 
-**Architecture**: a client/server breakdown and a Software Bill of Materials, here generated from the bundled demo server.
+**Architecture**: a client/server breakdown and a Software Bill of Materials (SBOM), in this case generated from the bundled demo MCP server.
 
 ![Architecture](docs/screenshots/architecture.png)
 
-**Dataflow**: an interactive, zoomable data-flow diagram with trust-boundary crossings highlighted, plus a sortable flows table. Export the diagram as SVG.
+**Dataflow**: an interactive data-flow diagram with clearly defined trust boundaries.
 
 ![Dataflow](docs/screenshots/dataflow.png)
 
@@ -115,20 +115,10 @@ Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and p
 
 Unit tests (Vitest, in `tests/`) cover the pure, security-critical logic: risk scoring, the acceptance state machine, the SSRF and `github.com` host-lock guards, dataflow parsing, and metrics. Run `npm test`. Regenerate the screenshots above with `node docs/capture-screenshots.mjs` (dev server running + demo seeded).
 
-## Security posture
-
-MCPThreat applies the practices it teaches:
-
-- Ownership/membership checks on every project-scoped route and page, through one `requireProjectAccess` gate.
-- SSRF-safe validation of user-supplied URLs (HTTPS-only; private/reserved/metadata ranges blocked); the GitHub analyzer is host-locked to `github.com` and never persists a pasted token.
-- Strict Zod validation on all writes; enum values constrained to the taxonomy.
-- Secure sessions (NextAuth JWT); no token passthrough.
-- CSP, `X-Frame-Options`, `X-Content-Type-Options`, and referrer/permissions policies on every response.
 
 ## Tech stack
 
 Next.js 14 (App Router) · TypeScript · Prisma (SQLite in dev, Postgres-portable) · NextAuth v4 · Tailwind CSS + hand-rolled shadcn-style primitives · React Hook Form + Zod · Vitest · `@anthropic-ai/sdk`.
 
-## Status
-
-A highly functional prototype (v1.0), intended as a fast, credible starting point rather than a hardened production deployment. See `CLAUDE.md` for architecture notes and conventions.
+## License
+[Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
