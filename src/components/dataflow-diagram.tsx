@@ -26,9 +26,11 @@ const RED = "#E24B4A";
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 3;
 
-const zoneStyle = { fill: "hsl(var(--muted))", stroke: "hsl(var(--border))" };
-const processStyle = { fill: "hsl(var(--accent) / 0.12)", stroke: "hsl(var(--accent) / 0.5)" };
-const storeStyle = { fill: "hsl(var(--secondary))", stroke: "hsl(var(--border))" };
+// Outlines use muted-foreground / accent-foreground (not the very light --border)
+// so the boxes read clearly against the card in both light and dark themes.
+const zoneStyle = { fill: "hsl(var(--muted))", stroke: "hsl(var(--muted-foreground) / 0.7)" };
+const processStyle = { fill: "hsl(var(--accent) / 0.15)", stroke: "hsl(var(--accent-foreground) / 0.6)" };
+const storeStyle = { fill: "hsl(var(--secondary))", stroke: "hsl(var(--muted-foreground) / 0.7)" };
 const edgeStroke = "hsl(var(--muted-foreground) / 0.6)";
 const cardBg = "hsl(var(--card))";
 
@@ -263,7 +265,7 @@ export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
                     width={NODE_W}
                     height={NODE_H}
                     rx={isProcess ? NODE_H / 2 : 4}
-                    strokeWidth={1.5}
+                    strokeWidth={2}
                     style={s}
                   />
                   {node.type === "datastore" ? (
@@ -272,8 +274,8 @@ export function DataflowDiagram({ dataflow }: { dataflow: Dataflow }) {
                       y1={y + 8}
                       x2={x + 10}
                       y2={y + NODE_H - 8}
-                      stroke="hsl(var(--border))"
-                      strokeWidth={1.3}
+                      stroke="hsl(var(--muted-foreground) / 0.7)"
+                      strokeWidth={1.6}
                     />
                   ) : null}
                   <text
