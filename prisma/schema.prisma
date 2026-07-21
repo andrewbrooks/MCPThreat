@@ -1,0 +1,260 @@
+// MCPThreat — Prisma schema
+//
+// Dev uses SQLite. For production, switch `provider` to "postgresql" and point
+// DATABASE_URL at Postgres. Enum-like fields are stored as String columns because
+// SQLite has no native enums; their allowed values are the single source of truth
+// in src/lib/taxonomy.ts and are enforced at the app layer via Zod. This keeps the
+// schema portable across both databases without a migration rewrite.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------------------------------------------------------
+// Auth (NextAuth / Auth.js models)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String? // null for OAuth-only users
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  projects    Project[]       @relation("ProjectOwner")
+  memberships ProjectMember[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Domain
+// ---------------------------------------------------------------------------
+
+model Project {
+  id           String   @id @default(cuid())
+  name         String
+  description  String   @default("")
+  mcpServerUrl String?
+  architecture String   @default("")
+  status       String   @default("ACTIVE") // ProjectStatus: ACTIVE | ARCHIVED
+  // Risk-acceptance approval policy: OFF (direct accept) | SINGLE | DUAL (assessor + client)
+  acceptancePolicy String @default("OFF")
+  ownerId      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  threatModel ThreatModel?
+  findings    Finding[]
+  members     ProjectMember[]
+
+  @@index([ownerId])
+}
+
+model ThreatModel {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project    Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  boundaries TrustBoundary[]
+}
+
+model TrustBoundary {
+  id            String   @id @default(cuid())
+  threatModelId String
+  label         String
+  description   String   @default("")
+  type          String // TrustBoundaryType
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  threatModel ThreatModel    @relation(fields: [threatModelId], references: [id], onDelete: Cascade)
+  vectors     ThreatVector[]
+
+  @@index([threatModelId])
+}
+
+model ThreatVector {
+  id              String   @id @default(cuid())
+  trustBoundaryId String
+  title           String
+  description     String   @default("")
+  strideCategory  String // StrideCategory
+  mcpCategory     String // McpCategory
+  likelihood      String   @default("MEDIUM") // RiskLevel
+  impact          String   @default("MEDIUM") // RiskLevel
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  trustBoundary TrustBoundary @relation(fields: [trustBoundaryId], references: [id], onDelete: Cascade)
+  findings      Finding[]
+
+  @@index([trustBoundaryId])
+}
+
+model Finding {
+  id             String    @id @default(cuid())
+  threatVectorId String
+  projectId      String
+  title          String
+  description    String    @default("")
+  recommendation String    @default("")
+  severity       String    @default("MEDIUM") // Severity
+  status         String    @default("OPEN") // FindingStatus
+  owner          String    @default("")
+  dueDate        DateTime?
+  evidence       String    @default("")
+  // Review/revisit timer: when set (30/60/90), an accepted finding reopens once
+  // reviewDueAt passes so the decision is revisited.
+  reviewIntervalDays Int?
+  reviewDueAt        DateTime?
+  // Recurring owner reminder: every reminderIntervalDays, email the owner while the
+  // finding is still open. reminderNextAt is the next scheduled send.
+  reminderIntervalDays Int?
+  reminderNextAt       DateTime?
+  lastAlertAt          DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  threatVector ThreatVector        @relation(fields: [threatVectorId], references: [id], onDelete: Cascade)
+  project      Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
+  acceptanceRequests AcceptanceRequest[]
+
+  @@index([projectId])
+  @@index([threatVectorId])
+}
+
+// A request to accept a finding's risk, gated by the project's acceptancePolicy.
+// DUAL requests need one ASSESSOR and one CLIENT sign-off; SINGLE needs one approver
+// other than the requester. Approval sets the finding to ACCEPTED with an expiry that
+// reuses the review timer so acceptance lapses and the finding reopens.
+model AcceptanceRequest {
+  id                    String    @id @default(cuid())
+  findingId             String
+  projectId             String
+  status                String    @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED | EXPIRED
+  requireBothSides      Boolean   @default(false)
+  justification         String
+  residualRisk          String    @default("")
+  priorStatus           String
+  reviewIntervalDays    Int?
+  requestedById         String?
+  requestedByLabel      String    @default("")
+  assessorApproverId    String?
+  assessorApproverLabel String?
+  assessorApprovedAt    DateTime?
+  clientApproverId      String?
+  clientApproverLabel   String?
+  clientApprovedAt      DateTime?
+  rejectedById          String?
+  rejectedByLabel       String?
+  rejectedReason        String?
+  createdAt             DateTime  @default(now())
+  resolvedAt            DateTime?
+  expiresAt             DateTime?
+
+  finding Finding @relation(fields: [findingId], references: [id], onDelete: Cascade)
+
+  @@index([findingId])
+  @@index([projectId])
+}
+
+model Attachment {
+  id              String   @id @default(cuid())
+  findingId       String
+  projectId       String
+  filename        String
+  mimeType        String
+  size            Int
+  data            Bytes // file contents stored in-DB for portable download
+  uploadedById    String?
+  uploadedByLabel String   @default("")
+  createdAt       DateTime @default(now())
+
+  finding Finding @relation(fields: [findingId], references: [id], onDelete: Cascade)
+
+  @@index([findingId])
+}
+
+// Append-only audit trail. Intentionally NOT related to Finding with a cascade so
+// the history survives even if the finding is later deleted.
+model AuditEvent {
+  id         String   @id @default(cuid())
+  projectId  String
+  findingId  String?
+  actorId    String?
+  actorLabel String   @default("")
+  action     String // CREATED | UPDATED | STATUS_CHANGED | DELETED | REOPENED | ATTACHMENT_ADDED | ATTACHMENT_REMOVED | ALERT_SENT | REMINDER_SENT
+  field      String?
+  oldValue   String?
+  newValue   String?
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
+  @@index([findingId])
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  email     String
+  userId    String?
+  role      String   @default("MEMBER") // ProjectRole: OWNER | ADMIN | MEMBER | VIEWER
+  side      String   @default("CLIENT") // PartySide: ASSESSOR | CLIENT (owner is always ASSESSOR)
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, email])
+  @@index([projectId])
+}

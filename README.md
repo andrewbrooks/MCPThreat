@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MCPThreat
 
-## Getting Started
+A SaaS-style threat-modeling tool built specifically for **MCP (Model Context Protocol) servers**. Model an MCP deployment as trust boundaries, map STRIDE + MCP-specific threat vectors, track findings to mitigation, and generate a shareable threat-model report.
 
-First, run the development server:
+## Stack
+
+- **Next.js 14** (App Router) + **TypeScript**
+- **Prisma ORM** — SQLite in dev, PostgreSQL-ready for prod
+- **Tailwind CSS** + hand-rolled shadcn/ui-style primitives (dark mode default)
+- **NextAuth.js** — email/password (bcrypt) + optional GitHub OAuth
+- **React Hook Form** + **Zod** validation
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env          # adjust secrets as needed
+npx prisma migrate dev        # create the SQLite database
+npm run seed                  # load the "Example Payment MCP" sample
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Demo login:** `demo@example.com` / `password123`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### GitHub OAuth (optional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `GITHUB_ID` and `GITHUB_SECRET` in `.env`. When both are present the "Continue with GitHub" button appears; otherwise the app runs on email/password alone. Callback URL: `http://localhost:3000/api/auth/callback/github`.
 
-## Learn More
+### Production database
 
-To learn more about Next.js, take a look at the following resources:
+Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and point `DATABASE_URL` at Postgres. Enum-like fields are stored as `String` columns validated at the app layer, so no schema rewrite is needed.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What's inside
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Dashboard** — project cards with open-finding counts, severity breakdown, and completion %.
+- **Project detail** — inline-editable metadata, completion progress, expandable trust boundaries, findings summary.
+- **Threat Model Workspace** — a four-step flow (boundaries → vectors → findings → review) with live MCP security guidance.
+- **Findings** — filter/sort, inline status changes, bulk updates, and a per-finding detail drawer.
+- **Report** — generated markdown (exec summary, boundary map, vector table, findings, mitigation summary, recommended controls) with copy + PDF export.
+- **Security Guidance** — an MCP security knowledge base mapping each threat category to concrete mitigations and cited references.
 
-## Deploy on Vercel
+## Security posture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MCPThreat applies the practices it teaches:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Ownership/membership checks on every project-scoped route and page.
+- SSRF-safe validation of user-supplied MCP server URLs (HTTPS-only, private/reserved/metadata ranges blocked).
+- Strict Zod validation on all writes; enum values constrained to the taxonomy.
+- Secure sessions (NextAuth JWT), no token passthrough.
+- CSP, `X-Frame-Options`, `X-Content-Type-Options`, and referrer/permissions policies on every response.
+
+## Scripts
+
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build (typecheck + lint) |
+| `npm run seed` | Seed the sample project |
+| `npm run db:reset` | Reset the database and re-seed |
+
+## Health
+
+`GET /api/health` returns `{ status, db }` for deployment checks.
