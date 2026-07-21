@@ -14,12 +14,14 @@ npx tsc --noEmit                    # typecheck only (faster than build)
 npm run seed                        # seed the "Example Payment MCP" sample (DUAL policy).
                                     # Logins: demo@example.com (assessor) + client@example.com (client), password123
 npm run db:reset                    # DESTRUCTIVE: prisma migrate reset --force, then re-seed
+npm test                            # vitest run — unit tests for the pure/security-critical logic
+npm run test:watch                  # vitest watch mode
 
 npx prisma migrate dev --name X     # create + apply a migration after editing schema.prisma
 npx prisma generate                 # regenerate the client (also runs after migrate)
 ```
 
-There is **no test runner** in this project. Validate changes with `npx tsc --noEmit` then `npm run build`.
+Tests (Vitest) live in `tests/` and cover the pure, security-critical logic — risk scoring, the acceptance state machine, the SSRF/host-lock guards (`url-safety`, `github`), dataflow parsing, and metrics. They intentionally avoid the DB; validate the rest with `npx tsc --noEmit` then `npm run build`.
 
 ### Windows / Prisma gotcha
 On Windows the running dev server locks the Prisma engine DLL, so `prisma migrate`/`generate` fail with `EPERM`. **Stop the dev server (and any `next`/`node` processes) before running migrations**, then restart it afterward.
