@@ -90,7 +90,7 @@ export function AiBadge({ className }: { className?: string }) {
         "gap-1 border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300",
         className,
       )}
-      title="Suggested by automated analysis — review before relying on it"
+      title="Suggested by automated analysis; review before relying on it"
     >
       <Sparkles className="size-3" /> AI-suggested
     </Badge>

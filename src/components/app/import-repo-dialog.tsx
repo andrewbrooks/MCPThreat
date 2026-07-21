@@ -48,7 +48,7 @@ export function ImportRepoDialog({ variant = "outline" }: { variant?: "default" 
         return;
       }
       if (data.status === "FAILED") {
-        toast(data.error ?? "Analysis failed — open the project to retry.", "error");
+        toast(data.error ?? "Analysis failed. Open the project to retry.", "error");
       } else {
         toast("Threat model generated. Review the AI-suggested items.", "success");
       }

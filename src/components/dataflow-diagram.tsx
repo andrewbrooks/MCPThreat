@@ -272,7 +272,7 @@ export function DataflowDiagram({
           style={{ height: VIEWPORT_H, touchAction: "none", cursor: drag.current ? "grabbing" : "grab" }}
           className="block text-foreground"
           role="img"
-          aria-label="Application data-flow diagram — drag to pan, scroll or use the buttons to zoom"
+          aria-label="Application data-flow diagram; drag to pan, scroll or use the buttons to zoom"
           onWheel={onWheel}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}

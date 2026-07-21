@@ -1,36 +1,36 @@
 # MCPThreat
 
-**MCPThreat is a highly functional prototype for rapid threat modeling of Model Context Protocol (MCP) servers and the risks unique to them.**
+**MCPThreat is a highly functional prototype for rapid threat modeling of Model Context Protocol (MCP) servers**
 
-MCP connects LLM agents to real tools, data, and downstream systems — and in doing so introduces a class of risks that traditional threat modeling doesn't cover well: prompt injection through tool output, tool poisoning, confused-deputy tool calls, token passthrough, and context bleed between tenants. MCPThreat turns reasoning about those risks into a structured, repeatable workflow: map the trust boundaries, chart the dataflows, catalog the threats against a purpose-built taxonomy, and track every finding to mitigation — with a report you can hand to a stakeholder at the end.
+MCP connects LLM agents to real tools, data, and downstream systems, and in doing so introduces a class of risks that traditional threat modeling doesn't cover well: prompt injection through tool output, tool poisoning, confused-deputy tool calls, token passthrough, and context bleed between tenants. MCPThreat turns reasoning about those risks into a structured, repeatable workflow. You map the trust boundaries, chart the dataflows, catalog the threats against a purpose-built taxonomy, and track every finding to mitigation, then hand a report to a stakeholder at the end.
 
-It can also **point at a public GitHub repository and bootstrap the whole model for you** — distilling the architecture, drawing the dataflow, and conservatively proposing threats for review.
+It can also **point at a public GitHub repository and bootstrap the whole model for you**, distilling the architecture, drawing the dataflow, and conservatively proposing threats for review.
 
 ---
 
 ## Screenshots
 
-**Dashboard** — every project at a glance, with open-finding counts, severity breakdown, and mitigation progress.
+**Dashboard**: every project at a glance, with open-finding counts, severity breakdown, and mitigation progress.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-**Threat model** — trust boundaries, an interactive trust-boundary map, and a likelihood × impact risk matrix.
+**Threat model**: trust boundaries, an interactive trust-boundary map, and a likelihood × impact risk matrix.
 
 ![Threat model workspace](docs/screenshots/threat-model.png)
 
-**Architecture** — a client/server breakdown and a Software Bill of Materials, here generated from the bundled demo server.
+**Architecture**: a client/server breakdown and a Software Bill of Materials, here generated from the bundled demo server.
 
 ![Architecture](docs/screenshots/architecture.png)
 
-**Dataflow** — an interactive, zoomable data-flow diagram with trust-boundary crossings highlighted, plus a sortable flows table. Export the diagram as SVG.
+**Dataflow**: an interactive, zoomable data-flow diagram with trust-boundary crossings highlighted, plus a sortable flows table. Export the diagram as SVG.
 
 ![Dataflow](docs/screenshots/dataflow.png)
 
-**Findings** — a filterable, sortable register with severity, status, owners, evidence, and the risk-acceptance workflow.
+**Findings**: a filterable, sortable register with severity, status, owners, evidence, and the risk-acceptance workflow.
 
 ![Findings](docs/screenshots/findings.png)
 
-**Report** — a tabbed, print/PDF-ready report pulling the whole model together.
+**Report**: a tabbed, print/PDF-ready report pulling the whole model together.
 
 ![Report](docs/screenshots/report.png)
 
@@ -45,18 +45,18 @@ It can also **point at a public GitHub repository and bootstrap the whole model 
 
 **Findings & governance**
 - Findings register with severity, a status lifecycle, owners, due dates, evidence, and file attachments.
-- **Risk-acceptance workflow** — off / single-approver / dual sign-off (assessor + client), severity-gated, with four-eyes enforcement and lapse-and-reopen review timers.
+- **Risk-acceptance workflow**: off / single-approver / dual sign-off (assessor + client), severity-gated, with four-eyes enforcement and lapse-and-reopen review timers.
 - Append-only **audit trail** and recurring owner reminders.
 - **Reports** with per-section tabs and a print/PDF-friendly layout.
 
 **GitHub-driven auto threat modeling**
 - Point MCPThreat at a public GitHub repo; it fetches (host-locked to `github.com`), prefilters the most relevant files, and uses Claude to distill architecture, dataflows, and threats.
-- **Conservative by design** — only well-evidenced items are created, each tagged *AI-suggested* with a confidence level and cited evidence, behind a review banner.
+- **Conservative by design**: only well-evidenced items are created, each tagged *AI-suggested* with a confidence level and cited evidence, behind a review banner.
 
 **Collaboration & security posture**
 - Projects with owner / admin / member / viewer roles; every access path gated by one authorization check.
 - **Security Guidance** knowledge base mapping each MCP threat category to concrete mitigations and cited references.
-- The product practices what it models — see [Security posture](#security-posture).
+- The product practices what it models. See [Security posture](#security-posture).
 
 ---
 
@@ -70,7 +70,7 @@ npm run seed                  # seed the demo project + logins
 npm run dev                   # http://localhost:3000
 ```
 
-**Demo logins** (from the seed): `demo@example.com` (assessor) and `client@example.com` (client) — password `password123`.
+**Demo logins** (from the seed): `demo@example.com` (assessor) and `client@example.com` (client), both with password `password123`.
 
 ### Enabling GitHub import (optional)
 
@@ -82,7 +82,7 @@ ANALYSIS_MODEL=""                # optional model override (default: claude-opus
 GITHUB_TOKEN=""                  # optional; higher rate limits / private repos
 ```
 
-Without a key the app runs normally and manual modeling is unaffected — the import feature simply reports that it isn't configured.
+Without a key the app runs normally and manual modeling is unaffected; the import feature simply reports that it isn't configured.
 
 ### GitHub OAuth login (optional)
 
@@ -105,7 +105,7 @@ Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and p
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build (typecheck + eslint) |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest — unit tests for the security-critical logic |
+| `npm test` | Vitest unit tests for the security-critical logic |
 | `npm run seed` | Seed the demo project |
 | `npm run db:reset` | DESTRUCTIVE: reset + re-seed the dev database |
 
@@ -131,4 +131,4 @@ Next.js 14 (App Router) · TypeScript · Prisma (SQLite in dev, Postgres-portabl
 
 ## Status
 
-A prototype (v1.0) — highly functional, and intended as a fast, credible starting point rather than a hardened production deployment. See `CLAUDE.md` for architecture notes and conventions.
+A highly functional prototype (v1.0), intended as a fast, credible starting point rather than a hardened production deployment. See `CLAUDE.md` for architecture notes and conventions.

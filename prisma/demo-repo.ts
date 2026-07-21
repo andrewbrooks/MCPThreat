@@ -11,7 +11,7 @@ const DEMO_DIR = join(process.cwd(), "demo", "payment-mcp-server");
 
 // Short purpose blurbs for the SBOM, keyed by package name.
 const PURPOSE: Record<string, string> = {
-  "@modelcontextprotocol/sdk": "MCP server SDK — tool registration + Streamable HTTP transport",
+  "@modelcontextprotocol/sdk": "MCP server SDK for tool registration and the Streamable HTTP transport",
   express: "HTTP server hosting the /mcp endpoint",
   pino: "Structured logging",
   zod: "Strict tool input-schema validation",
@@ -39,7 +39,7 @@ function sbomTable(pkg: DemoPkg): string {
   ];
   const add = (deps: Record<string, string> | undefined, scope: string) => {
     for (const [name, version] of Object.entries(deps ?? {})) {
-      rows.push(`| \`${name}\` | ${version} | ${scope} | ${PURPOSE[name] ?? "—"} |`);
+      rows.push(`| \`${name}\` | ${version} | ${scope} | ${PURPOSE[name] ?? "-"} |`);
     }
   };
   add(pkg.dependencies, "runtime");
@@ -56,7 +56,7 @@ export interface DemoContent {
 export function buildDemoContent(): DemoContent {
   const pkg = readDemoPkg();
 
-  const architecture = `# ${pkg.name} — Architecture
+  const architecture = `# ${pkg.name} Architecture
 
 _Distilled from the bundled demo repository \`demo/payment-mcp-server\` (v${pkg.version}). This describes the exact server code shipped with MCPThreat, so the component and dependency inventory below is complete._
 
@@ -68,7 +68,7 @@ The demo is a **payment-processing MCP server** that exposes payment operations 
 
 - **Client:** an LLM agent (and, indirectly, the merchant application that drives it).
 - **Server:** a Node.js/TypeScript process built on \`@modelcontextprotocol/sdk\`.
-- **Transport:** **Streamable HTTP** — the client \`POST\`s requests to \`/mcp\` and opens a \`GET /mcp\` stream for server→client events. Express hosts both routes (\`src/server.ts\`).
+- **Transport:** **Streamable HTTP**. The client \`POST\`s requests to \`/mcp\` and opens a \`GET /mcp\` stream for server→client events. Express hosts both routes (\`src/server.ts\`).
 - **Session model:** one \`McpServer\` instance per session. Session ids are cryptographically random (\`node:crypto.randomUUID\`) and bound to the calling merchant via the \`x-merchant-id\` header; a request whose session belongs to a different merchant is refused with 403 (\`src/session.ts\`).
 
 ## Components
@@ -83,9 +83,9 @@ The demo is a **payment-processing MCP server** that exposes payment operations 
 
 ## Tools exposed to the agent
 
-- **\`charge\`** — captures a payment via the processor, then records it in the ledger.
-- **\`refund\`** — reverses a prior charge, then records the refund in the ledger.
-- **\`get_receipt\`** — retrieves a receipt document from the RAG receipt store (read-only). Returned text re-enters the model context and is treated as untrusted.
+- **\`charge\`** captures a payment via the processor, then records it in the ledger.
+- **\`refund\`** reverses a prior charge, then records the refund in the ledger.
+- **\`get_receipt\`** retrieves a receipt document from the RAG receipt store (read-only). Returned text re-enters the model context and is treated as untrusted.
 
 ## Downstream systems
 

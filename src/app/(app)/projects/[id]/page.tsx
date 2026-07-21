@@ -76,8 +76,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           <div className="min-w-0 flex-1">
             <p className="font-medium">Generated from {repoShort || "a GitHub repository"}</p>
             <p className="text-xs text-violet-700/90 dark:text-violet-300/90">
-              {aiTotal} AI-suggested item{aiTotal === 1 ? "" : "s"} to review
-              {" — "}
+              {aiTotal} AI-suggested item{aiTotal === 1 ? "" : "s"} to review:{" "}
               {aiBoundaries} boundar{aiBoundaries === 1 ? "y" : "ies"}, {aiVectors} vector
               {aiVectors === 1 ? "" : "s"}, {aiFindings} finding{aiFindings === 1 ? "" : "s"}.
               Verify each before relying on it.

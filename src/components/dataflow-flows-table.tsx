@@ -91,8 +91,8 @@ export function DataflowFlowsTable({ flows }: { flows: FlowRow[] }) {
               <tr key={e.id} className="border-b last:border-0 even:bg-muted/20">
                 <td className="px-3 py-2">{e.from}</td>
                 <td className="px-3 py-2">{e.to}</td>
-                <td className="px-3 py-2">{e.data || "—"}</td>
-                <td className="px-3 py-2">{e.dataClass || "—"}</td>
+                <td className="px-3 py-2">{e.data || "-"}</td>
+                <td className="px-3 py-2">{e.dataClass || "-"}</td>
                 <td className="px-3 py-2">
                   {e.crosses ? (
                     <span className="font-medium text-red-600 dark:text-red-400">Yes</span>
