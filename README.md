@@ -56,7 +56,6 @@ It can also **point at a GitHub repository and bootstrap the whole model for you
 **Collaboration & security posture**
 - Projects with owner / admin / member / viewer roles; every access path gated by one authorization check.
 - **Security Guidance** knowledge base mapping each MCP threat category to concrete mitigations and cited references.
-- The product practices what it models. See [Security posture](#security-posture).
 
 ---
 
