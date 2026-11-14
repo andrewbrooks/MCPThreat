@@ -357,6 +357,13 @@ export const boundaryDisplayId = (n: number) => `B-${pad(n, 2)}`;
 export const vectorDisplayId = (n: number) => `T-${pad(n, 2)}`;
 export const findingDisplayId = (n: number) => `F-${pad(n, 3)}`;
 
+/** Display IDs (F-001...) for a project's findings, by creation order. */
+export function findingDisplayIds(
+  findings: { id: string; createdAt: DateLike }[],
+): Map<string, string> {
+  return new Map(byCreated(findings).map((f, i) => [f.id, findingDisplayId(i + 1)]));
+}
+
 function asSource(s: string): "MANUAL" | "AI" {
   return s === "AI" ? "AI" : "MANUAL";
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useModal } from "@/components/ui/use-modal";
 
 interface DialogProps {
   open: boolean;
@@ -26,6 +27,9 @@ export function Dialog({ open, onOpenChange, children, className }: DialogProps)
     };
   }, [open, onOpenChange]);
 
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModal(open, panelRef);
+
   if (!open) return null;
 
   return (
@@ -36,8 +40,10 @@ export function Dialog({ open, onOpenChange, children, className }: DialogProps)
         aria-hidden
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         className={cn(
           "relative z-10 w-full max-w-lg rounded-lg border bg-card p-6 shadow-lg max-h-[90vh] overflow-y-auto",
           className,

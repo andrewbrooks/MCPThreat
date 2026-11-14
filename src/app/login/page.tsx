@@ -38,7 +38,7 @@ function LoginForm() {
     setError(null);
     const res = await signIn("credentials", { ...values, redirect: false });
     if (res?.error) {
-      setError("Invalid email or password.");
+      setError("The email or password is not correct.");
       return;
     }
     router.push(callbackUrl);
@@ -49,11 +49,11 @@ function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-2xl">Sign in</CardTitle>
-        <CardDescription>Welcome back to MCPThreat.</CardDescription>
+        <CardDescription>MCPThreat: threat modeling for MCP servers.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {error ? (
-          <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
+          <div role="alert" className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
             <ShieldAlert className="size-4" /> {error}
           </div>
         ) : null}
@@ -105,9 +105,11 @@ function LoginForm() {
             Create one
           </Link>
         </p>
-        <p className="rounded-md bg-muted/50 p-2 text-center text-xs text-muted-foreground">
-          Demo login: demo@example.com / password123
-        </p>
+        {process.env.NODE_ENV !== "production" ? (
+          <p className="rounded-md bg-muted/50 p-2 text-center text-xs text-muted-foreground">
+            Development only. Seeded demo login: demo@example.com / password123
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   );

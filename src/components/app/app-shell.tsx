@@ -109,6 +109,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
         )}
         aria-label={item.label}
+        aria-current={active ? "page" : undefined}
       >
         <Icon className="size-4 shrink-0" />
         {mini ? null : item.label}
@@ -230,6 +231,12 @@ export function AppShell({ user, projects, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only z-50 rounded-md bg-card px-3 py-2 text-sm font-medium shadow focus:not-sr-only focus:absolute focus:left-3 focus:top-3"
+      >
+        Skip to main content
+      </a>
       {/* Desktop sidebar */}
       <aside
         className={cn(
@@ -266,7 +273,9 @@ export function AppShell({ user, projects, children }: AppShellProps) {
           </Button>
           <span className="font-semibold">MCPThreat</span>
         </header>
-        <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
+        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 p-4 outline-none md:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

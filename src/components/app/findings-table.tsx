@@ -51,6 +51,8 @@ import {
 
 export interface FindingRow {
   id: string;
+  /** Stable-for-the-export reference such as F-001, assigned by creation order. */
+  displayId: string;
   title: string;
   description: string;
   recommendation: string;
@@ -518,6 +520,7 @@ export function FindingsTable({
                   />
                 </TableHead>
               ) : null}
+              <TableHead>ID</TableHead>
               <TableHead>Severity</TableHead>
               <TableHead>Finding</TableHead>
               <TableHead className="hidden md:table-cell">Category</TableHead>
@@ -544,10 +547,13 @@ export function FindingsTable({
                     />
                   </TableCell>
                 ) : null}
+                <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+                  {f.displayId}
+                </TableCell>
                 <TableCell>
                   <SeverityBadge severity={f.severity} />
                 </TableCell>
-                <TableCell className="max-w-xs">
+                <TableCell className="min-w-[15rem] max-w-md">
                   <div className="font-medium">{f.title}</div>
                   {f.threatVector ? (
                     <div className="text-xs text-muted-foreground">{f.threatVector.title}</div>
@@ -615,7 +621,7 @@ export function FindingsTable({
       <Drawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingId ? "Edit Finding" : "New Finding"}
+        title={editingId ? `Edit finding ${findings.find((x) => x.id === editingId)?.displayId ?? ""}`.trim() : "New finding"}
         description={editingId ? undefined : "Attach this finding to a threat vector."}
       >
         <div className="space-y-4">

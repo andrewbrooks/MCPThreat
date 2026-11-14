@@ -6,7 +6,7 @@ import { resolveSide } from "@/lib/acceptance";
 import { auth } from "@/lib/auth";
 import { AuthzError } from "@/lib/authz";
 import { getProjectDetail } from "@/lib/data";
-import { mapFindingRow } from "@/lib/finding-view";
+import { mapFindingRows } from "@/lib/finding-view";
 import { workspaceSteps } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +44,7 @@ export default async function WorkspacePage({ params }: { params: { id: string }
     likelihood: v.likelihood,
     impact: v.impact,
   }));
-  const findingRows = project.findings.map(mapFindingRow);
+  const findingRows = mapFindingRows(project.findings);
   const vectorOptions = vectors.map((v) => ({ id: v.id, title: v.title }));
   const steps = workspaceSteps(boundaries.length, vectors.length, project.findings);
   const viewerSide = resolveSide(project.ownerId, project.members, {

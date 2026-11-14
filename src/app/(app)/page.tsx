@@ -7,6 +7,7 @@ import { ProjectStatusBadge } from "@/components/shared/badges";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { isAnalysisConfigured } from "@/lib/analysis/analyze";
 import { auth } from "@/lib/auth";
 import { listProjectSummaries, type ProjectSummary } from "@/lib/data";
 
@@ -71,6 +72,7 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const projects = await listProjectSummaries(session.user.id);
+  const configured = isAnalysisConfigured();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -78,11 +80,11 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Threat models across your MCP server projects.
+            One threat model per MCP server. Open counts exclude Mitigated, Accepted, and Closed findings.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <ImportRepoDialog />
+          <ImportRepoDialog configured={configured} />
           <NewProjectDialog />
         </div>
       </div>
@@ -91,14 +93,21 @@ export default async function DashboardPage() {
         <EmptyState
           icon={FolderKanban}
           title="No projects yet"
-          description="Create your first project to start modeling threats for an MCP server."
+          description="A project holds the threat model for one MCP server."
           action={
             <div className="flex flex-wrap justify-center gap-2">
-              <ImportRepoDialog />
+              <ImportRepoDialog configured={configured} />
               <NewProjectDialog />
             </div>
           }
-        />
+        >
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+            <li>Create a project, or import a GitHub repository to draft one.</li>
+            <li>Define trust boundaries and record the threats that cross them.</li>
+            <li>Turn threats into findings, then assign owners and track them to closure.</li>
+            <li>Open the report and download it as HTML, Markdown, JSON, or CSV.</li>
+          </ol>
+        </EmptyState>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (

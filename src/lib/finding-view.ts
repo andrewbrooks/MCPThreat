@@ -1,3 +1,5 @@
+import { findingDisplayIds } from "@/lib/assessment";
+
 // Maps a Prisma finding (with the relations loaded by getProjectDetail) into the
 // serializable row shape the client FindingsTable expects. Dates become ISO strings.
 
@@ -30,6 +32,7 @@ interface RawAcceptance {
 
 interface RawFinding {
   id: string;
+  createdAt: Date;
   title: string;
   description: string;
   recommendation: string;
@@ -50,10 +53,11 @@ interface RawFinding {
   threatVector: { id: string; title: string; mcpCategory: string } | null;
 }
 
-export function mapFindingRow(f: RawFinding) {
+export function mapFindingRow(f: RawFinding, displayId = "") {
   const ar = f.acceptanceRequests[0];
   return {
     id: f.id,
+    displayId,
     title: f.title,
     description: f.description,
     recommendation: f.recommendation,
@@ -100,4 +104,10 @@ export function mapFindingRow(f: RawFinding) {
       ? { id: f.threatVector.id, title: f.threatVector.title, mcpCategory: f.threatVector.mcpCategory }
       : null,
   };
+}
+
+/** Map every finding in a project, adding its F-nnn display ID (assigned by creation order). */
+export function mapFindingRows(findings: RawFinding[]) {
+  const ids = findingDisplayIds(findings);
+  return findings.map((f) => mapFindingRow(f, ids.get(f.id) ?? ""));
 }

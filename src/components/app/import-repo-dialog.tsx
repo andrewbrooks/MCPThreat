@@ -18,7 +18,14 @@ import { useToast } from "@/components/ui/toast";
 // Imports a public GitHub repo and bootstraps a threat model via Claude. The
 // analysis runs synchronously server-side, so the dialog shows a busy state while
 // the request is in flight, then navigates to the new project.
-export function ImportRepoDialog({ variant = "outline" }: { variant?: "default" | "outline" }) {
+export function ImportRepoDialog({
+  variant = "outline",
+  configured = true,
+}: {
+  variant?: "default" | "outline";
+  /** False when the server has no ANTHROPIC_API_KEY, so the import cannot run. */
+  configured?: boolean;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -44,7 +51,7 @@ export function ImportRepoDialog({ variant = "outline" }: { variant?: "default" 
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast(data.error ?? "Import failed.", "error");
+        toast(data.error ?? `Import failed (HTTP ${res.status}).`, "error");
         return;
       }
       if (data.status === "FAILED") {
@@ -60,7 +67,7 @@ export function ImportRepoDialog({ variant = "outline" }: { variant?: "default" 
         router.refresh();
       }
     } catch {
-      toast("Network error during import.", "error");
+      toast("Could not reach the server. Check your connection and try again.", "error");
     } finally {
       setBusy(false);
     }
@@ -75,21 +82,35 @@ export function ImportRepoDialog({ variant = "outline" }: { variant?: "default" 
         <DialogHeader>
           <DialogTitle>Import from GitHub</DialogTitle>
           <DialogDescription>
-            Point MCPThreat at a public GitHub repository. Claude reads the code and
-            conservatively drafts the architecture, dataflow, and AI-suggested threats for
-            you to review.
+            Draft a starting threat model from a GitHub repository. The draft is a starting point
+            for review, not a finished assessment.
           </DialogDescription>
         </DialogHeader>
+        {configured ? null : (
+          <p
+            role="alert"
+            className="mb-4 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
+          >
+            Import is not available on this server because no <code>ANTHROPIC_API_KEY</code> is
+            set. Manual threat modeling is not affected. See the README for setup.
+          </p>
+        )}
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="repoUrl">Repository URL</Label>
             <Input
               id="repoUrl"
+              type="url"
+              required
+              aria-describedby="repoUrl-help"
               placeholder="https://github.com/owner/repo"
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               disabled={busy}
             />
+            <p id="repoUrl-help" className="text-xs text-muted-foreground">
+              A public repository, or a private one if you provide a token.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="token">GitHub token (optional)</Label>
@@ -105,16 +126,26 @@ export function ImportRepoDialog({ variant = "outline" }: { variant?: "default" 
               Used only for this request and never stored.
             </p>
           </div>
-          <p className="flex items-center gap-1.5 rounded-sm border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300">
-            <Sparkles className="size-3.5 shrink-0" />
-            Analysis is powered by Claude and may take up to a minute.
-          </p>
+          <div className="space-y-1 rounded-sm border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-200">
+            <p className="flex items-center gap-1.5 font-medium">
+              <Sparkles className="size-3.5 shrink-0" aria-hidden="true" />
+              What happens when you import
+            </p>
+            <ul className="list-disc space-y-0.5 pl-5">
+              <li>Up to 24 relevant files from github.com are fetched, and each is truncated at 24 KB.</li>
+              <li>Those file contents are sent to the Anthropic API for analysis.</li>
+              <li>
+                Items it proposes are labelled AI-suggested, with a confidence level, and need review.
+              </li>
+              <li>The run is synchronous and can take up to a minute.</li>
+            </ul>
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
               Cancel
             </Button>
-            <Button type="submit" disabled={busy}>
-              {busy ? "Analyzing…" : "Import & Analyze"}
+            <Button type="submit" disabled={busy || !configured}>
+              {busy ? "Analyzing…" : "Import and analyze"}
             </Button>
           </DialogFooter>
         </form>

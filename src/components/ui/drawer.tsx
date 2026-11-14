@@ -4,6 +4,7 @@ import * as React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useModal } from "@/components/ui/use-modal";
 
 interface DrawerProps {
   open: boolean;
@@ -36,6 +37,9 @@ export function Drawer({
     };
   }, [open, onOpenChange]);
 
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useModal(open, panelRef);
+
   if (!open) return null;
 
   return (
@@ -46,8 +50,10 @@ export function Drawer({
         aria-hidden
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         className={cn(
           "absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l bg-card shadow-xl sm:max-w-lg",
           className,

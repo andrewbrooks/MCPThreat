@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { auth } from "@/lib/auth";
 import { AuthzError } from "@/lib/authz";
 import { getProjectDetail } from "@/lib/data";
-import { mapFindingRow } from "@/lib/finding-view";
+import { mapFindingRows } from "@/lib/finding-view";
 import { completionPct, openFindingCount } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +43,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   const isGithub = project.sourceType === "GITHUB";
   const repoShort = project.repoUrl?.replace(/^https:\/\/github\.com\//, "") ?? "";
 
-  const findingRows = project.findings.map(mapFindingRow);
+  const findingRows = mapFindingRows(project.findings);
   const vectorOptions = vectors.map((v) => ({ id: v.id, title: v.title }));
   const riskVectors = vectors.map((v) => ({
     likelihood: v.likelihood,
@@ -113,13 +113,13 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             href={`/projects/${project.id}/model`}
             className={buttonVariants({ variant: "outline" })}
           >
-            <Boxes className="size-4" /> Open Workspace
+            <Boxes className="size-4" /> Open threat model
           </Link>
           <Link
             href={`/projects/${project.id}/report`}
             className={buttonVariants({ variant: "outline" })}
           >
-            <FileText className="size-4" /> Generate Report
+            <FileText className="size-4" /> View report
           </Link>
         </div>
       </div>
@@ -127,33 +127,33 @@ export default async function ProjectPage({ params }: { params: { id: string } }
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Mitigation Completion</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Mitigation completion</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-3xl font-semibold">{pct}%</div>
             <Progress value={pct} />
             <p className="text-xs text-muted-foreground">
-              Vectors with a mitigated or closed finding
+              Share of threat vectors with a Mitigated or Closed finding
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Open Findings</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Open findings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold">{openCount}</div>
-            <p className="text-xs text-muted-foreground">of {project.findings.length} total</p>
+            <p className="text-xs text-muted-foreground">of {project.findings.length} total. Open means Open, In Progress, or Pending Acceptance.</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Coverage</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Threat vectors</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold">{vectors.length}</div>
             <p className="text-xs text-muted-foreground">
-              vectors across {boundaries.length} boundaries
+              across {boundaries.length} trust boundaries
             </p>
           </CardContent>
         </Card>
@@ -161,25 +161,25 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Trust Boundaries</h2>
+          <h2 className="text-lg font-semibold">Trust boundaries</h2>
           <Link
             href={`/projects/${project.id}/model`}
             className={buttonVariants({ variant: "ghost", size: "sm" })}
           >
-            Edit in workspace
+            Edit in threat model
           </Link>
         </div>
         {boundaries.length === 0 ? (
           <EmptyState
             icon={ShieldAlert}
             title="No trust boundaries yet"
-            description="Define trust boundaries in the workspace to start mapping threat vectors."
+            description="A trust boundary is a point where data or control passes between parties with different levels of trust, such as agent to server. Add one in the threat model, then record the threats that cross it."
             action={
               <Link
                 href={`/projects/${project.id}/model`}
                 className={buttonVariants({ size: "sm" })}
               >
-                Open Workspace
+                Open threat model
               </Link>
             }
           />
