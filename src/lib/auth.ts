@@ -5,7 +5,11 @@ import { getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GitHubProvider from "next-auth/providers/github";
 import { z } from "zod";
+import { assertProductionEnv } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+
+// Refuse to run in production with a missing, short or placeholder secret.
+assertProductionEnv();
 
 // Non-strict: NextAuth includes extra fields (csrfToken, json) in the credentials
 // object, so this must not reject unknown keys.
