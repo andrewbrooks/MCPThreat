@@ -1,0 +1,55 @@
+{
+  "architectureMarkdown": "# notes-mcp-server\n\nA small Node.js MCP server exposing `search_notes` and `add_note` over Streamable HTTP.\n\n## Components\n\n- `src/server.ts`: Express app and transport\n- `src/tools.ts`: tool definitions\n",
+  "techStack": ["TypeScript", "Node.js", "Express", "Zod"],
+  "dataflow": {
+    "nodes": [
+      { "id": "agent", "label": "LLM Agent", "type": "external_entity", "tier": 0, "trustZone": "Agent runtime" },
+      { "id": "server", "label": "Notes MCP Server", "type": "process", "tier": 1, "trustZone": "Server" },
+      { "id": "store", "label": "Notes store", "type": "datastore", "tier": 2, "trustZone": "Internal" }
+    ],
+    "edges": [
+      { "from": "agent", "to": "server", "label": "tool call", "dataClass": "user query", "crossesBoundary": true },
+      { "from": "server", "to": "store", "label": "read and write notes", "dataClass": "private notes", "crossesBoundary": false }
+    ]
+  },
+  "boundaries": [
+    {
+      "label": "Agent to Notes MCP Server",
+      "description": "Tool calls from the LLM agent to the server. Arguments may be influenced by untrusted content.",
+      "type": "LLM_TO_MCP",
+      "confidence": "HIGH",
+      "evidence": "src/server.ts registers POST /mcp and accepts tool calls from any authenticated client."
+    },
+    {
+      "label": "Tool output to Agent context",
+      "description": "Note contents are returned into the model context.",
+      "type": "TOOL_OUTPUT_TO_LLM",
+      "confidence": "MEDIUM",
+      "evidence": "src/tools.ts search_notes returns raw note text."
+    }
+  ],
+  "vectors": [
+    {
+      "boundaryLabel": "Tool output to Agent context",
+      "title": "Prompt injection via stored note text",
+      "description": "A note containing instructions is returned verbatim and may be followed by the agent.",
+      "strideCategory": "TAMPERING",
+      "mcpCategory": "PROMPT_INJECTION",
+      "likelihood": "HIGH",
+      "impact": "MEDIUM",
+      "confidence": "MEDIUM",
+      "evidence": "search_notes returns note.body without delimiting or sanitising it."
+    }
+  ],
+  "findings": [
+    {
+      "vectorTitle": "Prompt injection via stored note text",
+      "title": "Note text is returned to the model without delimiting",
+      "description": "Untrusted note bodies are placed directly into tool results.",
+      "recommendation": "Wrap tool output in a structural delimiter and strip instruction-like markup before it reaches the model.",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "evidence": "src/tools.ts line 41: return { content: [{ type: 'text', text: note.body }] }"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    { "id": "agent", "label": "LLM Agent (MCP client)", "type": "external_entity", "tier": 0, "trustZone": "Agent runtime" },
+    { "id": "server", "label": "Notes MCP Server", "type": "process", "tier": 1, "trustZone": "Server" },
+    { "id": "search_tool", "label": "search_notes tool", "type": "process", "tier": 2, "trustZone": "Server" },
+    { "id": "store", "label": "Notes store", "type": "datastore", "tier": 3, "trustZone": "Internal" },
+    { "id": "webhook", "label": "Third-party webhook", "type": "external_entity", "tier": 3, "trustZone": "External network" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "agent", "to": "server", "label": "tool call (JSON-RPC)", "dataClass": "user query", "crossesBoundary": true },
+    { "id": "e2", "from": "server", "to": "search_tool", "label": "dispatch", "dataClass": "", "crossesBoundary": false },
+    { "id": "e3", "from": "search_tool", "to": "store", "label": "read notes", "dataClass": "private notes", "crossesBoundary": false },
+    { "id": "e4", "from": "search_tool", "to": "webhook", "label": "notify", "dataClass": "note titles", "crossesBoundary": true }
+  ]
+}

