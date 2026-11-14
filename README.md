@@ -80,6 +80,8 @@ Description and rationale, Recommendation, and Evidence follow.
 
 ### What is in a report
 
+- **Cover page:** title, status (live draft or snapshot version and review status), document control, and who prepared it. A snapshot also shows its sign-offs in a table with a blank signature column, its SHA-256 hash, and the integrity result.
+- **Executive summary:** a factual headline, findings by severity, a status bar that works in greyscale, a likelihood by impact risk matrix, the open findings needing attention, and key observations on gaps in the record (for example threat vectors with no finding, or open findings with no owner).
 - **Assessment record:** project, model source, tool version, generation time (UTC), people involved, acceptance policy, and how many items were AI-suggested.
 - **Scope and limitations:** what the report does and does not claim.
 - **Summary:** counts by severity, status, and risk band, with definitions of the terms used.

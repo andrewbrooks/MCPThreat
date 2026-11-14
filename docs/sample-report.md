@@ -1,11 +1,83 @@
-# Threat Model Report: Example Payment MCP
+# Example Payment MCP
 
-Prepared with MCPThreat 1.0.0 on 2026-11-14 14:01 UTC. Report format version 1.0.
+**Threat model report**
 
-> **This is a live draft. It reflects the threat model as it is now and will change as the model is edited. A frozen, reviewed record is made from the Review and sign-off page of the project.**
+MCP server: https://payments.example.com/mcp
+
+**Live draft**
+
+### Document control
+
+| Item | Value |
+| --- | --- |
+| Version | Live draft (not a numbered version) |
+| Date generated | 2026-11-14 14:18 UTC |
+| Report format version | 1.0 |
+| Tool and version | MCPThreat 1.0.0 |
+| Risk-acceptance policy | Dual sign-off (assessor + client) |
+
+### Review and sign-off
+
+| Item | Value |
+| --- | --- |
+| Prepared by | Demo User \<demo@example.com> |
+| Review status | Not reviewed. This is a live draft. |
+
+> This is a live draft. It reflects the threat model as it is now and will change as the model is edited. A frozen, reviewed record is made from the Review and sign-off page of the project.
+
+## Executive summary
+
+Example Payment MCP has 5 trust boundaries, 10 threat vectors and 6 findings. 3 findings are open, including 1 Critical and 1 High.
+
+### Findings by severity
+
+| Severity | Total | Open |
+| --- | --- | --- |
+| Critical | 2 | 1 |
+| High | 2 | 1 |
+| Medium | 1 | 1 |
+| Low | 1 | 0 |
+| Info | 0 | 0 |
+
+### Findings by status
+
+| Status | Findings | Share |
+| --- | --- | --- |
+| Open | 2 | 33% |
+| In Progress | 1 | 17% |
+| Pending Acceptance | 0 | 0% |
+| Mitigated | 1 | 17% |
+| Accepted | 1 | 17% |
+| Closed | 1 | 17% |
+
+### Threat vector risk matrix
+
+Threat vectors by likelihood and impact (10 in total). Each cell shows the number of threat vectors and the risk band.
+
+| Likelihood by impact | Low impact | Medium impact | High impact |
+| --- | --- | --- | --- |
+| High likelihood | 0 (Medium risk) | 1 (High risk) | 1 (Critical risk) |
+| Medium likelihood | 0 (Low risk) | 1 (Medium risk) | 5 (High risk) |
+| Low likelihood | 0 (Low risk) | 0 (Low risk) | 2 (Medium risk) |
+
+### Open findings requiring attention
+
+| ID | Severity | Finding | Owner | Due |
+| --- | --- | --- | --- | --- |
+| F-001 | Critical | Tool schemas are not pinned or hash-verified | security@example.com | 2026-11-28 |
+| F-002 | High | Client tokens forwarded to processor without audience validation | platform@example.com | 2026-12-14 |
+| F-004 | Medium | Session IDs are sequential and not bound to user identity | — | 2026-12-29 |
+
+### Key observations
+
+- 4 threat vectors have no finding.
+- 1 open finding has no owner.
+
+These observations are checks on the record. They are not an assessment of the system.
 
 ## Contents
 
+Executive summary
 1. Assessment record
 2. Scope and limitations
 3. Summary
@@ -30,7 +102,7 @@ Prepared with MCPThreat 1.0.0 on 2026-11-14 14:01 UTC. Report format version 1.0
 | Technology | TypeScript, Node.js, @modelcontextprotocol/sdk, Express, Zod, pino, Streamable HTTP, Docker |
 | Model created | 2026-11-14 03:13 UTC |
 | Last change recorded | 2026-11-14 04:20 UTC |
-| Report generated | 2026-11-14 14:01 UTC |
+| Report generated | 2026-11-14 14:18 UTC |
 | Tool and version | MCPThreat 1.0.0 |
 | Risk-acceptance policy | Dual sign-off (assessor + client) |
 | AI-suggested items | 0 boundaries, 0 threat vectors, 0 findings |
@@ -60,24 +132,7 @@ It records what the assessors entered or reviewed. It does not record what was t
 
 ## 3. Summary
 
-Example Payment MCP has 5 trust boundaries, 10 threat vectors, and 6 findings, of which 3 are open. Mitigation completion is 20%. Definitions of "open" and "completion" are in section 11.
-
-| Severity | Total | Open |
-| --- | --- | --- |
-| Critical | 2 | 1 |
-| High | 2 | 1 |
-| Medium | 1 | 1 |
-| Low | 1 | 0 |
-| Info | 0 | 0 |
-
-| Status | Findings |
-| --- | --- |
-| Open | 2 |
-| In Progress | 1 |
-| Pending Acceptance | 0 |
-| Mitigated | 1 |
-| Accepted | 1 |
-| Closed | 1 |
+Example Payment MCP has 5 trust boundaries, 10 threat vectors, and 6 findings, of which 3 are open. Mitigation completion is 20%. Counts by severity and status are in the executive summary at the start of this report. Definitions of "open" and "completion" are in section 11.
 
 | Threat vector risk band | Vectors |
 | --- | --- |
