@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Pre-commit checks: keep secrets and lint errors out of history.
+# Enable with:  git config core.hooksPath .githooks   (npm run setup does this for you)
+# Skip once, if you must:  git commit --no-verify   (CI still runs the same checks)
+set -euo pipefail
+
+# Staged files that were added, copied or modified (portable: no bash 4 features).
+staged=()
+while IFS= read -r f; do
+  [ -n "$f" ] && staged+=("$f")
+done < <(git diff --cached --name-only --diff-filter=ACM)
+[ "${#staged[@]}" -eq 0 ] && exit 0
+
+# 1. Never commit environment files. .env.example is the documented template and is fine.
+for f in "${staged[@]}"; do
+  case "$f" in
+    .env.example | */.env.example) ;;
+    .env | .env.* | */.env | */.env.*)
+      echo "pre-commit: refusing to commit '$f'. Environment files hold secrets." >&2
+      exit 1
+      ;;
+  esac
+done
+
+# 2. Scan what is staged for secrets.
+if command -v gitleaks > /dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner
+else
+  echo "pre-commit: gitleaks is not installed, so the secret scan was skipped (CI still scans)." >&2
+  echo "            Install it from https://github.com/gitleaks/gitleaks#installing" >&2
+fi
+
+# 3. Lint staged TypeScript, with the same rules as CI.
+source_files=()
+for f in "${staged[@]}"; do
+  case "$f" in
+    *.ts | *.tsx | *.mjs) source_files+=("$f") ;;
+  esac
+done
+if [ "${#source_files[@]}" -gt 0 ]; then
+  npx --no-install eslint --max-warnings 0 "${source_files[@]}"
+fi

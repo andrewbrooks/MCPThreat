@@ -43,6 +43,12 @@ if (existsSync(".env")) {
   console.log("\nCreated .env from .env.example with a newly generated NEXTAUTH_SECRET.");
 }
 
+// Enable the repository's pre-commit checks (secret and lint checks). Local config only.
+if (existsSync(".git")) {
+  const hooks = spawnSync("git", ["config", "core.hooksPath", ".githooks"], { shell: isWindows });
+  console.log(hooks.status === 0 ? "\nEnabled the pre-commit hook (.githooks/pre-commit)." : "\nCould not enable the pre-commit hook; run: git config core.hooksPath .githooks");
+}
+
 run("npx", ["prisma", "generate"]);
 run("npx", ["prisma", "migrate", "deploy"]);
 
