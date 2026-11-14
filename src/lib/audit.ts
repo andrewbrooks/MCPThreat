@@ -42,6 +42,7 @@ function clip(v: string | null | undefined): string | null {
   return s.length > 500 ? `${s.slice(0, 497)}…` : s;
 }
 
+/** Appends one audit event. Values are clipped to 500 characters. Nothing updates or deletes these rows, and they are not linked to the finding, so history survives deletion. */
 export async function recordAudit(event: AuditInput): Promise<void> {
   await prisma.auditEvent.create({
     data: {

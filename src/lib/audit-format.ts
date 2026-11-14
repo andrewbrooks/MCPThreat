@@ -9,6 +9,7 @@ export interface AuditEventView {
   detail: string | null;
 }
 
+/** A readable phrase for one audit event, shown after the actor's name in the activity list and on the activity page. */
 export function describeAuditEvent(e: AuditEventView): string {
   switch (e.action) {
     case "CREATED":

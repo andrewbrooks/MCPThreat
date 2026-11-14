@@ -247,13 +247,9 @@ function executiveLines(a: Assessment): string[] {
   return L;
 }
 
-export function generateReport(a: Assessment): string {
-  const r = a.record;
-  const s = a.summary;
+/** The table of contents. */
+function contentsLines(): string[] {
   const L: string[] = [];
-
-  L.push(...coverLines(a));
-  L.push(...executiveLines(a));
   L.push("## Contents");
   L.push("");
   [
@@ -271,8 +267,13 @@ export function generateReport(a: Assessment): string {
     "11. Definitions",
   ].forEach((t) => L.push(t));
   L.push("");
+  return L;
+}
 
-  // 1. Record
+/** Section 1: the assessment record and who has access. */
+function recordLines(a: Assessment): string[] {
+  const r = a.record;
+  const L: string[] = [];
   L.push("## 1. Assessment record");
   L.push("");
   L.push("| Item | Value |");
@@ -321,8 +322,12 @@ export function generateReport(a: Assessment): string {
     }
     L.push("");
   }
+  return L;
+}
 
-  // 2. Scope
+/** Section 2: scope and limitations. */
+function scopeLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 2. Scope and limitations");
   L.push("");
   a.scope.statements.forEach((t) => L.push(`${t}`, ""));
@@ -330,8 +335,14 @@ export function generateReport(a: Assessment): string {
   L.push("");
   a.scope.limitations.forEach((t) => L.push(`- ${t}`));
   L.push("");
+  return L;
+}
 
-  // 3. Summary
+/** Section 3: the summary counts and risk bands. */
+function summaryLines(a: Assessment): string[] {
+  const r = a.record;
+  const s = a.summary;
+  const L: string[] = [];
   L.push("## 3. Summary");
   L.push("");
   L.push(
@@ -343,8 +354,12 @@ export function generateReport(a: Assessment): string {
   L.push("| --- | --- |");
   for (const row of s.byRiskBand) L.push(`| ${row.label} | ${row.count} |`);
   L.push("");
+  return L;
+}
 
-  // 4. Architecture
+/** Section 4: architecture notes. */
+function architectureLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 4. Architecture");
   L.push("");
   if (a.architecture.trim()) {
@@ -353,8 +368,12 @@ export function generateReport(a: Assessment): string {
     L.push("_No architecture notes recorded._");
   }
   L.push("");
+  return L;
+}
 
-  // 5. Boundaries
+/** Section 5: trust boundaries and the vectors under each. */
+function boundaryLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 5. Trust boundaries");
   L.push("");
   if (a.boundaries.length === 0) {
@@ -381,8 +400,12 @@ export function generateReport(a: Assessment): string {
       L.push("");
     }
   }
+  return L;
+}
 
-  // 6. Vectors
+/** Section 6: the threat vector table. */
+function vectorLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 6. Threat vectors");
   L.push("");
   if (a.vectors.length === 0) {
@@ -403,8 +426,12 @@ export function generateReport(a: Assessment): string {
     }
     L.push("");
   }
+  return L;
+}
 
-  // 7. Register
+/** Sections 7 and 8: the findings register and each finding in detail. */
+function findingsLines(a: Assessment): string[] {
+  const L: string[] = [];
   const ordered = findingsBySeverity(a.findings);
   L.push("## 7. Findings register");
   L.push("");
@@ -434,8 +461,12 @@ export function generateReport(a: Assessment): string {
     L.push("_No findings recorded._");
     L.push("");
   }
+  return L;
+}
 
-  // 9. Frameworks
+/** Section 9: mapping to OWASP and MITRE ATLAS. */
+function frameworkLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 9. Framework mapping");
   L.push("");
   L.push(a.frameworks.note);
@@ -458,8 +489,12 @@ export function generateReport(a: Assessment): string {
     }
     L.push("");
   }
+  return L;
+}
 
-  // 10. Controls
+/** Section 10: recommended controls for the MCP categories present. */
+function controlLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 10. Recommended controls");
   L.push("");
   if (a.controls.length === 0) {
@@ -477,12 +512,34 @@ export function generateReport(a: Assessment): string {
       L.push("");
     }
   }
+  return L;
+}
 
-  // 11. Definitions
+/** Section 11: definitions. */
+function definitionLines(a: Assessment): string[] {
+  const L: string[] = [];
   L.push("## 11. Definitions");
   L.push("");
   for (const d of a.definitions) L.push(`- **${d.term}.** ${d.text}`);
   L.push("");
+  return L;
+}
 
-  return L.join("\n");
+/** The report as Markdown. */
+export function generateReport(a: Assessment): string {
+  return [
+    ...coverLines(a),
+    ...executiveLines(a),
+    ...contentsLines(),
+    ...recordLines(a),
+    ...scopeLines(a),
+    ...summaryLines(a),
+    ...architectureLines(a),
+    ...boundaryLines(a),
+    ...vectorLines(a),
+    ...findingsLines(a),
+    ...frameworkLines(a),
+    ...controlLines(a),
+    ...definitionLines(a),
+  ].join("\n");
 }

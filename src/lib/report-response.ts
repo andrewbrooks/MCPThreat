@@ -12,10 +12,12 @@ export const REPORT_FORMATS = {
 } as const;
 export type ReportFormat = keyof typeof REPORT_FORMATS;
 
+/** Type guard for the report formats the endpoints accept. */
 export function isReportFormat(s: string): s is ReportFormat {
   return Object.prototype.hasOwnProperty.call(REPORT_FORMATS, s);
 }
 
+/** A lowercase, hyphenated name that is safe to use in a download filename. */
 export function fileSlug(name: string): string {
   return (
     name
@@ -25,6 +27,7 @@ export function fileSlug(name: string): string {
   );
 }
 
+/** Renders an assessment in one of the supported formats. */
 export function renderReportBody(a: Assessment, format: ReportFormat): string {
   switch (format) {
     case "html":

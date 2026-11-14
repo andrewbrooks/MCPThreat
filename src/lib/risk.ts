@@ -5,10 +5,12 @@ const LEVEL_VALUE: Record<string, number> = { LOW: 1, MEDIUM: 2, HIGH: 3 };
 
 export type RiskBand = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
+/** Likelihood times impact on a 1 to 9 scale. An unknown level counts as medium (2). */
 export function riskScore(likelihood: string, impact: string): number {
   return (LEVEL_VALUE[likelihood] ?? 2) * (LEVEL_VALUE[impact] ?? 2); // 1..9
 }
 
+/** The band for a score: 9 is critical, 6 to 8 high, 3 to 5 medium, below 3 low. */
 export function riskBand(score: number): RiskBand {
   if (score >= 9) return "CRITICAL";
   if (score >= 6) return "HIGH";

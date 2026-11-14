@@ -39,6 +39,7 @@ export function awaitingSides(requirement: SnapshotRequirement, signoffs: Signof
   return (["ASSESSOR", "CLIENT"] as const).filter((s) => !sides.has(s)).map((s) => s.toLowerCase());
 }
 
+/** The display label for a snapshot status. */
 export function statusLabel(status: SnapshotStatus): string {
   switch (status) {
     case "ISSUED":

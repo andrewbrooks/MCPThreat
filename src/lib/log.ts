@@ -69,6 +69,7 @@ export interface Logger {
   error(msg: string, fields?: Record<string, unknown>): void;
 }
 
+/** A logger that drops entries below the threshold and passes each formatted line to write. Taking write as a parameter keeps it testable without capturing console output. */
 export function createLogger(
   threshold: Threshold,
   write: (level: LogLevel, line: string) => void,

@@ -13,6 +13,7 @@ export function day(iso: string | null): string {
   return iso ? iso.slice(0, 10) : "—";
 }
 
+/** A byte count as "512 B", "3.4 KB" or "1.2 MB" for reports. */
 export function fmtBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;

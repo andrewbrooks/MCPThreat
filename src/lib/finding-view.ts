@@ -53,6 +53,7 @@ interface RawFinding {
   threatVector: { id: string; title: string; mcpCategory: string } | null;
 }
 
+/** Shapes a loaded finding for the findings table, including its latest acceptance request. */
 export function mapFindingRow(f: RawFinding, displayId = "") {
   const ar = f.acceptanceRequests[0];
   return {

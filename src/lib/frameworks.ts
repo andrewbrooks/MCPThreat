@@ -61,6 +61,7 @@ function atlasItem(id: string): FrameworkItem {
   return { id, name: MITRE_ATLAS[id] ?? id, url: `${ATLAS_BASE}${id}` };
 }
 
+/** The OWASP and MITRE ATLAS items an MCP category maps to, or empty lists when it has no mapping. */
 export function frameworksForCategory(category: McpCategory): {
   owasp: FrameworkItem[];
   atlas: FrameworkItem[];

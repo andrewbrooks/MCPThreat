@@ -502,13 +502,19 @@ ${observations}
 </section>`;
 }
 
-/** The report as an HTML fragment (no <html>/<body>), for embedding under a .report-doc element. */
-export function reportBodyHtml(a: Assessment): string {
+const sectionNumber = (key: string) => SECTIONS.findIndex(([k]) => k === key) + 1;
+const sectionHeading = (key: string) =>
+  `<h2 id="${key}">${sectionNumber(key)}. ${h(SECTIONS[sectionNumber(key) - 1][1])}</h2>`;
+
+function contentsHtml(): string {
+  return `<nav aria-label="Contents"><h2 style="border:0;margin-top:24px">Contents</h2><ol class="toc"><li><a href="#executive-summary">Executive summary</a></li>${SECTIONS.map(
+    ([k, t], idx) => `<li><a href="#${k}">${idx + 1}. ${h(t)}</a></li>`,
+  ).join("")}</ol></nav>`;
+}
+
+/** Section 1: the assessment record table and who has access. */
+function recordHtml(a: Assessment): string {
   const r = a.record;
-  const s = a.summary;
-  const ordered = findingsBySeverity(a.findings);
-  const num = (key: string) => SECTIONS.findIndex(([k]) => k === key) + 1;
-  const sec = (key: string) => `<h2 id="${key}">${num(key)}. ${h(SECTIONS[num(key) - 1][1])}</h2>`;
 
   const record: [string, string][] = [
     ["Project", txt(r.projectName)],
@@ -550,15 +556,7 @@ export function reportBodyHtml(a: Assessment): string {
       (r.audit.firstEventAt ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}` : ""),
   ]);
 
-  const body = `
-${coverHtml(a)}
-${executiveHtml(a)}
-<nav aria-label="Contents"><h2 style="border:0;margin-top:24px">Contents</h2><ol class="toc"><li><a href="#executive-summary">Executive summary</a></li>${SECTIONS.map(
-    ([k, t], idx) => `<li><a href="#${k}">${idx + 1}. ${h(t)}</a></li>`,
-  ).join("")}</ol></nav>
-
-${sec("record")}
-<table class="kv"><tbody>${record.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>
+  return `<table class="kv"><tbody>${record.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>
 ${
   r.people.length
     ? `<h3>People with access</h3><table><thead><tr><th scope="col">Person</th><th scope="col">Role</th><th scope="col">Party</th></tr></thead><tbody>${r.people
@@ -568,30 +566,40 @@ ${
         )
         .join("")}</tbody></table>`
     : ""
+}`;
 }
 
-${sec("scope")}
-${a.scope.statements.map((t) => `<p>${h(t)}</p>`).join("")}
+/** Section 2: scope statements and limitations. */
+function scopeHtml(a: Assessment): string {
+  return `${a.scope.statements.map((t) => `<p>${h(t)}</p>`).join("")}
 <div class="notice" role="note"><h3>Limitations. Please read before relying on this report.</h3><ul>${a.scope.limitations
     .map((t) => `<li>${h(t)}</li>`)
-    .join("")}</ul></div>
+    .join("")}</ul></div>`;
+}
 
-${sec("summary")}
-<p>${h(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. Mitigation completion is ${s.completionPct}%. Counts by severity and status are in the executive summary at the start of this report. Definitions of &ldquo;open&rdquo; and &ldquo;completion&rdquo; are in section ${num("definitions")}.</p>
+/** Section 3: the summary counts and risk bands. */
+function summaryHtml(a: Assessment): string {
+  const r = a.record;
+  const s = a.summary;
+  const num = sectionNumber;
+  return `<p>${h(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. Mitigation completion is ${s.completionPct}%. Counts by severity and status are in the executive summary at the start of this report. Definitions of &ldquo;open&rdquo; and &ldquo;completion&rdquo; are in section ${num("definitions")}.</p>
 <table><thead><tr><th scope="col">Threat vector risk band</th><th scope="col">Vectors</th></tr></thead><tbody>${s.byRiskBand
     .map((x) => `<tr><td>${h(x.label)}</td><td>${x.count}</td></tr>`)
-    .join("")}</tbody></table>
+    .join("")}</tbody></table>`;
+}
 
-${sec("architecture")}
-${a.architecture.trim() ? markdownToHtml(a.architecture, 2) : '<p class="muted">No architecture notes recorded.</p>'}
+function architectureHtml(a: Assessment): string {
+  return `${a.architecture.trim() ? markdownToHtml(a.architecture, 2) : '<p class="muted">No architecture notes recorded.</p>'}`;
+}
 
-${sec("boundaries")}
-${
-  a.boundaries.length === 0
-    ? '<p class="muted">No trust boundaries defined.</p>'
-    : a.boundaries
-        .map(
-          (b) => `<h3 id="${h(b.id)}">${h(b.id)}: ${h(b.label)}</h3>
+/** Section 5: trust boundaries and the vectors under each. */
+function boundariesHtml(a: Assessment): string {
+  return `${
+    a.boundaries.length === 0
+      ? '<p class="muted">No trust boundaries defined.</p>'
+      : a.boundaries
+          .map(
+            (b) => `<h3 id="${h(b.id)}">${h(b.id)}: ${h(b.label)}</h3>
 <p class="muted">Type: ${h(b.typeLabel)}.${b.source === "AI" ? " AI-suggested." : ""}</p>
 ${b.description.trim() ? paragraphs(b.description) : ""}
 ${
@@ -604,39 +612,47 @@ ${
         .join("")}</ul>`
     : '<p class="muted">No threat vectors recorded for this boundary.</p>'
 }`,
-        )
-        .join("\n")
+          )
+          .join("\n")
+  }`;
 }
 
-${sec("vectors")}
-${
-  a.vectors.length === 0
-    ? '<p class="muted">No threat vectors mapped.</p>'
-    : `<div class="scroll"><table class="wide"><thead><tr><th scope="col">ID</th><th scope="col">Threat vector</th><th scope="col">Boundary</th><th scope="col">STRIDE</th><th scope="col">MCP category</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Risk</th><th scope="col">Residual</th><th scope="col">Findings</th><th scope="col">Source</th></tr></thead><tbody>${a.vectors
-        .map(
-          (v) =>
-            `<tr id="${h(v.id)}"><td>${h(v.id)}</td><td>${h(v.title)}</td><td>${h(v.boundaryId)}</td><td>${h(v.strideLabel)}</td><td>${h(v.mcpCategoryLabel)}</td><td>${h(v.likelihoodLabel)}</td><td>${h(v.impactLabel)}</td><td>${h(RISK_BAND_LABELS[v.riskBand])}</td><td>${h(RISK_BAND_LABELS[v.residualBand])}</td><td>${v.findingIds.map((id) => `<a href="#${h(id)}">${h(id)}</a>`).join(", ") || "—"}</td><td>${v.source === "AI" ? `AI${v.confidence ? ` (${h(v.confidence.toLowerCase())})` : ""}` : "Manual"}</td></tr>`,
-        )
-        .join("")}</tbody></table></div>`
+/** Section 6: the threat vector table. */
+function vectorsHtml(a: Assessment): string {
+  return `${
+    a.vectors.length === 0
+      ? '<p class="muted">No threat vectors mapped.</p>'
+      : `<div class="scroll"><table class="wide"><thead><tr><th scope="col">ID</th><th scope="col">Threat vector</th><th scope="col">Boundary</th><th scope="col">STRIDE</th><th scope="col">MCP category</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Risk</th><th scope="col">Residual</th><th scope="col">Findings</th><th scope="col">Source</th></tr></thead><tbody>${a.vectors
+          .map(
+            (v) =>
+              `<tr id="${h(v.id)}"><td>${h(v.id)}</td><td>${h(v.title)}</td><td>${h(v.boundaryId)}</td><td>${h(v.strideLabel)}</td><td>${h(v.mcpCategoryLabel)}</td><td>${h(v.likelihoodLabel)}</td><td>${h(v.impactLabel)}</td><td>${h(RISK_BAND_LABELS[v.riskBand])}</td><td>${h(RISK_BAND_LABELS[v.residualBand])}</td><td>${v.findingIds.map((id) => `<a href="#${h(id)}">${h(id)}</a>`).join(", ") || "—"}</td><td>${v.source === "AI" ? `AI${v.confidence ? ` (${h(v.confidence.toLowerCase())})` : ""}` : "Manual"}</td></tr>`,
+          )
+          .join("")}</tbody></table></div>`
+  }`;
 }
 
-${sec("register")}
-${
-  ordered.length === 0
-    ? '<p class="muted">No findings recorded.</p>'
-    : `<p class="muted small">Ordered by severity, then identifier.</p><table><thead><tr><th scope="col">ID</th><th scope="col">Severity</th><th scope="col">Status</th><th scope="col">Finding</th><th scope="col">Threat vector</th><th scope="col">Owner</th><th scope="col">Due</th></tr></thead><tbody>${ordered
-        .map(
-          (f) =>
-            `<tr><td><a href="#${h(f.id)}">${h(f.id)}</a></td><td>${sevTag(f)}</td><td>${h(f.statusLabel)}</td><td>${h(f.title)}</td><td>${f.vectorId ? `<a href="#${h(f.vectorId)}">${h(f.vectorId)}</a>` : "—"}</td><td>${txt(f.owner)}</td><td>${date(f.dueDate)}</td></tr>`,
-        )
-        .join("")}</tbody></table>`
+/** Section 7: the findings register. */
+function registerHtml(ordered: AssessmentFinding[]): string {
+  return `${
+    ordered.length === 0
+      ? '<p class="muted">No findings recorded.</p>'
+      : `<p class="muted small">Ordered by severity, then identifier.</p><table><thead><tr><th scope="col">ID</th><th scope="col">Severity</th><th scope="col">Status</th><th scope="col">Finding</th><th scope="col">Threat vector</th><th scope="col">Owner</th><th scope="col">Due</th></tr></thead><tbody>${ordered
+          .map(
+            (f) =>
+              `<tr><td><a href="#${h(f.id)}">${h(f.id)}</a></td><td>${sevTag(f)}</td><td>${h(f.statusLabel)}</td><td>${h(f.title)}</td><td>${f.vectorId ? `<a href="#${h(f.vectorId)}">${h(f.vectorId)}</a>` : "—"}</td><td>${txt(f.owner)}</td><td>${date(f.dueDate)}</td></tr>`,
+          )
+          .join("")}</tbody></table>`
+  }`;
 }
 
-${sec("details")}
-${ordered.length === 0 ? '<p class="muted">No findings recorded.</p>' : ordered.map(findingHtml).join("\n")}
+/** Section 8: each finding in detail. */
+function detailsHtml(ordered: AssessmentFinding[]): string {
+  return `${ordered.length === 0 ? '<p class="muted">No findings recorded.</p>' : ordered.map(findingHtml).join("\n")}`;
+}
 
-${sec("frameworks")}
-<p>${h(a.frameworks.note)}</p>
+/** Section 9: mapping to OWASP and MITRE ATLAS. */
+function frameworksHtml(a: Assessment): string {
+  return `<p>${h(a.frameworks.note)}</p>
 ${
   a.frameworks.owasp.length === 0 && a.frameworks.atlas.length === 0
     ? '<p class="muted">No threat vectors to map.</p>'
@@ -653,28 +669,77 @@ ${
           return `<tr><td>${h(fw)}</td><td><a href="${h(i.url)}" rel="noopener noreferrer">${h(i.id)}</a></td><td>${h(i.name)}</td><td>${ids.map((id) => `<a href="#${h(id)}">${h(id)}</a>`).join(", ")}</td></tr>`;
         })
         .join("")}</tbody></table>`
+}`;
 }
+
+/** Section 10: recommended controls for the MCP categories present. */
+function controlsHtml(a: Assessment): string {
+  return `${
+    a.controls.length === 0
+      ? '<p class="muted">No MCP categories in use.</p>'
+      : `<p class="muted">General guidance for each MCP category present in the model. It is not specific to any one finding.</p>` +
+        a.controls
+          .map(
+            (c) =>
+              `<h3>${h(c.title)}</h3><ul>${c.mitigations.map((m) => `<li>${h(m)}</li>`).join("")}</ul>`,
+          )
+          .join("")
+  }`;
+}
+
+function definitionsHtml(a: Assessment): string {
+  return `<dl>${a.definitions.map((d) => `<dt><strong>${h(d.term)}</strong></dt><dd>${h(d.text)}</dd>`).join("")}</dl>`;
+}
+
+function footerHtml(a: Assessment): string {
+  return `<footer>${h(a.tool.name)} ${h(a.tool.version)} &middot; generated ${utc(a.generatedAt)} &middot; report format ${h(a.schemaVersion)}. This document is a record of a threat model, not a certification.</footer>`;
+}
+
+/** The report as an HTML fragment (no <html>/<body>), for embedding under a .report-doc element. */
+export function reportBodyHtml(a: Assessment): string {
+  const ordered = findingsBySeverity(a.findings);
+  const sec = sectionHeading;
+
+  return `
+${coverHtml(a)}
+${executiveHtml(a)}
+${contentsHtml()}
+
+${sec("record")}
+${recordHtml(a)}
+
+${sec("scope")}
+${scopeHtml(a)}
+
+${sec("summary")}
+${summaryHtml(a)}
+
+${sec("architecture")}
+${architectureHtml(a)}
+
+${sec("boundaries")}
+${boundariesHtml(a)}
+
+${sec("vectors")}
+${vectorsHtml(a)}
+
+${sec("register")}
+${registerHtml(ordered)}
+
+${sec("details")}
+${detailsHtml(ordered)}
+
+${sec("frameworks")}
+${frameworksHtml(a)}
 
 ${sec("controls")}
-${
-  a.controls.length === 0
-    ? '<p class="muted">No MCP categories in use.</p>'
-    : `<p class="muted">General guidance for each MCP category present in the model. It is not specific to any one finding.</p>` +
-      a.controls
-        .map(
-          (c) =>
-            `<h3>${h(c.title)}</h3><ul>${c.mitigations.map((m) => `<li>${h(m)}</li>`).join("")}</ul>`,
-        )
-        .join("")
-}
+${controlsHtml(a)}
 
 ${sec("definitions")}
-<dl>${a.definitions.map((d) => `<dt><strong>${h(d.term)}</strong></dt><dd>${h(d.text)}</dd>`).join("")}</dl>
+${definitionsHtml(a)}
 
-<footer>${h(a.tool.name)} ${h(a.tool.version)} &middot; generated ${utc(a.generatedAt)} &middot; report format ${h(a.schemaVersion)}. This document is a record of a threat model, not a certification.</footer>
+${footerHtml(a)}
 `;
-
-  return body;
 }
 
 /** The standalone HTML export: one file, no scripts, no external requests. */
