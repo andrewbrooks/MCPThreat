@@ -34,6 +34,40 @@ export function assessmentContentHash(a: Assessment): string {
   return createHash("sha256").update(canonicalJson(stripVolatile(a))).digest("hex");
 }
 
+// Change detection compares the live model with the latest snapshot. It must ignore
+// bookkeeping that moves without the assessed content changing: the audit trail (issuing
+// a snapshot itself adds events), the last-updated time, and static explanatory text that
+// ships with the tool. The full contentHash above still covers everything, for tamper
+// evidence.
+const MODEL_EXCLUDED_KEYS = new Set([
+  ...EXCLUDED_KEYS,
+  "audit",
+  "tool",
+  "schemaVersion",
+  "scope",
+  "definitions",
+  "controls",
+]);
+const MODEL_EXCLUDED_RECORD_KEYS = new Set(["audit", "lastUpdatedAt"]);
+
+/** sha256 (hex) of the assessed model only. Used to tell whether it changed since a snapshot. */
+export function assessmentModelHash(a: Assessment): string {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(a)) {
+    if (MODEL_EXCLUDED_KEYS.has(k)) continue;
+    if (k === "record" && v && typeof v === "object") {
+      const rec: Record<string, unknown> = {};
+      for (const [rk, rv] of Object.entries(v as object)) {
+        if (!MODEL_EXCLUDED_RECORD_KEYS.has(rk)) rec[rk] = rv;
+      }
+      out[k] = rec;
+    } else {
+      out[k] = v;
+    }
+  }
+  return createHash("sha256").update(canonicalJson(out)).digest("hex");
+}
+
 /** The text stored with a snapshot: the assessment as issued, without a snapshot block. */
 export function serialiseForSnapshot(a: Assessment): string {
   return JSON.stringify(stripVolatile(a));

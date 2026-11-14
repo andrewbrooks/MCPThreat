@@ -1,7 +1,8 @@
 import type { Assessment } from "@/lib/assessment";
 import { evaluateReadiness } from "@/lib/readiness";
 import { loadAssessment } from "@/lib/report-loader";
-import { assessmentContentHash } from "@/lib/snapshot";
+import { assessmentModelHash } from "@/lib/snapshot";
+import { prisma } from "@/lib/prisma";
 import { listSnapshotSummaries } from "@/lib/snapshot-loader";
 import type { Readiness, SnapshotSummary } from "@/lib/workflow-types";
 
@@ -19,15 +20,29 @@ export async function loadProjectWorkflow(
   projectId: string,
   now = new Date(),
 ): Promise<ProjectWorkflow | null> {
-  const [assessment, snapshots] = await Promise.all([
+  const [assessment, snapshots, latestStored] = await Promise.all([
     loadAssessment(projectId),
     listSnapshotSummaries(projectId),
+    prisma.assessmentSnapshot.findFirst({
+      where: { projectId },
+      orderBy: { version: "desc" },
+      select: { assessment: true },
+    }),
   ]);
   if (!assessment) return null;
+  let latestSnapshotModelHash: string | null = null;
+  if (latestStored) {
+    try {
+      latestSnapshotModelHash = assessmentModelHash(JSON.parse(latestStored.assessment));
+    } catch {
+      latestSnapshotModelHash = null; // unreadable: fall back to the full content hash
+    }
+  }
   const readiness = evaluateReadiness({
     assessment,
     snapshots,
-    liveHash: assessmentContentHash(assessment),
+    liveHash: assessmentModelHash(assessment),
+    latestSnapshotModelHash,
     now,
   });
   return { assessment, readiness, snapshots };

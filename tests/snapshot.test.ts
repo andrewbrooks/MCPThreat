@@ -47,3 +47,34 @@ describe("stored snapshot round trip", () => {
     expect(parseStoredAssessment(tampered, hash).intact).toBe(false);
   });
 });
+
+import { assessmentModelHash } from "@/lib/snapshot";
+
+describe("assessmentModelHash", () => {
+  const model = (over: Record<string, unknown> = {}, record: Record<string, unknown> = {}) =>
+    base({
+      record: { projectName: "P", lastUpdatedAt: "2026-01-01", audit: { eventCount: 1 }, ...record },
+      audit: [{ id: "e1" }],
+      tool: { version: "1.0.0" },
+      definitions: [{ term: "x" }],
+      ...over,
+    });
+
+  it("ignores audit trail, last-updated time and static text", () => {
+    const a = model();
+    const b = model(
+      { audit: [{ id: "e1" }, { id: "e2" }], tool: { version: "9.9.9" }, definitions: [] },
+      { lastUpdatedAt: "2030-01-01", audit: { eventCount: 2 } },
+    );
+    expect(assessmentModelHash(a)).toBe(assessmentModelHash(b));
+    // ... while the full content hash still sees the difference (tamper evidence).
+    expect(assessmentContentHash(a)).not.toBe(assessmentContentHash(b));
+  });
+
+  it("changes when the assessed model changes", () => {
+    expect(assessmentModelHash(model())).not.toBe(
+      assessmentModelHash(model({}, { projectName: "Q" })),
+    );
+    expect(assessmentModelHash(model())).not.toBe(assessmentModelHash(model({ title: "changed" })));
+  });
+});

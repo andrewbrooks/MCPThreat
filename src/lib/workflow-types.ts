@@ -81,6 +81,8 @@ export type SnapshotRequirement = "NONE" | "SINGLE" | "DUAL";
 export type SnapshotStatus = "ISSUED" | "PENDING" | "APPROVED" | "RETURNED";
 
 export interface SnapshotSignoffView {
+  /** Id of the person who decided; null if that account no longer exists. */
+  userId: string | null;
   side: "ASSESSOR" | "CLIENT";
   decision: "APPROVED" | "RETURNED";
   comment: string;
@@ -100,6 +102,8 @@ export interface SnapshotSummary {
   contentHash: string;
   createdAt: string;
   createdBy: string;
+  /** Id of the issuer; null if that account no longer exists. */
+  createdById: string | null;
   signoffs: SnapshotSignoffView[];
   /** Sides still needed while PENDING, e.g. ["assessor", "client"]. Empty otherwise. */
   awaiting: string[];

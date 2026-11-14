@@ -14,6 +14,7 @@ type Row = {
   contentHash: string;
   createdAt: Date;
   createdByLabel: string;
+  createdById: string | null;
   signoffs: {
     side: string;
     decision: string;
@@ -28,6 +29,7 @@ export function toSnapshotSummary(row: Row, latestVersion: number): SnapshotSumm
   const requirement = (row.requirement as SnapshotRequirement) ?? "NONE";
   const ordered = [...row.signoffs].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
   const signoffs: SnapshotSignoffView[] = ordered.map((s) => ({
+    userId: s.userId,
     side: s.side === "CLIENT" ? "CLIENT" : "ASSESSOR",
     decision: s.decision === "RETURNED" ? "RETURNED" : "APPROVED",
     comment: s.comment,
@@ -44,6 +46,7 @@ export function toSnapshotSummary(row: Row, latestVersion: number): SnapshotSumm
     contentHash: row.contentHash,
     createdAt: row.createdAt.toISOString(),
     createdBy: row.createdByLabel,
+    createdById: row.createdById,
     signoffs,
     awaiting: awaitingSides(requirement, ordered),
   };
@@ -62,6 +65,7 @@ export async function listSnapshotSummaries(projectId: string): Promise<Snapshot
       contentHash: true,
       createdAt: true,
       createdByLabel: true,
+      createdById: true,
       signoffs: true,
     },
   });
