@@ -7,10 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "check": "npm run lint && npm run typecheck && npm test",
+    "setup": "node scripts/setup.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
