@@ -26,6 +26,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      # Shell scripts are linted with shellcheck, which is preinstalled on GitHub's runners.
+      - run: git ls-files '.githooks/*' '*.sh' | xargs shellcheck
       - run: npm ci
       - run: npx prisma generate
       - run: npm run lint
