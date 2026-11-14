@@ -1,0 +1,10 @@
+# Build output, dependencies and generated or non-code files are not formatted.
+node_modules
+.next
+package-lock.json
+prisma/migrations
+docs/screenshots
+tests/fixtures
+# Prose is written by hand; formatting it would rewrite documents nobody asked to change.
+*.md
+package.json
