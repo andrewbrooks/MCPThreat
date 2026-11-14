@@ -3,8 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { ReportView } from "@/components/app/report-view";
 import { auth } from "@/lib/auth";
 import { AuthzError, requireProjectAccess } from "@/lib/authz";
-import { prisma } from "@/lib/prisma";
-import { buildReportData, generateReport, type ReportProject } from "@/lib/report";
+import { generateReport } from "@/lib/report-markdown";
+import { loadAssessment } from "@/lib/report-loader";
 
 export const dynamic = "force-dynamic";
 
@@ -19,49 +19,26 @@ export default async function ReportPage({ params }: { params: { id: string } })
     throw err;
   }
 
-  const project = await prisma.project.findUnique({
-    where: { id: params.id },
-    include: {
-      findings: true,
-      threatModel: {
-        include: {
-          boundaries: {
-            orderBy: { createdAt: "asc" },
-            include: { vectors: { orderBy: { createdAt: "asc" } } },
-          },
-        },
-      },
-    },
-  });
-  if (!project) notFound();
-
-  const reportInput: ReportProject = {
-    name: project.name,
-    description: project.description,
-    mcpServerUrl: project.mcpServerUrl,
-    architecture: project.architecture,
-    status: project.status,
-    boundaries: project.threatModel?.boundaries ?? [],
-    findings: project.findings,
-  };
-  const markdown = generateReport(reportInput);
-  const data = buildReportData(reportInput);
+  const assessment = await loadAssessment(params.id);
+  if (!assessment) notFound();
+  const markdown = generateReport(assessment);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="no-print">
         <Link
-          href={`/projects/${project.id}`}
+          href={`/projects/${params.id}`}
           className="text-sm text-muted-foreground hover:text-foreground"
         >
-          ← {project.name}
+          ← {assessment.record.projectName}
         </Link>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Threat Model Report</h1>
         <p className="text-sm text-muted-foreground">
-          Generated from the current threat model. Copy the markdown or export to PDF.
+          Built from the current threat model each time you open it. Download it as HTML, Markdown,
+          JSON, or a findings CSV, or print it to PDF.
         </p>
       </div>
-      <ReportView data={data} markdown={markdown} />
+      <ReportView data={assessment} markdown={markdown} />
     </div>
   );
 }
