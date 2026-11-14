@@ -465,9 +465,22 @@ function toAcceptance(
 // Builder
 // ---------------------------------------------------------------------------
 
-export function buildAssessment(input: AssessmentInput, generatedAt = new Date()): Assessment {
-  const { project } = input;
+type BoundaryInput = AssessmentInput["boundaries"][number];
+type VectorInput = BoundaryInput["vectors"][number];
+type FindingInput = AssessmentInput["findings"][number];
 
+/** Display ids (B-nn, T-nn, F-nnn) come from creation order, so they are assigned once and
+ *  every later step looks them up by the row's own id. */
+interface DisplayIds {
+  boundariesSorted: BoundaryInput[];
+  vectorsSorted: { v: VectorInput; boundaryUid: string }[];
+  findingsSorted: FindingInput[];
+  boundaryIdByUid: Map<string, string>;
+  vectorIdByUid: Map<string, string>;
+  findingIdByUid: Map<string, string>;
+}
+
+function assignDisplayIds(input: AssessmentInput): DisplayIds {
   const boundariesSorted = byCreated(input.boundaries);
   const boundaryIdByUid = new Map<string, string>();
   boundariesSorted.forEach((b, i) => boundaryIdByUid.set(b.id, boundaryDisplayId(i + 1)));
@@ -484,8 +497,18 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
   const findingsSorted = byCreated(input.findings);
   const findingIdByUid = new Map<string, string>();
   findingsSorted.forEach((f, i) => findingIdByUid.set(f.id, findingDisplayId(i + 1)));
+  return {
+    boundariesSorted,
+    vectorsSorted,
+    findingsSorted,
+    boundaryIdByUid,
+    vectorIdByUid,
+    findingIdByUid,
+  };
+}
 
-  const vectorRecord = new Map(vectorsSorted.map(({ v }) => [v.id, v]));
+function buildVectors(input: AssessmentInput, ids: DisplayIds): AssessmentVector[] {
+  const { findingsSorted, vectorsSorted, boundaryIdByUid, vectorIdByUid, findingIdByUid } = ids;
   const resolvedVectorUids = new Set(
     input.findings
       .filter((f) => (RESOLVED_STATUSES as string[]).includes(f.status))
@@ -499,7 +522,7 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
     findingIdsByVector.set(f.threatVectorId, list);
   }
 
-  const vectors: AssessmentVector[] = vectorsSorted.map(({ v, boundaryUid }) => {
+  return vectorsSorted.map(({ v, boundaryUid }) => {
     const score = riskScore(v.likelihood, v.impact);
     const resolved = resolvedVectorUids.has(v.id);
     return {
@@ -525,7 +548,10 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
       findingIds: findingIdsByVector.get(v.id) ?? [],
     };
   });
+}
 
+function buildBoundaries(ids: DisplayIds, vectors: AssessmentVector[]): AssessmentBoundary[] {
+  const { boundariesSorted, boundaryIdByUid } = ids;
   const vectorIdsByBoundary = new Map<string, string[]>();
   for (const v of vectors) {
     const list = vectorIdsByBoundary.get(v.boundaryId) ?? [];
@@ -533,7 +559,7 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
     vectorIdsByBoundary.set(v.boundaryId, list);
   }
 
-  const boundaries: AssessmentBoundary[] = boundariesSorted.map((b) => ({
+  return boundariesSorted.map((b) => ({
     id: boundaryIdByUid.get(b.id)!,
     uid: b.id,
     label: b.label,
@@ -543,8 +569,12 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
     source: asSource(b.source),
     vectorIds: vectorIdsByBoundary.get(boundaryIdByUid.get(b.id)!) ?? [],
   }));
+}
 
-  const findings: AssessmentFinding[] = findingsSorted.map((f) => {
+function buildFindings(ids: DisplayIds): AssessmentFinding[] {
+  const { findingsSorted, vectorsSorted, vectorIdByUid, findingIdByUid } = ids;
+  const vectorRecord = new Map(vectorsSorted.map(({ v }) => [v.id, v]));
+  return findingsSorted.map((f) => {
     const vec = vectorRecord.get(f.threatVectorId);
     return {
       id: findingIdByUid.get(f.id)!,
@@ -578,10 +608,11 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
       acceptance: toAcceptance(f.acceptanceRequests),
     };
   });
+}
 
+function buildControls(vectors: AssessmentVector[]): AssessmentControl[] {
   const presentCategories = Array.from(new Set(vectors.map((v) => v.mcpCategory)));
-  const fw = frameworksForCategories(presentCategories);
-  const controls: AssessmentControl[] = presentCategories.flatMap((cat) => {
+  return presentCategories.flatMap((cat) => {
     const kb = getKnowledge(cat as McpCategory);
     if (!kb) return [];
     return [
@@ -595,8 +626,9 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
       },
     ];
   });
+}
 
-  const flatForMetrics = vectors.map((v) => ({ id: v.uid }));
+function buildPeople(input: AssessmentInput): Assessment["record"]["people"] {
   const owner = input.owner;
   const people: Assessment["record"]["people"] = [];
   if (owner) {
@@ -613,82 +645,113 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
       side: m.side,
     });
   }
+  return people;
+}
 
-  const auditSorted = [...(input.audit ?? [])].sort((a, b) => ts(a.createdAt) - ts(b.createdAt));
-  const policy = project.acceptancePolicy as AcceptancePolicy;
+function buildSummary(
+  input: AssessmentInput,
+  boundaries: AssessmentBoundary[],
+  vectors: AssessmentVector[],
+  findings: AssessmentFinding[],
+): Assessment["summary"] {
+  const flatForMetrics = vectors.map((v) => ({ id: v.uid }));
   const statuses = statusBreakdown(input.findings);
   const bandCounts: Record<RiskBand, number> = { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 };
   for (const v of vectors) bandCounts[v.riskBand] += 1;
+  return {
+    boundaryCount: boundaries.length,
+    vectorCount: vectors.length,
+    findingCount: findings.length,
+    openCount: openFindingCount(input.findings),
+    completionPct: completionPct(flatForMetrics, input.findings),
+    bySeverity: [...SEVERITIES]
+      .sort((a, b) => SEVERITY_RANK[b] - SEVERITY_RANK[a])
+      .map((s) => ({
+        severity: s,
+        label: SEVERITY_LABELS[s],
+        total: findings.filter((f) => f.severity === s).length,
+        open: findings.filter((f) => f.severity === s && f.isOpen).length,
+      })),
+    byStatus: Object.entries(statuses).map(([status, count]) => ({
+      status,
+      label: label(STATUS_LABELS, status),
+      count,
+    })),
+    byRiskBand: (["CRITICAL", "HIGH", "MEDIUM", "LOW"] as RiskBand[]).map((band) => ({
+      band,
+      label: RISK_BAND_LABELS[band],
+      count: bandCounts[band],
+    })),
+  };
+}
+
+function buildRecord(
+  input: AssessmentInput,
+  auditSorted: AssessmentInput["audit"] & object,
+  boundaries: AssessmentBoundary[],
+  vectors: AssessmentVector[],
+  findings: AssessmentFinding[],
+): Assessment["record"] {
+  const { project } = input;
+  const policy = project.acceptancePolicy as AcceptancePolicy;
+  return {
+    projectId: project.id,
+    projectName: project.name,
+    projectDescription: project.description,
+    projectStatus: project.status,
+    projectStatusLabel: label(PROJECT_STATUS_LABELS, project.status),
+    mcpServerUrl: project.mcpServerUrl,
+    createdAt: iso(project.createdAt),
+    lastUpdatedAt: iso(
+      [project.updatedAt, ...input.findings.map((f) => f.updatedAt)].sort(
+        (a, b) => ts(b) - ts(a),
+      )[0],
+    ),
+    source: {
+      type: project.sourceType === "GITHUB" ? "GITHUB" : "MANUAL",
+      repoUrl: project.repoUrl,
+      repoRef: project.repoRef,
+      analyzedAt: iso(project.analyzedAt),
+      techStack: project.techStack
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    },
+    acceptancePolicy: {
+      value: project.acceptancePolicy,
+      label: label(ACCEPTANCE_POLICY_LABELS, policy),
+    },
+    people: buildPeople(input),
+    aiSuggested: {
+      boundaries: boundaries.filter((b) => b.source === "AI").length,
+      vectors: vectors.filter((v) => v.source === "AI").length,
+      findings: findings.filter((f) => f.source === "AI").length,
+    },
+    audit: {
+      eventCount: auditSorted.length,
+      firstEventAt: iso(auditSorted[0]?.createdAt),
+      lastEventAt: iso(auditSorted[auditSorted.length - 1]?.createdAt),
+    },
+  };
+}
+
+export function buildAssessment(input: AssessmentInput, generatedAt = new Date()): Assessment {
+  const { project } = input;
+  const ids = assignDisplayIds(input);
+  const vectors = buildVectors(input, ids);
+  const boundaries = buildBoundaries(ids, vectors);
+  const findings = buildFindings(ids);
+
+  const fw = frameworksForCategories(Array.from(new Set(vectors.map((v) => v.mcpCategory))));
+  const auditSorted = [...(input.audit ?? [])].sort((a, b) => ts(a.createdAt) - ts(b.createdAt));
 
   return {
     schemaVersion: ASSESSMENT_SCHEMA_VERSION,
     tool: { name: TOOL_NAME, version: TOOL_VERSION },
     generatedAt: generatedAt.toISOString(),
     snapshot: null,
-    record: {
-      projectId: project.id,
-      projectName: project.name,
-      projectDescription: project.description,
-      projectStatus: project.status,
-      projectStatusLabel: label(PROJECT_STATUS_LABELS, project.status),
-      mcpServerUrl: project.mcpServerUrl,
-      createdAt: iso(project.createdAt),
-      lastUpdatedAt: iso(
-        [project.updatedAt, ...input.findings.map((f) => f.updatedAt)].sort(
-          (a, b) => ts(b) - ts(a),
-        )[0],
-      ),
-      source: {
-        type: project.sourceType === "GITHUB" ? "GITHUB" : "MANUAL",
-        repoUrl: project.repoUrl,
-        repoRef: project.repoRef,
-        analyzedAt: iso(project.analyzedAt),
-        techStack: project.techStack
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      },
-      acceptancePolicy: {
-        value: project.acceptancePolicy,
-        label: label(ACCEPTANCE_POLICY_LABELS, policy),
-      },
-      people,
-      aiSuggested: {
-        boundaries: boundaries.filter((b) => b.source === "AI").length,
-        vectors: vectors.filter((v) => v.source === "AI").length,
-        findings: findings.filter((f) => f.source === "AI").length,
-      },
-      audit: {
-        eventCount: auditSorted.length,
-        firstEventAt: iso(auditSorted[0]?.createdAt),
-        lastEventAt: iso(auditSorted[auditSorted.length - 1]?.createdAt),
-      },
-    },
-    summary: {
-      boundaryCount: boundaries.length,
-      vectorCount: vectors.length,
-      findingCount: findings.length,
-      openCount: openFindingCount(input.findings),
-      completionPct: completionPct(flatForMetrics, input.findings),
-      bySeverity: [...SEVERITIES]
-        .sort((a, b) => SEVERITY_RANK[b] - SEVERITY_RANK[a])
-        .map((s) => ({
-          severity: s,
-          label: SEVERITY_LABELS[s],
-          total: findings.filter((f) => f.severity === s).length,
-          open: findings.filter((f) => f.severity === s && f.isOpen).length,
-        })),
-      byStatus: Object.entries(statuses).map(([status, count]) => ({
-        status,
-        label: label(STATUS_LABELS, status),
-        count,
-      })),
-      byRiskBand: (["CRITICAL", "HIGH", "MEDIUM", "LOW"] as RiskBand[]).map((band) => ({
-        band,
-        label: RISK_BAND_LABELS[band],
-        count: bandCounts[band],
-      })),
-    },
+    record: buildRecord(input, auditSorted, boundaries, vectors, findings),
+    summary: buildSummary(input, boundaries, vectors, findings),
     scope: scopeStatements(),
     definitions: DEFINITIONS,
     architecture: project.architecture,
@@ -696,10 +759,10 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
     vectors,
     findings,
     frameworks: { note: FRAMEWORK_NOTE, owasp: fw.owasp, atlas: fw.atlas },
-    controls,
+    controls: buildControls(vectors),
     audit: auditSorted.map((e) => ({
       id: e.id,
-      findingId: e.findingId ? (findingIdByUid.get(e.findingId) ?? null) : null,
+      findingId: e.findingId ? (ids.findingIdByUid.get(e.findingId) ?? null) : null,
       at: iso(e.createdAt),
       actor: e.actorLabel,
       action: e.action,
