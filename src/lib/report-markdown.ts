@@ -171,7 +171,7 @@ export function generateReport(a: Assessment): string {
         (sn.integrity === "FAILED" ? " **Integrity check failed.**" : ""),
     );
   } else {
-    L.push(`> **Live draft.** ${LIVE_DRAFT_NOTICE}`);
+    L.push(`> **${LIVE_DRAFT_NOTICE}**`);
   }
   L.push("");
   L.push("## Contents");

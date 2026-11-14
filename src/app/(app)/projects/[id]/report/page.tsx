@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ReportView } from "@/components/app/report-view";
+import { ReportToolbar } from "@/components/app/report-toolbar";
 import { auth } from "@/lib/auth";
 import { AuthzError, requireProjectAccess } from "@/lib/authz";
+import { REPORT_CSS, reportBodyHtml } from "@/lib/report-html";
 import { loadAssessment } from "@/lib/report-loader";
 
 export const dynamic = "force-dynamic";
@@ -21,22 +22,31 @@ export default async function ReportPage({ params }: { params: { id: string } })
   const assessment = await loadAssessment(params.id);
   if (!assessment) notFound();
 
+  // The on-screen report is the same document the HTML export downloads. Every value in it
+  // is escaped by reportBodyHtml, so it is safe to inject here.
+  const html = reportBodyHtml(assessment);
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div className="no-print">
+    <div className="mx-auto max-w-6xl space-y-4">
+      <div className="no-print space-y-1">
         <Link
           href={`/projects/${params.id}`}
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           ← {assessment.record.projectName}
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Threat Model Report</h1>
         <p className="text-sm text-muted-foreground">
-          Built from the current threat model each time you open it. Download it as HTML, Markdown,
-          JSON, or a findings CSV, or print it to PDF.
+          Live report. It is built from the current model each time you open it, and is the same
+          document you download. For a frozen, reviewed record, use Review and sign-off.
         </p>
       </div>
-      <ReportView data={assessment} />
+      <ReportToolbar projectId={params.id} />
+      <style dangerouslySetInnerHTML={{ __html: REPORT_CSS }} />
+      <article
+        aria-label="Threat model report"
+        className="report-doc mx-auto max-w-[960px] rounded-sm border shadow-sm print:max-w-none print:rounded-none print:border-0 print:shadow-none"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 }

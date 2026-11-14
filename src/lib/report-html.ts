@@ -121,52 +121,71 @@ function paragraphs(s: string): string {
     .join("");
 }
 
-const CSS = `
-:root { color-scheme: light; }
-* { box-sizing: border-box; }
-body { margin: 0; background: #f4f5f7; color: #1a1f2b; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-main { max-width: 960px; margin: 0 auto; padding: 32px 28px 64px; background: #fff; }
-h1 { font-size: 26px; margin: 0 0 6px; line-height: 1.25; }
-h2 { font-size: 20px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #1a1f2b; }
-h3 { font-size: 16px; margin: 24px 0 8px; }
-h4 { font-size: 15px; margin: 18px 0 6px; }
-h5, h6 { font-size: 14px; margin: 14px 0 6px; }
-p { margin: 8px 0; }
-a { color: #0b4fb3; }
-.muted { color: #4a5262; }
-.small { font-size: 13px; }
-table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13.5px; }
-th, td { border: 1px solid #c9ced8; padding: 6px 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
-th { background: #eceff4; font-weight: 600; }
-tr { break-inside: avoid; }
-code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #eef0f4; padding: 1px 4px; border-radius: 3px; }
-pre { background: #eef0f4; padding: 10px; overflow-x: auto; border-radius: 4px; }
-pre code { background: none; padding: 0; }
-blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid #c9ced8; color: #4a5262; }
-.notice { border: 1px solid #b7791f; background: #fffaf0; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
-.notice h3 { margin-top: 0; }
-.alert { border: 2px solid #b42318; background: #fef3f2; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
-.hash { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
-.kv th { width: 220px; }
-.tag { display: inline-block; border: 1px solid #5b6577; border-radius: 3px; padding: 0 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.sev-critical { border-color: #9b1c1c; color: #9b1c1c; }
-.sev-high { border-color: #b43c00; color: #b43c00; }
-.sev-medium { border-color: #8a5a00; color: #8a5a00; }
-.sev-low, .sev-info { border-color: #1d4f91; color: #1d4f91; }
-.finding { break-inside: avoid-page; border: 1px solid #c9ced8; border-radius: 4px; padding: 4px 16px 12px; margin: 16px 0; }
-.finding h3 { margin-bottom: 4px; }
-nav ol { columns: 2; padding-left: 20px; margin: 8px 0; }
-nav a { text-decoration: none; }
-footer { margin-top: 48px; padding-top: 12px; border-top: 1px solid #c9ced8; font-size: 12.5px; color: #4a5262; }
+/**
+ * The report stylesheet. Every rule is scoped under .report-doc so the same document can
+ * be embedded in the app (the Live report page) and served standalone (the HTML export)
+ * without leaking styles. It is deliberately fixed to a light "paper" palette: it is a
+ * document, not part of the app theme, so it looks the same on screen, in print and in
+ * the downloaded file.
+ */
+export const REPORT_CSS = `
+.report-doc { color-scheme: light; background: #fff; color: #1a1f2b; padding: 44px 48px 56px; overflow-x: auto; font: 14.5px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; overflow-wrap: break-word; }
+.report-doc *, .report-doc *::before, .report-doc *::after { box-sizing: border-box; }
+.report-doc header { padding-bottom: 18px; border-bottom: 3px solid #1a1f2b; margin-bottom: 4px; }
+.report-doc header > p:first-child { margin: 0 0 8px; text-transform: uppercase; letter-spacing: .09em; font-size: 12px; font-weight: 600; color: #4a5262; }
+.report-doc h1 { font-size: 28px; margin: 0 0 8px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
+.report-doc h2 { font-size: 18px; margin: 38px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #98a2b3; line-height: 1.3; font-weight: 700; break-after: avoid; }
+.report-doc h3 { font-size: 15px; margin: 24px 0 8px; font-weight: 700; break-after: avoid; }
+.report-doc h4 { font-size: 14.5px; margin: 18px 0 6px; font-weight: 700; break-after: avoid; }
+.report-doc h5, .report-doc h6 { font-size: 14px; margin: 14px 0 6px; font-weight: 700; }
+.report-doc p { margin: 8px 0; }
+.report-doc ul, .report-doc ol { margin: 8px 0; padding-left: 22px; }
+.report-doc li { margin: 3px 0; }
+.report-doc a { color: #0b4fb3; text-decoration: underline; text-underline-offset: 2px; }
+.report-doc .muted { color: #4a5262; }
+.report-doc .small { font-size: 13px; }
+.report-doc table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+.report-doc th, .report-doc td { border: 1px solid #cfd4dc; padding: 6px 9px; text-align: left; vertical-align: top; }
+.report-doc th { background: #eef1f5; font-weight: 600; }
+.report-doc tr { break-inside: avoid; }
+.report-doc table.wide { font-size: 12px; }
+.report-doc table.wide th, .report-doc table.wide td { padding: 5px 6px; }
+.report-doc .scroll { overflow-x: auto; margin: 12px 0; }
+.report-doc .scroll table { margin: 0; }
+.report-doc code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #eef0f4; padding: 1px 4px; border-radius: 3px; }
+.report-doc pre { background: #eef0f4; padding: 10px; overflow-x: auto; border-radius: 4px; }
+.report-doc pre code { background: none; padding: 0; }
+.report-doc blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid #cfd4dc; color: #4a5262; }
+.report-doc .notice { border: 1px solid #b7791f; border-left-width: 4px; background: #fffaf0; padding: 12px 16px; border-radius: 3px; margin: 14px 0; }
+.report-doc .notice h3 { margin-top: 0; }
+.report-doc .alert { border: 2px solid #b42318; background: #fef3f2; padding: 12px 16px; border-radius: 3px; margin: 14px 0; }
+.report-doc .draft { border: 1px solid #9aa4b2; border-left: 4px solid #4a5262; background: #f4f6f9; padding: 10px 14px; border-radius: 3px; margin: 14px 0; font-size: 13.5px; }
+.report-doc .hash { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+.report-doc .kv th { width: 220px; }
+.report-doc .tag { display: inline-block; border: 1px solid #5b6577; border-radius: 3px; padding: 0 7px; font-size: 12px; font-weight: 600; white-space: nowrap; line-height: 1.5; }
+.report-doc .sev-critical { border-color: #9b1c1c; color: #9b1c1c; }
+.report-doc .sev-high { border-color: #b43c00; color: #b43c00; }
+.report-doc .sev-medium { border-color: #8a5a00; color: #8a5a00; }
+.report-doc .sev-low, .report-doc .sev-info { border-color: #1d4f91; color: #1d4f91; }
+.report-doc .finding { break-inside: avoid-page; border: 1px solid #cfd4dc; border-radius: 3px; padding: 4px 18px 14px; margin: 16px 0; }
+.report-doc .finding h3 { margin-bottom: 4px; }
+.report-doc nav ol { columns: 2; padding-left: 22px; margin: 8px 0; }
+.report-doc nav li { margin: 0; padding: 3px 0; break-inside: avoid; }
+.report-doc .scroll td:first-child, .report-doc td a[href^="#"] { white-space: nowrap; }
+.report-doc dt { margin-top: 10px; }
+.report-doc dd { margin: 2px 0 0; }
+.report-doc footer { margin-top: 48px; padding-top: 12px; border-top: 1px solid #cfd4dc; font-size: 12.5px; color: #4a5262; }
 @page { size: A4; margin: 18mm 16mm 20mm; @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size: 9pt; color: #4a5262; } }
 @media print {
-  body { background: #fff; font-size: 11pt; }
-  main { max-width: none; padding: 0; }
-  h2 { break-after: avoid; }
-  a { color: inherit; text-decoration: none; }
-  .no-print { display: none; }
+  .report-doc { padding: 0; font-size: 11pt; overflow: visible; }
+  .report-doc a { color: inherit; text-decoration: none; }
+  .report-doc .scroll { overflow: visible; }
 }
-@media (max-width: 640px) { main { padding: 20px 14px 48px; } nav ol { columns: 1; } .kv th { width: 120px; } }
+@media (max-width: 640px) {
+  .report-doc { padding: 22px 16px 40px; }
+  .report-doc nav ol { columns: 1; }
+  .report-doc .kv th { width: 120px; }
+}
 `;
 
 function sevTag(f: { severity: string; severityLabel: string }): string {
@@ -274,7 +293,8 @@ function snapshotHtml(a: Assessment): string {
     .join("")}</tbody></table>${signoffs}`;
 }
 
-export function generateHtml(a: Assessment): string {
+/** The report as an HTML fragment (no <html>/<body>), for embedding under a .report-doc element. */
+export function reportBodyHtml(a: Assessment): string {
   const r = a.record;
   const s = a.summary;
   const ordered = findingsBySeverity(a.findings);
@@ -330,8 +350,8 @@ export function generateHtml(a: Assessment): string {
 </header>
 ${
   a.snapshot
-    ? `<div class="notice" role="note"><strong>Snapshot v${a.snapshot.version}</strong>, ${h(SNAPSHOT_STATUS_LABELS[a.snapshot.status] ?? a.snapshot.status)}. The snapshot record is in section 1.${a.snapshot.integrity === "FAILED" ? " <strong>Integrity check failed.</strong>" : ""}</div>`
-    : `<div class="notice" role="note"><strong>Live draft.</strong> ${h(LIVE_DRAFT_NOTICE)}</div>`
+    ? `<div class="draft" role="note"><strong>Snapshot v${a.snapshot.version}</strong>, ${h(SNAPSHOT_STATUS_LABELS[a.snapshot.status] ?? a.snapshot.status)}. The snapshot record is in section 1.${a.snapshot.integrity === "FAILED" ? " <strong>Integrity check failed.</strong>" : ""}</div>`
+    : `<div class="draft" role="note"><strong>${h(LIVE_DRAFT_NOTICE)}</strong></div>`
 }
 <nav aria-label="Contents"><h2 style="border:0;margin-top:24px">Contents</h2><ol>${SECTIONS.map(
     ([k, t]) => `<li><a href="#${k}">${h(t)}</a></li>`,
@@ -399,12 +419,12 @@ ${sec("vectors")}
 ${
   a.vectors.length === 0
     ? '<p class="muted">No threat vectors mapped.</p>'
-    : `<table><thead><tr><th scope="col">ID</th><th scope="col">Threat vector</th><th scope="col">Boundary</th><th scope="col">STRIDE</th><th scope="col">MCP category</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Risk</th><th scope="col">Residual</th><th scope="col">Findings</th><th scope="col">Source</th></tr></thead><tbody>${a.vectors
+    : `<div class="scroll"><table class="wide"><thead><tr><th scope="col">ID</th><th scope="col">Threat vector</th><th scope="col">Boundary</th><th scope="col">STRIDE</th><th scope="col">MCP category</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Risk</th><th scope="col">Residual</th><th scope="col">Findings</th><th scope="col">Source</th></tr></thead><tbody>${a.vectors
         .map(
           (v) =>
             `<tr id="${h(v.id)}"><td>${h(v.id)}</td><td>${h(v.title)}</td><td>${h(v.boundaryId)}</td><td>${h(v.strideLabel)}</td><td>${h(v.mcpCategoryLabel)}</td><td>${h(v.likelihoodLabel)}</td><td>${h(v.impactLabel)}</td><td>${h(RISK_BAND_LABELS[v.riskBand])}</td><td>${h(RISK_BAND_LABELS[v.residualBand])}</td><td>${v.findingIds.map((id) => `<a href="#${h(id)}">${h(id)}</a>`).join(", ") || "—"}</td><td>${v.source === "AI" ? `AI${v.confidence ? ` (${h(v.confidence.toLowerCase())})` : ""}` : "Manual"}</td></tr>`,
         )
-        .join("")}</tbody></table>`
+        .join("")}</tbody></table></div>`
 }
 
 ${sec("register")}
@@ -457,6 +477,12 @@ ${sec("definitions")}
 <footer>${h(a.tool.name)} ${h(a.tool.version)} &middot; generated ${utc(a.generatedAt)} &middot; report format ${h(a.schemaVersion)}. This document is a record of a threat model, not a certification.</footer>
 `;
 
+  return body;
+}
+
+/** The standalone HTML export: one file, no scripts, no external requests. */
+export function generateHtml(a: Assessment): string {
+  const r = a.record;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -464,10 +490,14 @@ ${sec("definitions")}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="${h(a.tool.name)} ${h(a.tool.version)}">
 <title>Threat Model Report: ${h(r.projectName)}</title>
-<style>${CSS}</style>
+<style>${REPORT_CSS}
+body { margin: 0; background: #e9ecf1; }
+main.report-doc { max-width: 960px; margin: 0 auto; }
+@media print { body { background: #fff; } main.report-doc { max-width: none; } }
+</style>
 </head>
 <body>
-<main>${body}</main>
+<main class="report-doc">${reportBodyHtml(a)}</main>
 </body>
 </html>
 `;

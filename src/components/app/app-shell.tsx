@@ -249,7 +249,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden shrink-0 border-r bg-card p-3 transition-[width] duration-200 md:block",
+          "hidden shrink-0 border-r bg-card p-3 transition-[width] duration-200 md:block print:hidden",
           collapsed ? "w-[4.5rem]" : "w-60",
         )}
       >
@@ -271,7 +271,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b p-4 md:hidden">
+        <header className="flex items-center gap-3 border-b p-4 md:hidden print:hidden">
           <Button
             variant="outline"
             size="icon"
