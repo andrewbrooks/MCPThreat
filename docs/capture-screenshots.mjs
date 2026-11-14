@@ -30,6 +30,7 @@ const shots = [
   { name: "architecture", path: `/projects/${id}/architecture`, full: true },
   { name: "dataflow", path: `/projects/${id}/dataflow`, full: true },
   { name: "findings", path: `/projects/${id}/findings`, full: true },
+  { name: "review", path: `/projects/${id}/review`, full: true },
   { name: "report", path: `/projects/${id}/report`, full: true },
 ];
 

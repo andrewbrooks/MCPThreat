@@ -1,6 +1,8 @@
 # Threat Model Report: Example Payment MCP
 
-Prepared with MCPThreat 1.0.0 on 2026-11-14 03:25 UTC. Report format version 1.0.
+Prepared with MCPThreat 1.0.0 on 2026-11-14 04:24 UTC. Report format version 1.0.
+
+> **Live draft.** This is a live draft. It reflects the threat model as it is now and will change as the model is edited. A frozen, reviewed record is made from the Review and sign-off page of the project.
 
 ## Contents
 
@@ -27,8 +29,8 @@ Prepared with MCPThreat 1.0.0 on 2026-11-14 03:25 UTC. Report format version 1.0
 | Model source | Entered manually in MCPThreat |
 | Technology | TypeScript, Node.js, @modelcontextprotocol/sdk, Express, Zod, pino, Streamable HTTP, Docker |
 | Model created | 2026-11-14 03:13 UTC |
-| Last change recorded | 2026-11-14 03:13 UTC |
-| Report generated | 2026-11-14 03:25 UTC |
+| Last change recorded | 2026-11-14 04:20 UTC |
+| Report generated | 2026-11-14 04:24 UTC |
 | Tool and version | MCPThreat 1.0.0 |
 | Risk-acceptance policy | Dual sign-off (assessor + client) |
 | AI-suggested items | 0 boundaries, 0 threat vectors, 0 findings |
@@ -354,7 +356,7 @@ Observed session IDs 1001, 1002, 1003 across test connections.
 - **Due:** 2026-10-25
 - **Source:** Entered by a person
 - **Framework mapping (indicative):** LLM10, LLM06, AML.T0048
-- **Recorded:** 2026-11-14 03:13 UTC. **Last updated:** 2026-11-14 03:13 UTC
+- **Recorded:** 2026-11-14 03:13 UTC. **Last updated:** 2026-11-14 04:20 UTC
 
 **Description and rationale**
 
@@ -490,6 +492,7 @@ General guidance for each MCP category present in the model. It is not specific 
 - **Mitigation completion.** The share of threat vectors that have at least one finding with status Mitigated or Closed. A vector with no findings does not count as complete. An Accepted finding does not count toward completion.
 - **Risk band.** Derived from the threat vector's likelihood and impact (Low = 1, Medium = 2, High = 3). The product gives a score from 1 to 9: 1 to 2 is Low, 3 to 5 is Medium, 6 to 8 is High, and 9 is Critical.
 - **Residual risk band.** The risk band after reducing the score by 3 (to a minimum of 1) when the vector has at least one Mitigated or Closed finding. It is a simple adjustment, not a re-assessment.
+- **Snapshot.** A frozen copy of the assessment taken at a point in time and given a version number. Its SHA-256 content hash identifies exactly what was assessed, so any later change to the content gives a different hash. The hash is not a digital signature and does not prove who produced it.
 - **Severity.** The assessor's rating of an individual finding (Info, Low, Medium, High, Critical). It is recorded by a person and is not calculated from the risk band.
 - **AI-suggested.** An item drafted by a language model from repository contents during GitHub import. It carries a confidence level (Low, Medium, High) and is intended to be reviewed by a person.
 - **Identifiers.** B-nn (trust boundary), T-nn (threat vector), and F-nnn (finding) are assigned by creation order within the project at the time of export. They are stable while items are only added or edited. Deleting an item renumbers later items of the same kind, so cite the export date and tool version alongside an identifier, or use the internal uid in the JSON export.

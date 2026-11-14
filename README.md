@@ -10,10 +10,13 @@ It supports a workflow, not a verdict. It does not scan or test your server. See
 
 ## What you do with it
 
-1. **Model.** Define trust boundaries, then record the threats that cross each one. Threats are classified by STRIDE category and by an MCP-specific category.
-2. **Assess.** Score each threat by likelihood and impact, and raise findings with a severity, a rationale, and a recommendation.
-3. **Track.** Assign owners and due dates, attach evidence, and move each finding to Mitigated, Accepted, or Closed. Acceptance can require one or two approvals.
-4. **Report.** Export the assessment as HTML, Markdown, JSON, or a findings CSV, or print it to PDF.
+1. **Scope.** Describe what is being assessed.
+2. **Model.** Define trust boundaries, then record the threats that cross each one. Threats are classified by STRIDE category and by an MCP-specific category.
+3. **Assess.** Score each threat by likelihood and impact, and raise findings with a severity, a rationale, and a recommendation.
+4. **Remediate.** Assign owners and due dates, attach evidence, and move each finding to Mitigated, Accepted, or Closed. Acceptance can require one or two approvals.
+5. **Sign off.** Issue a frozen snapshot of the assessment and have it reviewed. Export that snapshot as HTML, Markdown, JSON, or a findings CSV, or print it to PDF.
+
+Every project page shows which of these stages the project is in and the next thing to do. See [Workflow](#workflow).
 
 Optionally, point MCPThreat at a GitHub repository and it will draft the architecture, a dataflow diagram, and a set of threats for you to review. Every drafted item is labelled AI-suggested with a confidence level.
 
@@ -35,13 +38,25 @@ Then:
 
 1. Open **Example Payment MCP** from the dashboard.
 2. Look at **Threat Model**, **Findings**, and **Dataflow** to see how the pieces fit.
-3. Open **Report** and download the HTML version.
+3. Open **Review and sign-off** to see the readiness checks, then **Live report** to download the current assessment as HTML.
 
 To start your own, choose **New Project** on the dashboard. The empty state lists the four steps above.
 
+## Workflow
+
+MCPThreat is organised around the order work is actually done in, not around a list of pages.
+
+- **Stage bar.** At the top of every project page, five stages (Scope, Model, Assess, Remediate, Sign off) show as Done, Current, or Upcoming, with a link to the next action.
+- **Readiness checks.** The Review and sign-off page lists every check behind the stages, passed or not. A check is a blocker (it prevents issuing a snapshot), a review item (it should be looked at), or for information. Examples: threat vectors with no finding yet, findings with no owner or rationale, open findings past their due date. The checks guide the work. They are not a compliance determination.
+- **Needs attention.** The dashboard lists, across your projects, findings assigned to you that are overdue or due soon, acceptance requests and snapshot reviews waiting on you, accepted risks about to lapse, and snapshots returned to you.
+- **Snapshots.** Issuing a snapshot freezes the assessment as it is at that moment and gives it a version number. A snapshot cannot be edited. Its SHA-256 content hash identifies exactly what was assessed, and the report re-checks it each time the snapshot is opened.
+- **Sign-off.** What a snapshot needs follows the project's acceptance policy, fixed at the time it is issued. Off: none, the snapshot is simply issued. Single approver: one approval from someone other than the issuer. Dual sign-off: one assessor and one client. A reviewer can approve or return a snapshot; a return needs a comment and is final, so changes go into a new snapshot.
+- **Live report and snapshot report.** The Live report always reflects the model as it is now and is marked as a draft. A snapshot report is the frozen record, with its version, issuer, content hash, sign-offs, and integrity result printed in section 1.
+- **Change detection.** If the model changes after a snapshot, every project page says so. Any edit counts, including an edit that is later reversed.
+
 ## Sample report
 
-A complete report generated from the seeded example is in [docs/sample-report.md](docs/sample-report.md), with the findings register as [docs/sample-findings.csv](docs/sample-findings.csv). Each report opens with an assessment record and a scope and limitations section. An excerpt:
+Generated from the seeded example: the live report in [docs/sample-report.md](docs/sample-report.md), an approved snapshot report with its sign-offs in [docs/sample-snapshot-report.md](docs/sample-snapshot-report.md), and the findings register in [docs/sample-findings.csv](docs/sample-findings.csv). Each report opens with an assessment record and a scope and limitations section. An excerpt:
 
 ```text
 ## 1. Assessment record
@@ -74,6 +89,8 @@ Description and rationale, Recommendation, and Evidence follow.
 
 ### Export formats
 
+Both the live report and each snapshot can be exported. Use a snapshot when the output is evidence.
+
 | Format | Use | How |
 | --- | --- | --- |
 | HTML | Reading, sharing, printing to PDF. One self-contained file, no scripts. | Report page, or `?format=html` |
@@ -81,7 +98,7 @@ Description and rationale, Recommendation, and Evidence follow.
 | JSON | Machine use. Includes internal IDs and the audit trail. Carries a `schemaVersion`. | Report page, or `?format=json` |
 | CSV | The findings register for a spreadsheet or workpaper. | Report page, or `?format=csv` |
 
-The same data is available from `GET /api/projects/:id/report?format=<html|md|json|csv>` for a signed-in user with access to the project. Add `&download=1` to receive a file attachment.
+The same data is available from `GET /api/projects/:id/report?format=<html|md|json|csv>` (live) and `GET /api/projects/:id/snapshots/:snapshotId/report?format=<html|md|json|csv>` (a frozen snapshot) for a signed-in user with access to the project. Add `&download=1` to receive a file attachment. Snapshots are issued with `POST /api/projects/:id/snapshots` and reviewed with `POST /api/projects/:id/snapshots/:snapshotId/signoff`.
 
 ## Limitations
 
@@ -92,6 +109,9 @@ Please read these before relying on a report.
 - **AI-suggested items can be wrong or incomplete.** They are drafted by a language model from a limited selection of repository files (at most 24 files, each truncated at 24 KB). They are labelled and should be reviewed before use. The model used is not stored with the analysis.
 - **Ratings are judgements.** Severity, likelihood, and impact are entered by people. The risk band is a fixed calculation from likelihood and impact.
 - **Framework mappings are indicative.** They are not an attestation against OWASP, MITRE ATLAS, or any other framework.
+- **A snapshot is not a digital signature.** The hash shows that a stored snapshot still matches what was issued. It does not prove who wrote it, and anyone with database access could alter both. If you need non-repudiation, sign the exported file with your own tooling.
+- **Readiness checks are a guide.** They look for gaps in the record, such as missing owners or rationale. Passing them does not mean the assessment is complete or correct.
+- **Sign-off records who clicked, not who they are.** It relies on the sign-in and the party (assessor or client) recorded for each member.
 - **Identifiers follow creation order.** They are stable while items are added or edited. Deleting an item renumbers later items of the same kind. Cite the export date and tool version with an identifier, or use the `uid` in the JSON export.
 - **Evidence is not verified.** Text and attachments are recorded as supplied.
 - **Version 1.0.** The data model and export schema may change in later versions.
@@ -107,6 +127,7 @@ Please read these before relying on a report.
 - A findings register with severity, status, owner, due date, evidence, and file attachments.
 - A risk-acceptance workflow with three policies: off, single approver, or dual sign-off (assessor and client). Dual sign-off applies to High and Critical findings. Approvals expire and the finding reopens for review.
 - An append-only audit trail of changes, and recurring email reminders to owners.
+- A stage bar, readiness checks, and a worklist, so each project shows what to do next. Frozen, versioned snapshots with optional single or dual sign-off.
 
 **GitHub import (optional)**
 - Fetches from `github.com` only, selects relevant files, and uses Claude to draft architecture, dataflow, and threats. Only items with supporting evidence are created, each tagged AI-suggested with a confidence level.
@@ -136,6 +157,10 @@ Please read these before relying on a report.
 **Findings**: a filterable, sortable register with IDs, severity, status, owners, and the acceptance workflow.
 
 ![Findings](docs/screenshots/findings.png)
+
+**Review and sign-off**: readiness checks by stage, and frozen snapshots with their sign-offs.
+
+![Review and sign-off](docs/screenshots/review.png)
 
 **Report**: the assessment record, scope and limitations, findings, and downloads.
 
@@ -170,7 +195,7 @@ For production, set the `datasource` provider in `prisma/schema.prisma` to `post
 | `npm run dev` | Start the development server |
 | `npm run build` | Production build, including typecheck and lint |
 | `npm run lint` | ESLint |
-| `npm test` | Unit tests for scoring, acceptance, URL guards, dataflow parsing, metrics, and the report formats |
+| `npm test` | Unit tests for scoring, acceptance, sign-off, readiness, the worklist, URL guards, dataflow parsing, metrics, and the report formats |
 | `npm run seed` | Load the demo project |
 | `npm run db:reset` | Destructive: reset the development database and re-seed |
 
