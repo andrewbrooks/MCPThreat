@@ -1,123 +1,191 @@
 # MCPThreat
 
-**MCPThreat is a highly functional prototype for rapid threat modeling of Model Context Protocol (MCP) servers**
+MCPThreat is a threat-modeling workspace for servers built on the Model Context Protocol (MCP).
 
-MCP connects LLM agents to real tools, data, and downstream systems, and in doing so introduces a class of risks that traditional threat modeling doesn't cover well such as prompt injection, tool poisoning, token passthrough, context bleed between tenants, and more. MCPThreat turns reasoning about those risks into a structured, repeatable workflow. You map the trust boundaries, chart the dataflows, catalog the threats against a purpose-built taxonomy, and track every finding to mitigation, then hand a report to a stakeholder at the end.
+It was built to answer one question for a given MCP server: **where can trust break down between the agent, the server, and the systems behind it, what has been decided about each threat, and who is responsible for it?**
 
-It can also **point at a GitHub repository and bootstrap the whole model for you**, distilling the architecture, drawing the dataflow, and intelligently prepopulating threats for review.
+MCP connects language-model agents to real tools, data, and downstream systems. That adds risks that general threat-modeling guidance covers poorly, such as prompt injection through tool output, tool poisoning, token passthrough, and context bleed between tenants. MCPThreat gives you a structured, repeatable way to record those risks and a report you can hand to someone else.
 
----
+It supports a workflow, not a verdict. It does not scan or test your server. See [Limitations](#limitations).
 
-## Screenshots
+## What you do with it
 
-**Dashboard**: every project at a glance, with open-finding counts, severity breakdown, and mitigation progress.
+1. **Model.** Define trust boundaries, then record the threats that cross each one. Threats are classified by STRIDE category and by an MCP-specific category.
+2. **Assess.** Score each threat by likelihood and impact, and raise findings with a severity, a rationale, and a recommendation.
+3. **Track.** Assign owners and due dates, attach evidence, and move each finding to Mitigated, Accepted, or Closed. Acceptance can require one or two approvals.
+4. **Report.** Export the assessment as HTML, Markdown, JSON, or a findings CSV, or print it to PDF.
 
-![Dashboard](docs/screenshots/dashboard.png)
+Optionally, point MCPThreat at a GitHub repository and it will draft the architecture, a dataflow diagram, and a set of threats for you to review. Every drafted item is labelled AI-suggested with a confidence level.
 
-**Threat model**: trust boundaries, an interactive trust-boundary map, and a likelihood × impact risk matrix.
+## Quick start
 
-![Threat model workspace](docs/screenshots/threat-model.png)
+You need Node.js 18.17 or later.
 
-**Architecture**: a client/server breakdown and a Software Bill of Materials (SBOM), in this case generated from the bundled demo MCP server.
+```bash
+npm install
+cp .env.example .env          # then set NEXTAUTH_SECRET, for example: openssl rand -base64 32
+npx prisma migrate dev        # creates the local SQLite database
+npm run seed                  # loads a worked example: "Example Payment MCP"
+npm run dev                   # http://localhost:3000
+```
 
-![Architecture](docs/screenshots/architecture.png)
+Sign in with `demo@example.com` and `password123`. The seed also creates `client@example.com` with the same password, to try the two-party approval workflow. These logins are for local development only.
 
-**Dataflow**: an interactive data-flow diagram with clearly defined trust boundaries.
+Then:
 
-![Dataflow](docs/screenshots/dataflow.png)
+1. Open **Example Payment MCP** from the dashboard.
+2. Look at **Threat Model**, **Findings**, and **Dataflow** to see how the pieces fit.
+3. Open **Report** and download the HTML version.
 
-**Findings**: a filterable, sortable register with severity, status, owners, evidence, and the risk-acceptance workflow.
+To start your own, choose **New Project** on the dashboard. The empty state lists the four steps above.
 
-![Findings](docs/screenshots/findings.png)
+## Sample report
 
-**Report**: a tabbed, print/PDF-ready report pulling the whole model together.
+A complete report generated from the seeded example is in [docs/sample-report.md](docs/sample-report.md), with the findings register as [docs/sample-findings.csv](docs/sample-findings.csv). Each report opens with an assessment record and a scope and limitations section. An excerpt:
 
-![Report](docs/screenshots/report.png)
+```text
+## 1. Assessment record
+| Project                | Example Payment MCP               |
+| Tool and version       | MCPThreat 1.0.0                   |
+| Report generated       | 2026-11-14 03:22 UTC              |
+| Risk-acceptance policy | Dual sign-off (assessor + client) |
+| AI-suggested items     | 0 boundaries, 0 threat vectors, 0 findings |
 
----
+## 7. Findings register
+| ID    | Severity | Status      | Finding                                     | Threat vector | Owner                | Due        |
+| F-001 | Critical | Open        | Tool schemas are not pinned or hash-verified| T-07          | security@example.com | 2026-11-28 |
+| F-005 | Critical | Accepted    | No egress logging or PII redaction ...      | T-09          | ciso@example.com     | —          |
+| F-002 | High     | In Progress | Client tokens forwarded to processor ...    | T-03          | platform@example.com | 2026-12-14 |
+
+### F-001: Tool schemas are not pinned or hash-verified
+Severity: Critical. Status: Open. Threat vector: T-07 (Tool Poisoning).
+Framework mapping (indicative): LLM01, LLM04, LLM05, AML.T0051, AML.T0053
+Description and rationale, Recommendation, and Evidence follow.
+```
+
+### What is in a report
+
+- **Assessment record:** project, model source, tool version, generation time (UTC), people involved, acceptance policy, and how many items were AI-suggested.
+- **Scope and limitations:** what the report does and does not claim.
+- **Summary:** counts by severity, status, and risk band, with definitions of the terms used.
+- **Findings:** a register, then one section per finding with severity, status, owner, rationale, recommendation, evidence, and any acceptance decision.
+- **Framework mapping:** each MCP category cross-referenced to the OWASP Top 10 for LLM Applications (2025) and MITRE ATLAS. This is a mapping to help locate related guidance. It is not a certification or a compliance assessment.
+- **Identifiers:** `B-nn` for trust boundaries, `T-nn` for threat vectors, and `F-nnn` for findings, shown on screen and in every export.
+
+### Export formats
+
+| Format | Use | How |
+| --- | --- | --- |
+| HTML | Reading, sharing, printing to PDF. One self-contained file, no scripts. | Report page, or `?format=html` |
+| Markdown | Pasting into a ticket, wiki, or repository. | Report page, or `?format=md` |
+| JSON | Machine use. Includes internal IDs and the audit trail. Carries a `schemaVersion`. | Report page, or `?format=json` |
+| CSV | The findings register for a spreadsheet or workpaper. | Report page, or `?format=csv` |
+
+The same data is available from `GET /api/projects/:id/report?format=<html|md|json|csv>` for a signed-in user with access to the project. Add `&download=1` to receive a file attachment.
+
+## Limitations
+
+Please read these before relying on a report.
+
+- **It is a record of a threat model, not a test.** MCPThreat does not connect to, scan, or probe your MCP server. A finding exists because a person recorded it, or because an AI draft was accepted by a person. The absence of a finding does not mean the absence of a weakness.
+- **Coverage depends on what was modeled.** Threats outside the categories used here are recorded as Other, or not at all.
+- **AI-suggested items can be wrong or incomplete.** They are drafted by a language model from a limited selection of repository files (at most 24 files, each truncated at 24 KB). They are labelled and should be reviewed before use. The model used is not stored with the analysis.
+- **Ratings are judgements.** Severity, likelihood, and impact are entered by people. The risk band is a fixed calculation from likelihood and impact.
+- **Framework mappings are indicative.** They are not an attestation against OWASP, MITRE ATLAS, or any other framework.
+- **Identifiers follow creation order.** They are stable while items are added or edited. Deleting an item renumbers later items of the same kind. Cite the export date and tool version with an identifier, or use the `uid` in the JSON export.
+- **Evidence is not verified.** Text and attachments are recorded as supplied.
+- **Version 1.0.** The data model and export schema may change in later versions.
 
 ## Features
 
 **Threat modeling**
-- Trust boundaries and STRIDE + MCP-specific threat vectors, driven by a single-source taxonomy (`src/lib/taxonomy.ts`).
-- Interactive **trust-boundary map** and a likelihood × impact **risk matrix** with residual-risk scoring.
-- **Architecture** and **Dataflow** sections as first-class data, with an interactive, exportable DFD.
+- Trust boundaries and threat vectors, classified by STRIDE and by an MCP-specific taxonomy ([src/lib/taxonomy.ts](src/lib/taxonomy.ts)).
+- An interactive trust-boundary map and a likelihood by impact risk matrix, with a simple residual-risk adjustment.
+- Architecture and Dataflow as first-class sections, with an exportable data-flow diagram.
 
-**Findings & governance**
-- Findings register with severity, a status lifecycle, owners, due dates, evidence, and file attachments.
-- **Risk-acceptance workflow**: off / single-approver / dual sign-off (assessor + client), severity-gated, with four-eyes enforcement and lapse-and-reopen review timers.
-- Append-only **audit trail** and recurring owner reminders.
-- **Reports** with per-section tabs and a print/PDF-friendly layout.
+**Findings and governance**
+- A findings register with severity, status, owner, due date, evidence, and file attachments.
+- A risk-acceptance workflow with three policies: off, single approver, or dual sign-off (assessor and client). Dual sign-off applies to High and Critical findings. Approvals expire and the finding reopens for review.
+- An append-only audit trail of changes, and recurring email reminders to owners.
 
-**GitHub-driven auto threat modeling**
-- Point MCPThreat at a public GitHub repo; it fetches (host-locked to `github.com`), prefilters the most relevant files, and uses Claude to distill architecture, dataflows, and threats.
-- **Conservative by design**: only well-evidenced items are created, each tagged *AI-suggested* with a confidence level and cited evidence, behind a review banner.
+**GitHub import (optional)**
+- Fetches from `github.com` only, selects relevant files, and uses Claude to draft architecture, dataflow, and threats. Only items with supporting evidence are created, each tagged AI-suggested with a confidence level.
 
-**Collaboration & security posture**
-- Projects with owner / admin / member / viewer roles; every access path gated by one authorization check.
-- **Security Guidance** knowledge base mapping each MCP threat category to concrete mitigations and cited references.
+**Access**
+- Owner, admin, member, and viewer roles. Every access path goes through one authorization check.
+- A Security Guidance section maps each MCP threat category to mitigations and cited references.
 
----
+## Screenshots
 
-## Quick start
+**Dashboard**: projects with open-finding counts, severity breakdown, and mitigation progress.
 
-```bash
-npm install
-cp .env.example .env          # then set NEXTAUTH_SECRET (openssl rand -base64 32)
-npx prisma migrate dev        # create the SQLite dev database
-npm run seed                  # seed the demo project + logins
-npm run dev                   # http://localhost:3000
-```
+![Dashboard](docs/screenshots/dashboard.png)
 
-**Demo logins** (from the seed): `demo@example.com` (assessor) and `client@example.com` (client), both with password `password123`.
+**Threat model**: trust boundaries, the boundary map, and the risk matrix.
 
-### Enabling GitHub import (optional)
+![Threat model workspace](docs/screenshots/threat-model.png)
 
-The "Import from GitHub" feature calls Claude, so it needs an API key. Set it in `.env`:
+**Architecture**: a client and server breakdown with a software bill of materials, here generated from the bundled demo server.
 
-```bash
-ANTHROPIC_API_KEY="sk-ant-..."   # enables automated analysis
-ANALYSIS_MODEL=""                # optional model override (default: claude-opus-4-8)
-GITHUB_TOKEN=""                  # optional; higher rate limits / private repos
-```
+![Architecture](docs/screenshots/architecture.png)
 
-Without a key the app runs normally and manual modeling is unaffected; the import feature simply reports that it isn't configured.
+**Dataflow**: an interactive data-flow diagram with trust boundaries marked.
 
-### GitHub OAuth login (optional)
+![Dataflow](docs/screenshots/dataflow.png)
 
-Set `GITHUB_ID` and `GITHUB_SECRET` to show a "Continue with GitHub" button; otherwise the app runs on email/password alone. Callback URL: `http://localhost:3000/api/auth/callback/github`.
+**Findings**: a filterable, sortable register with IDs, severity, status, owners, and the acceptance workflow.
 
-### Production database
+![Findings](docs/screenshots/findings.png)
 
-Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and point `DATABASE_URL` at Postgres. Enum-like fields are stored as `String` columns validated at the app layer, so no schema rewrite is needed.
+**Report**: the assessment record, scope and limitations, findings, and downloads.
+
+![Report](docs/screenshots/report.png)
+
+## Configuration
+
+Settings live in `.env` (see `.env.example`).
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | SQLite file for development, or a Postgres URL. |
+| `NEXTAUTH_SECRET` | Yes | Signs session tokens. Use a long random value. |
+| `NEXTAUTH_URL` | Yes | The URL the app is served from. |
+| `ANTHROPIC_API_KEY` | For GitHub import | Without it, import is shown as unavailable and manual modeling is unaffected. |
+| `ANALYSIS_MODEL` | No | Overrides the model used for import. |
+| `GITHUB_TOKEN` | No | Higher rate limits, or private repositories. A token entered in the UI is used for that request only and is not stored. |
+| `GITHUB_ID`, `GITHUB_SECRET` | No | Enables "Continue with GitHub" sign-in. Callback: `/api/auth/callback/github`. |
+| `SMTP_*`, `EMAIL_FROM` | No | Sends reminder email. Without SMTP, emails are written to the server log. |
+| `CRON_SECRET` | No | Authenticates calls to `/api/cron/reminders` from an external scheduler. |
+
+For production, set the `datasource` provider in `prisma/schema.prisma` to `postgresql` and point `DATABASE_URL` at your database. Enum-like fields are stored as strings and validated in the application, so the schema does not need to change. `GET /api/health` returns `{ status, db }` for deployment checks.
 
 ### Bundled demo MCP server
 
-[`demo/payment-mcp-server`](demo/payment-mcp-server) is a small, self-contained payment MCP server (Streamable HTTP transport; `charge` / `refund` / `get_receipt` tools; processor, ledger, and receipt-store clients). The seeded **Example Payment MCP** project's Architecture and Dataflow are derived from it, and its SBOM is generated from the demo's `package.json`.
-
----
+[`demo/payment-mcp-server`](demo/payment-mcp-server) is a small payment MCP server (Streamable HTTP; `charge`, `refund`, and `get_receipt` tools). The seeded example's architecture and dataflow are derived from it, and its software bill of materials is generated from its `package.json`.
 
 ## Commands
 
 | Script | Purpose |
 | --- | --- |
-| `npm run dev` | Start the dev server |
-| `npm run build` | Production build (typecheck + eslint) |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build, including typecheck and lint |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest unit tests for the security-critical logic |
-| `npm run seed` | Seed the demo project |
-| `npm run db:reset` | DESTRUCTIVE: reset + re-seed the dev database |
+| `npm test` | Unit tests for scoring, acceptance, URL guards, dataflow parsing, metrics, and the report formats |
+| `npm run seed` | Load the demo project |
+| `npm run db:reset` | Destructive: reset the development database and re-seed |
 
-`GET /api/health` returns `{ status, db }` for deployment checks.
+On Windows, stop the dev server before running `prisma migrate` or `prisma generate`, because the running server locks the Prisma engine.
 
-## Testing
+To regenerate the screenshots, start the dev server with the demo seeded and run `node docs/capture-screenshots.mjs`.
 
-Unit tests (Vitest, in `tests/`) cover the pure, security-critical logic: risk scoring, the acceptance state machine, the SSRF and `github.com` host-lock guards, dataflow parsing, and metrics. Run `npm test`. Regenerate the screenshots above with `node docs/capture-screenshots.mjs` (dev server running + demo seeded).
+## Security notes
 
+User-supplied server URLs are validated (HTTPS only, private and reserved ranges blocked) and are never fetched automatically. GitHub import is locked to `github.com`. Responses carry a Content Security Policy and related headers. Sessions are signed JWTs. The HTML export is served with a restrictive policy of its own and escapes every value it prints.
 
-## Tech stack
+## Built with
 
-Next.js 14 (App Router) · TypeScript · Prisma (SQLite in dev, Postgres-portable) · NextAuth v4 · Tailwind CSS + hand-rolled shadcn-style primitives · React Hook Form + Zod · Vitest · `@anthropic-ai/sdk`.
+Next.js 14 (App Router), TypeScript, Prisma (SQLite in development, Postgres-portable), NextAuth v4, Tailwind CSS with hand-written shadcn-style components, React Hook Form and Zod, Vitest, and the Anthropic SDK.
 
 ## License
+
 [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
