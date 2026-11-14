@@ -16,6 +16,9 @@
     "check": "npm run lint && npm run typecheck && npm test",
     "setup": "node scripts/setup.mjs"
   },
+  "engines": {
+    "node": ">=18.17.0"
+  },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
