@@ -57,6 +57,10 @@ if (existsSync(".git")) {
       ? "\nEnabled the pre-commit hook (.githooks/pre-commit)."
       : "\nCould not enable the pre-commit hook; run: git config core.hooksPath .githooks",
   );
+  // Make `git blame` skip commits that only reformatted code.
+  spawnSync("git", ["config", "blame.ignoreRevsFile", ".git-blame-ignore-revs"], {
+    shell: isWindows,
+  });
 }
 
 run("npx", ["prisma", "generate"]);
