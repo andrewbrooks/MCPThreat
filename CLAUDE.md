@@ -18,7 +18,7 @@ npm test                            # vitest run — unit tests for the pure/sec
 npm run test:watch                  # vitest watch mode
 
 npx prisma migrate dev --name X     # create + apply a migration after editing schema.prisma
-npx prisma generate                 # regenerate the client (also runs after migrate)
+npx prisma generate                 # regenerate the client (Prisma 7 does not run it after migrate or install)
 ```
 
 Tests (Vitest) live in `tests/` and cover the pure, security-critical logic — risk scoring, the acceptance and snapshot sign-off state machines, readiness and worklist rules, snapshot hashing, the report formats (including escaping), the SSRF/host-lock guards (`url-safety`, `github`), dataflow parsing, and metrics. They intentionally avoid the DB; validate the rest with `npx tsc --noEmit` then `npm run build`.
@@ -29,7 +29,7 @@ On Windows the running dev server locks the Prisma engine DLL, so `prisma migrat
 ## Architecture
 
 ### Enums live in TypeScript, not the database
-SQLite has no native enums, so every "enum" column (severity, status, STRIDE category, MCP category, trust-boundary type, etc.) is a plain `String` in `schema.prisma`, constrained at the app layer. `src/lib/taxonomy.ts` is the **single source of truth**: allowed values, display labels, and Tailwind color-class maps. `src/lib/validators.ts` derives Zod enums from those arrays. This keeps the schema portable to PostgreSQL for prod (swap the `datasource` provider). When adding a taxonomy value, update `taxonomy.ts` first.
+SQLite has no native enums, so every "enum" column (severity, status, STRIDE category, MCP category, trust-boundary type, etc.) is a plain `String` in `schema.prisma`, constrained at the app layer. `src/lib/taxonomy.ts` is the **single source of truth**: allowed values, display labels, and Tailwind color-class maps. `src/lib/validators.ts` derives Zod enums from those arrays. This keeps the schema portable to PostgreSQL for prod (swap the `datasource` provider and the driver adapter in `src/lib/prisma.ts`). When adding a taxonomy value, update `taxonomy.ts` first.
 
 ### Two read/write paths, one authorization gate
 - **Reads** (server components) go through `src/lib/data.ts` (`getProjectDetail`, `listProjectSummaries`, etc.).
@@ -81,4 +81,4 @@ A finding can only reach `ACCEPTED` through an approval workflow when the projec
 - Files/attachments are stored as `Bytes` in the DB (portable downloads); allowed types and limits are in `src/lib/attachments.ts`.
 
 ## Environment
-`.env` keys (see `.env.example`): `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, optional `GITHUB_ID`/`GITHUB_SECRET`, optional `SMTP_*` + `EMAIL_FROM` (emails log to console when SMTP is unset), and `CRON_SECRET` for the reminders endpoint.
+`.env` keys (see `.env.example`): `DATABASE_URL` (a relative SQLite path resolves against the working directory, so it is `file:./prisma/dev.db`), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, optional `GITHUB_ID`/`GITHUB_SECRET`, optional `SMTP_*` + `EMAIL_FROM` (emails log to console when SMTP is unset), and `CRON_SECRET` for the reminders endpoint.

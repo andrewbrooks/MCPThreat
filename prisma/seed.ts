@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { buildDemoContent } from "./demo-repo";
-
-const prisma = new PrismaClient();
+import { prisma } from "../src/lib/prisma";
 
 // Demo credentials for local development only.
 const DEMO_EMAIL = "demo@example.com";

@@ -69,7 +69,10 @@ run("npx", ["prisma", "migrate", "deploy"]);
 // Seed only an empty database, so re-running setup never touches real data.
 if (typeof process.loadEnvFile === "function") process.loadEnvFile(".env");
 const { PrismaClient } = await import("@prisma/client");
-const prisma = new PrismaClient();
+const { PrismaBetterSqlite3 } = await import("@prisma/adapter-better-sqlite3");
+const prisma = new PrismaClient({
+  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL }),
+});
 let users;
 try {
   users = await prisma.user.count();

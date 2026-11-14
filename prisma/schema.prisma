@@ -1,14 +1,16 @@
 // MCPThreat — Prisma schema
 //
-// Dev uses SQLite. For production, switch `provider` to "postgresql" and point
-// DATABASE_URL at Postgres. Enum-like fields are stored as String columns because
-// SQLite has no native enums; their allowed values are the single source of truth
-// in src/lib/taxonomy.ts and are enforced at the app layer via Zod. This keeps the
-// schema portable across both databases without a migration rewrite.
+// Dev uses SQLite. For production, switch `provider` to "postgresql", point DATABASE_URL
+// at Postgres, and swap the driver adapter in src/lib/prisma.ts. The connection url lives
+// in prisma.config.ts, not here.
+//
+// Enum-like fields are stored as String columns because SQLite has no native enums;
+// their allowed values are the single source of truth in src/lib/taxonomy.ts and are
+// enforced at the app layer via Zod. This keeps the schema portable across both
+// databases without a migration rewrite.
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
