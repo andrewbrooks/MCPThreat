@@ -1,8 +1,8 @@
 # Threat Model Report: Example Payment MCP
 
-Prepared with MCPThreat 1.0.0 on 2026-11-14 04:24 UTC. Report format version 1.0.
+Prepared with MCPThreat 1.0.0 on 2026-11-14 14:01 UTC. Report format version 1.0.
 
-> **Live draft.** This is a live draft. It reflects the threat model as it is now and will change as the model is edited. A frozen, reviewed record is made from the Review and sign-off page of the project.
+> **This is a live draft. It reflects the threat model as it is now and will change as the model is edited. A frozen, reviewed record is made from the Review and sign-off page of the project.**
 
 ## Contents
 
@@ -30,7 +30,7 @@ Prepared with MCPThreat 1.0.0 on 2026-11-14 04:24 UTC. Report format version 1.0
 | Technology | TypeScript, Node.js, @modelcontextprotocol/sdk, Express, Zod, pino, Streamable HTTP, Docker |
 | Model created | 2026-11-14 03:13 UTC |
 | Last change recorded | 2026-11-14 04:20 UTC |
-| Report generated | 2026-11-14 04:24 UTC |
+| Report generated | 2026-11-14 14:01 UTC |
 | Tool and version | MCPThreat 1.0.0 |
 | Risk-acceptance policy | Dual sign-off (assessor + client) |
 | AI-suggested items | 0 boundaries, 0 threat vectors, 0 findings |
