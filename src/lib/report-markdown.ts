@@ -525,6 +525,7 @@ function definitionLines(a: Assessment): string[] {
   return L;
 }
 
+/** The report as Markdown. */
 export function generateReport(a: Assessment): string {
   return [
     ...coverLines(a),

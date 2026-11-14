@@ -95,6 +95,7 @@ export function attentionOrder(findings: AssessmentFinding[]): AssessmentFinding
   );
 }
 
+/** The executive summary derived from an assessment: headline, counts by severity and status, the risk matrix, open findings needing attention and key observations. */
 export function executiveSummary(a: Assessment): ExecutiveSummary {
   const s = a.summary;
   const r = a.record;

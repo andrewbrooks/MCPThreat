@@ -47,6 +47,7 @@ async function reopenFindings(where: Prisma.FindingWhereInput): Promise<number> 
   return due.length;
 }
 
+/** Reopens this project's accepted findings whose review date has passed. Read paths call it in place of a scheduler. */
 export function reopenDueFindings(projectId: string) {
   return reopenFindings({ projectId });
 }

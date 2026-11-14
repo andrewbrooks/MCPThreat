@@ -357,6 +357,7 @@ export const DEFINITIONS: { term: string; text: string }[] = [
   },
 ];
 
+/** The fixed scope statements and limitations printed in every report. They say what the record covers and that MCPThreat does not test the MCP server. */
 export function scopeStatements(): { statements: string[]; limitations: string[] } {
   return {
     statements: [
@@ -735,6 +736,7 @@ function buildRecord(
   };
 }
 
+/** Builds the one Assessment that the screen and every export format render, from the rows loaded for a project. generatedAt is a parameter so tests can pin it. */
 export function buildAssessment(input: AssessmentInput, generatedAt = new Date()): Assessment {
   const { project } = input;
   const ids = assignDisplayIds(input);

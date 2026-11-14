@@ -395,6 +395,7 @@ function pickNextActions(
     .slice(0, 5);
 }
 
+/** Runs every readiness check on the live assessment and groups them into the five workflow stages. Computed fresh each time and never stored. */
 export function evaluateReadiness(input: ReadinessInput): Readiness {
   const { assessment: a, snapshots, liveHash, now, latestSnapshotModelHash } = input;
   const latest = snapshots[0] ?? null;

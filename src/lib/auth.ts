@@ -79,6 +79,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
+/** The signed-in session on the server, or null when nobody is signed in. */
 export function auth() {
   return getServerSession(authOptions);
 }

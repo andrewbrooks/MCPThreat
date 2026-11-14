@@ -35,6 +35,7 @@ export function completionPct(vectors: VectorLike[], findings: FindingLike[]): n
   return Math.round((covered / vectors.length) * 100);
 }
 
+/** Whether a finding in this status is still open work (open, in progress or pending acceptance). */
 export function isOpenStatus(status: string): boolean {
   return (OPEN_STATUSES as string[]).includes(status);
 }
@@ -77,6 +78,7 @@ export function statusBreakdown(findings: FindingLike[]): Record<FindingStatus, 
   return out;
 }
 
+/** A copy of the items, most severe first. Unknown severities sort last. */
 export function sortBySeverityDesc<T extends { severity: string }>(items: T[]): T[] {
   return [...items].sort(
     (a, b) =>

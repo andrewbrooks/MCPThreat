@@ -200,6 +200,7 @@ export const KNOWLEDGE_BASE: Record<McpCategory, KnowledgeEntry> = {
   },
 };
 
+/** The threat summary, mitigations and references for one MCP category. */
 export function getKnowledge(category: McpCategory): KnowledgeEntry {
   return KNOWLEDGE_BASE[category];
 }

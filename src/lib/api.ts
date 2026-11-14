@@ -68,6 +68,7 @@ export async function assertBoundaryInProject(boundaryId: string, projectId: str
   }
 }
 
+/** Throws a 404 unless the threat vector belongs to the project, so a request cannot reach another project's vector by id. */
 export async function assertVectorInProject(vectorId: string, projectId: string) {
   const vector = await prisma.threatVector.findUnique({
     where: { id: vectorId },
@@ -78,6 +79,7 @@ export async function assertVectorInProject(vectorId: string, projectId: string)
   }
 }
 
+/** Throws a 404 unless the finding belongs to the project, so a request cannot reach another project's finding by id. */
 export async function assertFindingInProject(findingId: string, projectId: string) {
   const finding = await prisma.finding.findUnique({
     where: { id: findingId },

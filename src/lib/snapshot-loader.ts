@@ -25,6 +25,7 @@ type Row = {
   }[];
 };
 
+/** Turns a stored snapshot row and its sign-offs into the summary the API and UI use, with its computed status. latestVersion lets it mark older snapshots as superseded. */
 export function toSnapshotSummary(row: Row, latestVersion: number): SnapshotSummary {
   const requirement = (row.requirement as SnapshotRequirement) ?? "NONE";
   const ordered = [...row.signoffs].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());

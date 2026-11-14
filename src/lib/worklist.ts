@@ -265,6 +265,7 @@ function projectItems(ctx: ProjectContext): WorklistItem[] {
   return items.filter((i): i is WorklistItem => i !== null);
 }
 
+/** Everything that needs the viewer's attention across their projects, most urgent first. Pure: the loader supplies the rows. */
 export function buildWorklist(
   projects: WorklistProject[],
   viewer: WorklistViewer,

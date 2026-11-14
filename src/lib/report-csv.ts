@@ -28,12 +28,14 @@ const COLUMNS = [
   "Internal uid",
 ] as const;
 
+/** One CSV cell, quoted when needed. A leading =, +, -, @, tab or carriage return gets an apostrophe prefix so a spreadsheet does not run the text as a formula. */
 export function csvField(value: string | null | undefined): string {
   let v = value ?? "";
   if (/^[=+\-@\t\r]/.test(v)) v = `'${v}`;
   return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 }
 
+/** The findings as CSV, one row per finding, most severe first. */
 export function generateCsv(a: Assessment): string {
   const rows = findingsBySeverity(a.findings).map((f) =>
     [

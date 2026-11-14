@@ -37,6 +37,7 @@ export interface EmailMessage {
 
 export type EmailTransport = "smtp" | "log";
 
+/** Sends through SMTP when it is configured. Otherwise it logs the recipient and subject (the body at debug level) and reports delivered: false. */
 export async function sendEmail(
   msg: EmailMessage,
 ): Promise<{ delivered: boolean; transport: EmailTransport }> {
@@ -56,6 +57,7 @@ export async function sendEmail(
   return { delivered: true, transport: "smtp" };
 }
 
+/** A shape check (something@something.tld), not full address validation. */
 export function isEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }

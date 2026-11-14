@@ -16,6 +16,7 @@ export const ATTACHMENT_ACCEPT = Object.entries(ALLOWED_ATTACHMENT_TYPES)
   .flatMap(([mime, exts]) => [mime, ...exts])
   .join(",");
 
+/** The lowercased extension including the dot, or an empty string when the name has none. */
 export function extensionOf(filename: string): string {
   const i = filename.lastIndexOf(".");
   return i >= 0 ? filename.slice(i).toLowerCase() : "";
@@ -30,6 +31,7 @@ export function isAllowedAttachment(mimeType: string, filename: string): boolean
   return Object.values(ALLOWED_ATTACHMENT_TYPES).some((exts) => exts.includes(ext));
 }
 
+/** A byte count as "512 B", "3 KB" or "1.2 MB" for the attachment list. */
 export function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
