@@ -110,8 +110,8 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label>Project</Label>
-        <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+        <Label htmlFor="mem-project">Project</Label>
+        <Select id="mem-project" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -143,6 +143,7 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
               </Tooltip>
             </div>
             <Select
+              aria-label="Role for new member"
               value={role}
               onChange={(e) => setRole(e.target.value as ProjectRole)}
               className="w-28"
@@ -155,8 +156,8 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Side</Label>
-            <Select
+            <Label htmlFor="mem-side">Side</Label>
+            <Select id="mem-side"
               value={side}
               onChange={(e) => setSide(e.target.value as PartySide)}
               className="w-28"

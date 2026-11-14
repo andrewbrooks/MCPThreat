@@ -397,8 +397,9 @@ export function FindingsTable({
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <Label className="text-xs">Severity</Label>
+          <Label htmlFor="filter-severity" className="text-xs">Severity</Label>
           <Select
+            id="filter-severity"
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
             className="h-8 w-36"
@@ -412,8 +413,9 @@ export function FindingsTable({
           </Select>
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Status</Label>
+          <Label htmlFor="filter-status" className="text-xs">Status</Label>
           <Select
+            id="filter-status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-8 w-36"
@@ -428,8 +430,9 @@ export function FindingsTable({
         </div>
         {editable ? (
           <div className="space-y-1">
-            <Label className="text-xs">Owner</Label>
+            <Label htmlFor="filter-owner" className="text-xs">Owner</Label>
             <Input
+              id="filter-owner"
               value={ownerFilter}
               onChange={(e) => setOwnerFilter(e.target.value)}
               placeholder="Filter owner…"
@@ -438,8 +441,9 @@ export function FindingsTable({
           </div>
         ) : null}
         <div className="space-y-1">
-          <Label className="text-xs">Sort by</Label>
+          <Label htmlFor="filter-sort" className="text-xs">Sort by</Label>
           <Select
+            id="filter-sort"
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
             className="h-8 w-36"
@@ -463,6 +467,7 @@ export function FindingsTable({
         <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 p-2 text-sm">
           <span className="text-muted-foreground">{selected.size} selected</span>
           <Select
+            aria-label="Set status for selected findings"
             value={bulkStatus}
             onChange={(e) => setBulkStatus(e.target.value)}
             className="h-8 w-40"
@@ -505,7 +510,9 @@ export function FindingsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-1 p-0" />
+              <TableHead className="w-1 p-0">
+                <span className="sr-only">Severity marker</span>
+              </TableHead>
               {editable ? (
                 <TableHead className="w-8">
                   <input
@@ -527,7 +534,11 @@ export function FindingsTable({
               <TableHead>Status</TableHead>
               <TableHead className="hidden lg:table-cell">Owner</TableHead>
               <TableHead className="hidden lg:table-cell">Due</TableHead>
-              {editable ? <TableHead className="w-10" /> : null}
+              {editable ? (
+                <TableHead className="w-10">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -565,12 +576,12 @@ export function FindingsTable({
                     </div>
                   ) : null}
                   {f.reviewDueAt ? (
-                    <div className="mt-0.5 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                    <div className="mt-0.5 flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">
                       <CalendarClock className="size-3" /> Revisit {toDateInput(f.reviewDueAt)}
                     </div>
                   ) : null}
                   {f.reminderIntervalDays ? (
-                    <div className="mt-0.5 flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400">
+                    <div className="mt-0.5 flex items-center gap-1 text-xs text-sky-700 dark:text-sky-400">
                       <BellRing className="size-3" /> Reminds owner every {f.reminderIntervalDays}d
                     </div>
                   ) : null}
@@ -585,6 +596,7 @@ export function FindingsTable({
                 <TableCell>
                   {editable && f.status !== "PENDING_ACCEPTANCE" ? (
                     <Select
+                      aria-label={`Status of ${f.displayId}`}
                       value={f.status}
                       onChange={(e) => inlineStatus(f.id, e.target.value)}
                       className="h-8 w-36"
@@ -627,8 +639,8 @@ export function FindingsTable({
         <div className="space-y-4">
           {!editingId ? (
             <div className="space-y-1.5">
-              <Label>Threat Vector</Label>
-              <Select
+              <Label htmlFor="fnd-threat-vector">Threat Vector</Label>
+              <Select id="fnd-threat-vector"
                 value={form.threatVectorId}
                 onChange={(e) => setForm((f) => ({ ...f, threatVectorId: e.target.value }))}
               >
@@ -641,16 +653,16 @@ export function FindingsTable({
             </div>
           ) : null}
           <div className="space-y-1.5">
-            <Label>Title</Label>
-            <Input
+            <Label htmlFor="fnd-title">Title</Label>
+            <Input id="fnd-title"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Severity</Label>
-              <Select
+              <Label htmlFor="fnd-severity">Severity</Label>
+              <Select id="fnd-severity"
                 value={form.severity}
                 onChange={(e) => setForm((f) => ({ ...f, severity: e.target.value }))}
               >
@@ -662,13 +674,14 @@ export function FindingsTable({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Status</Label>
+              <Label htmlFor="fnd-status">Status</Label>
               {form.status === "PENDING_ACCEPTANCE" ? (
-                <Select value="PENDING_ACCEPTANCE" disabled>
+                <Select id="fnd-status" value="PENDING_ACCEPTANCE" disabled>
                   <option value="PENDING_ACCEPTANCE">Pending Acceptance</option>
                 </Select>
               ) : (
                 <Select
+                  id="fnd-status"
                   value={form.status}
                   onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
                 >
@@ -683,16 +696,16 @@ export function FindingsTable({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Owner</Label>
-              <Input
+              <Label htmlFor="fnd-owner">Owner</Label>
+              <Input id="fnd-owner"
                 value={form.owner}
                 onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
                 placeholder="name or email"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Due date</Label>
-              <Input
+              <Label htmlFor="fnd-due-date">Due date</Label>
+              <Input id="fnd-due-date"
                 type="date"
                 value={form.dueDate}
                 onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
@@ -700,8 +713,8 @@ export function FindingsTable({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Revisit reminder</Label>
-            <Select
+            <Label htmlFor="fnd-revisit-reminder">Revisit reminder</Label>
+            <Select id="fnd-revisit-reminder"
               value={form.reviewInterval}
               onChange={(e) => setForm((f) => ({ ...f, reviewInterval: e.target.value }))}
             >
@@ -758,22 +771,22 @@ export function FindingsTable({
             </p>
           </div>
           <div className="space-y-1.5">
-            <Label>Description</Label>
-            <Textarea
+            <Label htmlFor="fnd-description">Description</Label>
+            <Textarea id="fnd-description"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Recommendation</Label>
-            <Textarea
+            <Label htmlFor="fnd-recommendation">Recommendation</Label>
+            <Textarea id="fnd-recommendation"
               value={form.recommendation}
               onChange={(e) => setForm((f) => ({ ...f, recommendation: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Evidence</Label>
-            <Textarea
+            <Label htmlFor="fnd-evidence">Evidence</Label>
+            <Textarea id="fnd-evidence"
               value={form.evidence}
               onChange={(e) => setForm((f) => ({ ...f, evidence: e.target.value }))}
             />

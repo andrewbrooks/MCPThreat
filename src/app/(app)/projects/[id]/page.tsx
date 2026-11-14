@@ -131,7 +131,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-3xl font-semibold">{pct}%</div>
-            <Progress value={pct} />
+            <Progress value={pct} label="Mitigation completion" />
             <p className="text-xs text-muted-foreground">
               Share of threat vectors with a Mitigated or Closed finding
             </p>

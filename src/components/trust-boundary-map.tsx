@@ -134,7 +134,7 @@ export function TrustBoundaryMap({ projectId, findings }: Props) {
           viewBox="0 0 680 520"
           width="100%"
           className="block h-auto rounded-md border bg-card"
-          role="img"
+          role="group"
           aria-label="Trust boundary map of the MCP deployment with findings plotted on their boundaries"
         >
           <defs>

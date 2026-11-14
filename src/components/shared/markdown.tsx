@@ -56,7 +56,7 @@ export function Markdown({ source }: { source: string }) {
       const header = splitRow(tableLines[0]);
       const bodyRows = tableLines.slice(2).map(splitRow); // skip the --- separator
       blocks.push(
-        <div key={key++} className="my-4 overflow-x-auto rounded-lg border">
+        <div key={key++} className="my-4 overflow-x-auto rounded-lg border" tabIndex={0}>
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b bg-muted/50">

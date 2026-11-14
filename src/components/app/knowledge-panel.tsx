@@ -8,9 +8,12 @@ import { cn } from "@/lib/utils";
 export function KnowledgePanel({
   category,
   className,
+  heading: Heading = "h3",
 }: {
   category: McpCategory;
   className?: string;
+  /** Heading level for the title, so it nests correctly where the panel is used. */
+  heading?: "h2" | "h3";
 }) {
   const kb = getKnowledge(category);
   if (!kb) return null;
@@ -19,7 +22,7 @@ export function KnowledgePanel({
     <div className={cn("rounded-lg border bg-muted/30 p-4", className)}>
       <div className="flex items-center gap-2">
         <BookOpen className="size-4 text-primary" />
-        <h4 className="font-medium">{kb.title}</h4>
+        <Heading className="font-medium">{kb.title}</Heading>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{kb.summary}</p>
 

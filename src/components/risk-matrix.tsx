@@ -111,12 +111,12 @@ function ImpactRow({
             className={cn(
               "flex h-14 flex-col items-center justify-center gap-0.5 rounded-sm border",
               RISK_BAND_CELL[band],
-              n === 0 && "opacity-55",
+              n === 0 && "[&>span:first-child]:font-normal",
             )}
             title={`${RISK_LEVEL_LABELS[l]} likelihood × ${RISK_LEVEL_LABELS[imp]} impact — ${band.toLowerCase()} risk`}
           >
             <span className="text-base font-semibold tabular-nums">{n}</span>
-            <span className="text-[9px] font-medium uppercase tracking-wide opacity-80">
+            <span className="text-[9px] font-medium uppercase tracking-wide">
               {RISK_BAND_LABELS[band]}
             </span>
           </div>

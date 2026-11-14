@@ -157,10 +157,14 @@ export function AppShell({ user, projects, children }: AppShellProps) {
 
       {mini ? null : (
         <div className="px-2">
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+          <label
+            htmlFor="project-switcher"
+            className="mb-1 block text-xs font-medium text-muted-foreground"
+          >
             Project
           </label>
           <Select
+            id="project-switcher"
             value={activeProjectId ?? ""}
             onChange={(e) => {
               const val = e.target.value;
@@ -177,14 +181,17 @@ export function AppShell({ user, projects, children }: AppShellProps) {
         </div>
       )}
 
-      <nav className={cn("flex flex-col gap-1", mini ? "px-1" : "px-2")}>
+      <nav aria-label="Main" className={cn("flex flex-col gap-1", mini ? "px-1" : "px-2")}>
         {globalNav.map((item) => (
           <NavLink key={item.href} item={item} mini={mini} />
         ))}
       </nav>
 
       {projectNav.length > 0 ? (
-        <nav className={cn("flex flex-col gap-1 border-t pt-4", mini ? "px-1" : "px-2")}>
+        <nav
+          aria-label="Current project"
+          className={cn("flex flex-col gap-1 border-t pt-4", mini ? "px-1" : "px-2")}
+        >
           {mini ? null : (
             <span className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Current Project

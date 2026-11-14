@@ -38,8 +38,8 @@ export function ProfileEditor({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label>Email</Label>
-        <Input value={initial.email} disabled />
+        <Label htmlFor="prf-email">Email</Label>
+        <Input id="prf-email" value={initial.email} disabled />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="name">Name</Label>

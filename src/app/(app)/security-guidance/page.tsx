@@ -30,7 +30,7 @@ export default function SecurityGuidancePage() {
       <div className="space-y-4">
         {KNOWLEDGE_LIST.map((k) => (
           <section key={k.category} id={k.category} className="scroll-mt-6">
-            <KnowledgePanel category={k.category} />
+            <KnowledgePanel category={k.category} heading="h2" />
           </section>
         ))}
       </div>

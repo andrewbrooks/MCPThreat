@@ -85,16 +85,16 @@ export function BoundaryManager({
       <div className="space-y-3">
         <h3 className="font-medium">{editingId ? "Edit boundary" : "Add a trust boundary"}</h3>
         <div className="space-y-1.5">
-          <Label>Label</Label>
-          <Input
+          <Label htmlFor="bnd-label">Label</Label>
+          <Input id="bnd-label"
             value={form.label}
             onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
             placeholder="Agent → MCP Server"
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Type</Label>
-          <Select
+          <Label htmlFor="bnd-type">Type</Label>
+          <Select id="bnd-type"
             value={form.type}
             onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
           >
@@ -106,8 +106,8 @@ export function BoundaryManager({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Description</Label>
-          <Textarea
+          <Label htmlFor="bnd-description">Description</Label>
+          <Textarea id="bnd-description"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="What crosses this boundary?"

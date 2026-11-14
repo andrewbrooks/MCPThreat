@@ -12,7 +12,7 @@ export function ThemeToggle({ mini = false }: { mini?: boolean }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const isDark = theme === "dark";
+  const isDark = mounted && theme === "dark";
   const toggle = () => setTheme(isDark ? "light" : "dark");
   const label = isDark ? "Switch to light mode" : "Switch to dark mode";
   const Icon = mounted && isDark ? Sun : Moon;
@@ -32,9 +32,8 @@ export function ThemeToggle({ mini = false }: { mini?: boolean }) {
       variant="ghost"
       className={cn("w-full justify-start text-muted-foreground")}
       onClick={toggle}
-      aria-label={label}
     >
-      <Icon className="size-4" /> {mounted && isDark ? "Light mode" : "Dark mode"}
+      <Icon className="size-4" aria-hidden="true" /> {isDark ? "Light mode" : "Dark mode"}
     </Button>
   );
 }

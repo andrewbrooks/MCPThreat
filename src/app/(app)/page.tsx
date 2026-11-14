@@ -37,7 +37,7 @@ function ProjectCard({ p }: { p: ProjectSummary }) {
       <Card className="h-full transition-colors group-hover:border-primary/50">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold leading-tight">{p.name}</h3>
+            <h2 className="font-semibold leading-tight">{p.name}</h2>
             <ProjectStatusBadge status={p.status} />
           </div>
           {p.description ? (
@@ -60,7 +60,7 @@ function ProjectCard({ p }: { p: ProjectSummary }) {
               <span>Mitigation completion</span>
               <span className="font-medium text-foreground">{p.completionPct}%</span>
             </div>
-            <Progress value={p.completionPct} />
+            <Progress value={p.completionPct} label={`Mitigation completion for ${p.name}`} />
           </div>
         </CardContent>
       </Card>
