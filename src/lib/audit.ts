@@ -19,7 +19,10 @@ export type AuditAction =
   | "ACCEPTANCE_REJECTED"
   | "ACCEPTANCE_CANCELLED"
   | "ACCEPTANCE_EXPIRED"
-  | "RISK_ACCEPTED";
+  | "RISK_ACCEPTED"
+  | "SNAPSHOT_ISSUED"
+  | "SNAPSHOT_APPROVED"
+  | "SNAPSHOT_RETURNED";
 
 export interface AuditInput {
   projectId: string;

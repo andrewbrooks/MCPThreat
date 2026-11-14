@@ -242,3 +242,16 @@ export const changePasswordSchema = z
     newPassword: z.string().min(8, "Password must be at least 8 characters").max(200),
   })
   .strict();
+
+export const issueSnapshotSchema = z
+  .object({
+    note: z.string().trim().max(500, "Note must be 500 characters or fewer").optional().default(""),
+  })
+  .strict();
+
+export const snapshotSignoffSchema = z
+  .object({
+    decision: z.enum(["APPROVE", "RETURN"]),
+    comment: z.string().trim().max(2000).optional().default(""),
+  })
+  .strict();

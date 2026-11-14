@@ -4,6 +4,10 @@ import {
   type Assessment,
   type AssessmentAcceptance,
   type AssessmentFinding,
+  LIVE_DRAFT_NOTICE,
+  REQUIREMENT_LABELS,
+  SNAPSHOT_INTEGRITY_TEXT,
+  SNAPSHOT_STATUS_LABELS,
 } from "@/lib/assessment";
 import { day as date, fmtBytes, utc } from "@/lib/report-format";
 import { RISK_BAND_LABELS } from "@/lib/risk";
@@ -141,6 +145,8 @@ pre code { background: none; padding: 0; }
 blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid #c9ced8; color: #4a5262; }
 .notice { border: 1px solid #b7791f; background: #fffaf0; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
 .notice h3 { margin-top: 0; }
+.alert { border: 2px solid #b42318; background: #fef3f2; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+.hash { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
 .kv th { width: 220px; }
 .tag { display: inline-block; border: 1px solid #5b6577; border-radius: 3px; padding: 0 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .sev-critical { border-color: #9b1c1c; color: #9b1c1c; }
@@ -238,6 +244,36 @@ const SECTIONS: [string, string][] = [
   ["definitions", "Definitions"],
 ];
 
+function snapshotHtml(a: Assessment): string {
+  const sn = a.snapshot;
+  if (!sn) return "";
+  const rows: [string, string][] = [
+    ["Snapshot version", String(sn.version)],
+    ["Issued by", txt(sn.issuedBy)],
+    ["Issued at", utc(sn.issuedAt)],
+    ["Note", txt(sn.note)],
+    ["Content hash (SHA-256)", `<span class="hash">${h(sn.contentHash)}</span>`],
+    ["Review requirement", h(REQUIREMENT_LABELS[sn.requirement] ?? sn.requirement)],
+    ["Review status", h(SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status)],
+    ["Integrity check", h(SNAPSHOT_INTEGRITY_TEXT[sn.integrity])],
+  ];
+  const alert =
+    sn.integrity === "FAILED"
+      ? `<div class="alert" role="alert"><strong>Integrity check failed.</strong> ${h(SNAPSHOT_INTEGRITY_TEXT.FAILED)}</div>`
+      : "";
+  const signoffs = sn.signoffs.length
+    ? `<h4>Sign-offs</h4><table><thead><tr><th scope="col">Party</th><th scope="col">Decision</th><th scope="col">By</th><th scope="col">At</th><th scope="col">Comment</th></tr></thead><tbody>${sn.signoffs
+        .map(
+          (so) =>
+            `<tr><td>${h(PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side)}</td><td>${so.decision === "APPROVED" ? "Approved" : "Returned for changes"}</td><td>${txt(so.by)}</td><td>${utc(so.at)}</td><td>${txt(so.comment)}</td></tr>`,
+        )
+        .join("")}</tbody></table>`
+    : '<p class="muted">No sign-offs have been recorded for this snapshot.</p>';
+  return `<h3>Snapshot record</h3>${alert}<table class="kv"><tbody>${rows
+    .map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`)
+    .join("")}</tbody></table>${signoffs}`;
+}
+
 export function generateHtml(a: Assessment): string {
   const r = a.record;
   const s = a.summary;
@@ -292,11 +328,17 @@ export function generateHtml(a: Assessment): string {
 <h1>${h(r.projectName)}</h1>
 <p class="muted">Prepared with ${h(a.tool.name)} ${h(a.tool.version)} on ${utc(a.generatedAt)}. Report format version ${h(a.schemaVersion)}.</p>
 </header>
+${
+  a.snapshot
+    ? `<div class="notice" role="note"><strong>Snapshot v${a.snapshot.version}</strong>, ${h(SNAPSHOT_STATUS_LABELS[a.snapshot.status] ?? a.snapshot.status)}. The snapshot record is in section 1.${a.snapshot.integrity === "FAILED" ? " <strong>Integrity check failed.</strong>" : ""}</div>`
+    : `<div class="notice" role="note"><strong>Live draft.</strong> ${h(LIVE_DRAFT_NOTICE)}</div>`
+}
 <nav aria-label="Contents"><h2 style="border:0;margin-top:24px">Contents</h2><ol>${SECTIONS.map(
     ([k, t]) => `<li><a href="#${k}">${h(t)}</a></li>`,
   ).join("")}</ol></nav>
 
 ${sec("record")}
+${snapshotHtml(a)}
 <table class="kv"><tbody>${record.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>
 ${
   r.people.length

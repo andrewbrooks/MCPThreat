@@ -23,6 +23,11 @@ import {
   type McpCategory,
 } from "@/lib/taxonomy";
 import { TOOL_NAME, TOOL_VERSION } from "@/lib/version";
+import type {
+  SnapshotRequirement,
+  SnapshotSignoffView,
+  SnapshotStatus,
+} from "@/lib/workflow-types";
 
 // The assessment is the single, Prisma-free description of what a report says. The
 // on-page report, the Markdown, HTML and CSV exports, and the JSON export are all
@@ -206,10 +211,25 @@ export interface AssessmentControl {
   references: { label: string; url: string }[];
 }
 
+export interface SnapshotInfo {
+  version: number;
+  issuedAt: string;
+  issuedBy: string;
+  note: string;
+  contentHash: string;
+  requirement: SnapshotRequirement;
+  status: SnapshotStatus;
+  signoffs: SnapshotSignoffView[];
+  /** FAILED when the stored content no longer matches its recorded hash. */
+  integrity: "VERIFIED" | "FAILED";
+}
+
 export interface Assessment {
   schemaVersion: string;
   tool: { name: string; version: string };
   generatedAt: string;
+  /** Null for a live report. Set when the report is rendered from a frozen snapshot. */
+  snapshot: SnapshotInfo | null;
   record: {
     projectId: string;
     projectName: string;
@@ -276,6 +296,33 @@ export const FRAMEWORK_NOTE =
   "guidance. They are not a certification, attestation, or assessment of compliance against " +
   "either framework.";
 
+export const LIVE_DRAFT_NOTICE =
+  "This is a live draft. It reflects the threat model as it is now and will change as the model is edited. " +
+  "A frozen, reviewed record is made from the Review and sign-off page of the project.";
+
+export const REQUIREMENT_LABELS: Record<SnapshotRequirement, string> = {
+  NONE: "No sign-off required",
+  SINGLE: "One reviewer, other than the issuer",
+  DUAL: "Assessor and client",
+};
+
+export const SNAPSHOT_STATUS_LABELS: Record<SnapshotStatus, string> = {
+  ISSUED: "Issued",
+  PENDING: "Awaiting sign-off",
+  APPROVED: "Approved",
+  RETURNED: "Returned for changes",
+};
+
+export const SNAPSHOT_INTEGRITY_TEXT = {
+  VERIFIED: "Verified. The stored content matches its recorded hash.",
+  FAILED: "Failed. The stored content does not match its recorded hash and may have been altered.",
+} as const;
+
+/** Attach (or clear) the snapshot block. Does not change the content hash. */
+export function withSnapshot(a: Assessment, info: SnapshotInfo | null): Assessment {
+  return { ...a, snapshot: info };
+}
+
 export const DEFINITIONS: { term: string; text: string }[] = [
   {
     term: "Open finding",
@@ -292,6 +339,10 @@ export const DEFINITIONS: { term: string; text: string }[] = [
   {
     term: "Residual risk band",
     text: "The risk band after reducing the score by 3 (to a minimum of 1) when the vector has at least one Mitigated or Closed finding. It is a simple adjustment, not a re-assessment.",
+  },
+  {
+    term: "Snapshot",
+    text: "A frozen copy of the assessment taken at a point in time and given a version number. Its SHA-256 content hash identifies exactly what was assessed, so any later change to the content gives a different hash. The hash is not a digital signature and does not prove who produced it.",
   },
   {
     term: "Severity",
@@ -572,6 +623,7 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
     schemaVersion: ASSESSMENT_SCHEMA_VERSION,
     tool: { name: TOOL_NAME, version: TOOL_VERSION },
     generatedAt: generatedAt.toISOString(),
+    snapshot: null,
     record: {
       projectId: project.id,
       projectName: project.name,

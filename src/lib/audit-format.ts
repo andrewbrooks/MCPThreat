@@ -37,6 +37,12 @@ export function describeAuditEvent(e: AuditEventView): string {
       return e.detail ?? "risk acceptance expired";
     case "RISK_ACCEPTED":
       return e.detail ?? "risk accepted";
+    case "SNAPSHOT_ISSUED":
+      return e.detail ?? "issued a snapshot";
+    case "SNAPSHOT_APPROVED":
+      return e.detail ?? "approved a snapshot";
+    case "SNAPSHOT_RETURNED":
+      return e.detail ?? "returned a snapshot for changes";
     case "STATUS_CHANGED":
       return `changed Status from ${e.oldValue ?? "—"} to ${e.newValue ?? "—"}`;
     case "UPDATED": {

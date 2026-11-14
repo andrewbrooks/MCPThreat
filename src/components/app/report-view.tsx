@@ -23,7 +23,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { count, type Assessment } from "@/lib/assessment";
+import {
+  count,
+  LIVE_DRAFT_NOTICE,
+  REQUIREMENT_LABELS,
+  SNAPSHOT_INTEGRITY_TEXT,
+  SNAPSHOT_STATUS_LABELS,
+  type Assessment,
+} from "@/lib/assessment";
 import { day, utc } from "@/lib/report-format";
 import { RISK_BAND_CLASSES, RISK_BAND_LABELS, type RiskBand } from "@/lib/risk";
 import {
@@ -221,6 +228,34 @@ export function ReportView({ data }: { data: Assessment }) {
           </p>
         </header>
 
+        {data.snapshot ? (
+          <div
+            role={data.snapshot.integrity === "FAILED" ? "alert" : "note"}
+            className={cn(
+              "rounded-md border p-3 text-sm",
+              data.snapshot.integrity === "FAILED"
+                ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200"
+                : "border-border bg-muted/40",
+            )}
+          >
+            <strong>Snapshot v{data.snapshot.version}</strong>,{" "}
+            {SNAPSHOT_STATUS_LABELS[data.snapshot.status] ?? data.snapshot.status}.
+            {data.snapshot.integrity === "FAILED" ? (
+              <>
+                {" "}
+                <strong>Integrity check failed.</strong> {SNAPSHOT_INTEGRITY_TEXT.FAILED}
+              </>
+            ) : null}
+          </div>
+        ) : (
+          <div
+            role="note"
+            className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+          >
+            <strong>Live draft.</strong> {LIVE_DRAFT_NOTICE}
+          </div>
+        )}
+
         <div role="tablist" aria-label="Report sections" className="no-print flex flex-wrap gap-1 border-b">
           {TABS.map((t, i) => (
             <button
@@ -290,6 +325,47 @@ export function ReportView({ data }: { data: Assessment }) {
 
             <div>
               <h2 className={H2}>Assessment record</h2>
+              {data.snapshot ? (
+                <div className="mb-4 space-y-2">
+                  <h3 className="text-sm font-semibold">Snapshot record</h3>
+                  <Dl
+                    rows={[
+                      ["Snapshot version", String(data.snapshot.version)],
+                      ["Issued by", data.snapshot.issuedBy],
+                      ["Issued at", utc(data.snapshot.issuedAt)],
+                      ["Note", data.snapshot.note.trim() || "—"],
+                      [
+                        "Content hash (SHA-256)",
+                        <span key="h" className="break-all font-mono text-xs">
+                          {data.snapshot.contentHash}
+                        </span>,
+                      ],
+                      [
+                        "Review requirement",
+                        REQUIREMENT_LABELS[data.snapshot.requirement] ?? data.snapshot.requirement,
+                      ],
+                      [
+                        "Review status",
+                        SNAPSHOT_STATUS_LABELS[data.snapshot.status] ?? data.snapshot.status,
+                      ],
+                      ["Integrity check", SNAPSHOT_INTEGRITY_TEXT[data.snapshot.integrity]],
+                    ]}
+                  />
+                  {data.snapshot.signoffs.length ? (
+                    <ul className="space-y-1 text-sm">
+                      {data.snapshot.signoffs.map((so, i) => (
+                        <li key={i}>
+                          <strong>{PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side}:</strong>{" "}
+                          {so.decision === "APPROVED" ? "Approved" : "Returned for changes"} by {so.by},{" "}
+                          {utc(so.at)}.{so.comment ? ` ${so.comment}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No sign-offs have been recorded.</p>
+                  )}
+                </div>
+              ) : null}
               <Dl
                 rows={[
                   ["Project", r.projectName],

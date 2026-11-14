@@ -4,6 +4,10 @@ import {
   type Assessment,
   type AssessmentAcceptance,
   type AssessmentFinding,
+  LIVE_DRAFT_NOTICE,
+  REQUIREMENT_LABELS,
+  SNAPSHOT_INTEGRITY_TEXT,
+  SNAPSHOT_STATUS_LABELS,
 } from "@/lib/assessment";
 import { day as date, fmtBytes, NOT_RECORDED as DASH, utc } from "@/lib/report-format";
 import { RISK_BAND_LABELS } from "@/lib/risk";
@@ -108,6 +112,45 @@ function findingDetail(f: AssessmentFinding): string[] {
   return lines;
 }
 
+function snapshotLines(a: Assessment): string[] {
+  const sn = a.snapshot;
+  if (!sn) return [];
+  const L: string[] = [];
+  L.push("### Snapshot record");
+  L.push("");
+  if (sn.integrity === "FAILED") {
+    L.push(`> **Integrity check failed.** ${SNAPSHOT_INTEGRITY_TEXT.FAILED}`);
+    L.push("");
+  }
+  L.push("| Item | Value |");
+  L.push("| --- | --- |");
+  L.push(`| Snapshot version | ${sn.version} |`);
+  L.push(`| Issued by | ${cell(sn.issuedBy)} |`);
+  L.push(`| Issued at | ${utc(sn.issuedAt)} |`);
+  L.push(`| Note | ${cell(sn.note)} |`);
+  L.push(`| Content hash (SHA-256) | \`${sn.contentHash}\` |`);
+  L.push(`| Review requirement | ${REQUIREMENT_LABELS[sn.requirement] ?? sn.requirement} |`);
+  L.push(`| Review status | ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status} |`);
+  L.push(`| Integrity check | ${SNAPSHOT_INTEGRITY_TEXT[sn.integrity]} |`);
+  L.push("");
+  if (sn.signoffs.length) {
+    L.push("**Sign-offs**");
+    L.push("");
+    L.push("| Party | Decision | By | At | Comment |");
+    L.push("| --- | --- | --- | --- | --- |");
+    for (const so of sn.signoffs) {
+      L.push(
+        `| ${PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side} | ${so.decision === "APPROVED" ? "Approved" : "Returned for changes"} | ${cell(so.by)} | ${utc(so.at)} | ${cell(so.comment)} |`,
+      );
+    }
+    L.push("");
+  } else {
+    L.push("No sign-offs have been recorded for this snapshot.");
+    L.push("");
+  }
+  return L;
+}
+
 export function generateReport(a: Assessment): string {
   const r = a.record;
   const s = a.summary;
@@ -121,6 +164,16 @@ export function generateReport(a: Assessment): string {
   );
   L.push("");
 
+  if (a.snapshot) {
+    const sn = a.snapshot;
+    L.push(
+      `**Snapshot v${sn.version}**, ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status}. Issued ${utc(sn.issuedAt)}. Details are in section 1.` +
+        (sn.integrity === "FAILED" ? " **Integrity check failed.**" : ""),
+    );
+  } else {
+    L.push(`> **Live draft.** ${LIVE_DRAFT_NOTICE}`);
+  }
+  L.push("");
   L.push("## Contents");
   L.push("");
   [
@@ -141,6 +194,7 @@ export function generateReport(a: Assessment): string {
   // 1. Record
   L.push("## 1. Assessment record");
   L.push("");
+  L.push(...snapshotLines(a));
   L.push("| Item | Value |");
   L.push("| --- | --- |");
   L.push(`| Project | ${cell(r.projectName)} |`);
