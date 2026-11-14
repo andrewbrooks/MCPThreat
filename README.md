@@ -30,7 +30,7 @@ It can also **point at a GitHub repository and bootstrap the whole model for you
 
 ![Findings](docs/screenshots/findings.png)
 
-**Report**: a tabbed, print/PDF-ready report pulling the whole model together.
+**Report**: a print/PDF-ready report document pulling the whole model together.
 
 ![Report](docs/screenshots/report.png)
 
@@ -47,7 +47,7 @@ It can also **point at a GitHub repository and bootstrap the whole model for you
 - Findings register with severity, a status lifecycle, owners, due dates, evidence, and file attachments.
 - **Risk-acceptance workflow**: off / single-approver / dual sign-off (assessor + client), severity-gated, with four-eyes enforcement and lapse-and-reopen review timers.
 - Append-only **audit trail** and recurring owner reminders.
-- **Reports** with per-section tabs and a print/PDF-friendly layout.
+- **Reports** as a single document with a print/PDF-friendly layout.
 
 **GitHub-driven auto threat modeling**
 - Point MCPThreat at a public GitHub repo; it fetches (host-locked to `github.com`), prefilters the most relevant files, and uses Claude to distill architecture, dataflows, and threats.
@@ -68,6 +68,8 @@ npx prisma migrate dev        # create the SQLite dev database
 npm run seed                  # seed the demo project + logins
 npm run dev                   # http://localhost:3000
 ```
+
+Or run the same steps in one command: `npm run setup`. It installs dependencies, creates `.env` with a generated secret, applies migrations, seeds an empty database, and enables the pre-commit hook.
 
 **Demo logins** (from the seed): `demo@example.com` (assessor) and `client@example.com` (client), both with password `password123`.
 
@@ -104,6 +106,10 @@ Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and p
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build (typecheck + eslint) |
 | `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript type check |
+| `npm run check` | Lint, type check and unit tests |
+| `npm run test:integration` | Integration tests against a throwaway database |
+| `npm run setup` | One-command setup for a clean clone |
 | `npm test` | Vitest unit tests for the security-critical logic |
 | `npm run seed` | Seed the demo project |
 | `npm run db:reset` | DESTRUCTIVE: reset + re-seed the dev database |
@@ -113,6 +119,8 @@ Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and p
 ## Testing
 
 Unit tests (Vitest, in `tests/`) cover the pure, security-critical logic: risk scoring, the acceptance state machine, the SSRF and `github.com` host-lock guards, dataflow parsing, and metrics. Run `npm test`. Regenerate the screenshots above with `node docs/capture-screenshots.mjs` (dev server running + demo seeded).
+
+Integration tests (`npm run test:integration`) run the real API routes against a temporary SQLite database that is created and deleted for each run. Sample data lives in `tests/fixtures/`.
 
 
 ## Tech stack
