@@ -8,3 +8,4 @@ tests/fixtures
 # Prose is written by hand; formatting it would rewrite documents nobody asked to change.
 *.md
 package.json
+src/generated

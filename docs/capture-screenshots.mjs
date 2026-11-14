@@ -7,29 +7,13 @@
 // docs/screenshots/. Dev-only tooling (Playwright); not shipped at runtime.
 
 import { chromium } from "playwright";
-import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-
-// Prisma 7 no longer loads .env on its own.
-if (typeof process.loadEnvFile === "function") process.loadEnvFile(".env");
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "screenshots");
 
-const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL }),
-});
-const project = await prisma.project.findFirst({
-  where: { name: "Example Payment MCP" },
-  select: { id: true },
-});
-await prisma.$disconnect();
-if (!project) throw new Error("Seed the demo first: npm run seed");
-const id = project.id;
-
-const shots = [
+const shotsFor = (id) => [
   { name: "dashboard", path: "/", full: false },
   { name: "threat-model", path: `/projects/${id}/model`, full: true },
   { name: "architecture", path: `/projects/${id}/architecture`, full: true },
@@ -56,7 +40,13 @@ await page.fill("#password", "password123");
 await page.click('button[type="submit"]');
 await page.waitForURL(`${BASE}/`, { timeout: 15000 });
 
-for (const s of shots) {
+// Find the seeded demo project through the app itself, so this needs no database access.
+const listed = await page.request.get(`${BASE}/api/projects`);
+const body = await listed.json();
+const project = (body.projects ?? body).find((p) => p.name === "Example Payment MCP");
+if (!project) throw new Error("Seed the demo first: npm run seed");
+
+for (const s of shotsFor(project.id)) {
   if (s.height) await page.setViewportSize({ width: 1440, height: s.height });
   await page.goto(`${BASE}${s.path}`, { waitUntil: "networkidle" });
   await page.waitForTimeout(600); // let charts/SVG settle

@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { chmodSync, copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 
-const MIN_NODE = [18, 17];
+const MIN_NODE = [20, 19];
 const isWindows = process.platform === "win32";
 
 function fail(message) {
@@ -68,16 +68,13 @@ run("npx", ["prisma", "migrate", "deploy"]);
 
 // Seed only an empty database, so re-running setup never touches real data.
 if (typeof process.loadEnvFile === "function") process.loadEnvFile(".env");
-const { PrismaClient } = await import("@prisma/client");
-const { PrismaBetterSqlite3 } = await import("@prisma/adapter-better-sqlite3");
-const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL }),
+const count = spawnSync("npx", ["tsx", "scripts/count-users.ts"], {
+  encoding: "utf8",
+  shell: isWindows,
 });
-let users;
-try {
-  users = await prisma.user.count();
-} finally {
-  await prisma.$disconnect();
+const users = Number(count.stdout.trim());
+if (count.status !== 0 || count.stdout.trim() === "" || !Number.isInteger(users)) {
+  fail(`Could not read the user count from the database.\n${count.stderr}`);
 }
 if (users === 0) {
   run("npm", ["run", "seed"]);
