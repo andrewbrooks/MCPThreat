@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ImportRepoDialog } from "@/components/app/import-repo-dialog";
 import { NewProjectDialog } from "@/components/app/new-project-dialog";
+import { WorklistSection } from "@/components/app/worklist";
 import { ProjectStatusBadge } from "@/components/shared/badges";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -10,6 +11,8 @@ import { Progress } from "@/components/ui/progress";
 import { isAnalysisConfigured } from "@/lib/analysis/analyze";
 import { auth } from "@/lib/auth";
 import { listProjectSummaries, type ProjectSummary } from "@/lib/data";
+import { listWorklist } from "@/lib/worklist-loader";
+import type { WorklistItem } from "@/lib/workflow-types";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +76,12 @@ export default async function DashboardPage() {
   if (!session?.user?.id) redirect("/login");
   const projects = await listProjectSummaries(session.user.id);
   const configured = isAnalysisConfigured();
+  let worklist: WorklistItem[] = [];
+  try {
+    worklist = await listWorklist(session.user.id, session.user.email ?? null);
+  } catch {
+    worklist = [];
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -88,6 +97,8 @@ export default async function DashboardPage() {
           <NewProjectDialog />
         </div>
       </div>
+
+      <WorklistSection items={worklist} />
 
       {projects.length === 0 ? (
         <EmptyState

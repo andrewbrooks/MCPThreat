@@ -1,8 +1,9 @@
-import { Boxes, FileText, Network, ShieldAlert, Sparkles } from "lucide-react";
+import { Boxes, ClipboardCheck, FileText, Network, ShieldAlert, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BoundaryAccordion } from "@/components/app/boundary-accordion";
 import { FindingsTable } from "@/components/app/findings-table";
+import { NextStepsCard } from "@/components/app/next-steps-card";
 import { ProjectDetailsEditor } from "@/components/app/project-details-editor";
 import { EmptyState } from "@/components/shared/empty-state";
 import { RiskMatrix } from "@/components/risk-matrix";
@@ -14,6 +15,8 @@ import { auth } from "@/lib/auth";
 import { AuthzError } from "@/lib/authz";
 import { getProjectDetail } from "@/lib/data";
 import { mapFindingRows } from "@/lib/finding-view";
+import { loadProjectWorkflow } from "@/lib/readiness-loader";
+import type { ReadinessCheck } from "@/lib/workflow-types";
 import { completionPct, openFindingCount } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +33,13 @@ export default async function ProjectPage({ params }: { params: { id: string } }
     throw err;
   }
   if (!project) notFound();
+
+  let nextActions: ReadinessCheck[] = [];
+  try {
+    nextActions = (await loadProjectWorkflow(project.id))?.readiness.nextActions ?? [];
+  } catch {
+    nextActions = [];
+  }
 
   const boundaries = project.threatModel?.boundaries ?? [];
   const vectors = boundaries.flatMap((b) => b.vectors);
@@ -119,10 +129,18 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             href={`/projects/${project.id}/report`}
             className={buttonVariants({ variant: "outline" })}
           >
-            <FileText className="size-4" /> View report
+            <FileText className="size-4" /> View live report
+          </Link>
+          <Link
+            href={`/projects/${project.id}/review`}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            <ClipboardCheck className="size-4" /> Review and sign-off
           </Link>
         </div>
       </div>
+
+      <NextStepsCard projectId={project.id} actions={nextActions} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>

@@ -3,6 +3,7 @@
 import {
   BookOpen,
   Boxes,
+  ClipboardCheck,
   FileText,
   FolderKanban,
   History,
@@ -87,7 +88,8 @@ export function AppShell({ user, projects, children }: AppShellProps) {
         { href: `/projects/${activeProjectId}/dataflow`, label: "Dataflow", icon: Workflow },
         { href: `/projects/${activeProjectId}/findings`, label: "Findings", icon: ShieldAlert },
         { href: `/projects/${activeProjectId}/activity`, label: "Activity", icon: History },
-        { href: `/projects/${activeProjectId}/report`, label: "Report", icon: FileText },
+        { href: `/projects/${activeProjectId}/review`, label: "Review and sign-off", icon: ClipboardCheck },
+        { href: `/projects/${activeProjectId}/report`, label: "Live report", icon: FileText },
       ]
     : [];
 
