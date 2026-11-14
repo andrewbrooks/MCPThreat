@@ -5,7 +5,7 @@ import { KNOWLEDGE_LIST } from "@/lib/mcp-knowledge-base";
 
 export default function SecurityGuidancePage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 [&>*]:max-w-4xl">
       <div className="flex items-start gap-3">
         <div className="mt-1 rounded-md bg-primary/15 p-2 text-primary">
           <BookOpen className="size-5" />

@@ -79,7 +79,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   }));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8">
       {isGithub && project.analysisStatus === "READY" && aiTotal > 0 ? (
         <div className="flex flex-wrap items-start gap-2 rounded-md border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">
           <Sparkles className="mt-0.5 size-4 shrink-0" />

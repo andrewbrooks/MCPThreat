@@ -26,7 +26,13 @@ import {
 export function SeverityBadge({ severity, className }: { severity: string; className?: string }) {
   const s = severity as Severity;
   return (
-    <Badge className={cn(SEVERITY_BADGE_CLASSES[s] ?? SEVERITY_BADGE_CLASSES.INFO, className)}>
+    <Badge
+      className={cn(
+        "min-w-[4.5rem] justify-center",
+        SEVERITY_BADGE_CLASSES[s] ?? SEVERITY_BADGE_CLASSES.INFO,
+        className,
+      )}
+    >
       {SEVERITY_LABELS[s] ?? severity}
     </Badge>
   );
@@ -35,7 +41,13 @@ export function SeverityBadge({ severity, className }: { severity: string; class
 export function StatusPill({ status, className }: { status: string; className?: string }) {
   const s = status as FindingStatus;
   return (
-    <Badge className={cn(STATUS_BADGE_CLASSES[s] ?? STATUS_BADGE_CLASSES.OPEN, className)}>
+    <Badge
+      className={cn(
+        "min-w-[5.5rem] justify-center",
+        STATUS_BADGE_CLASSES[s] ?? STATUS_BADGE_CLASSES.OPEN,
+        className,
+      )}
+    >
       {STATUS_LABELS[s] ?? status}
     </Badge>
   );
@@ -52,7 +64,13 @@ export function RiskBadge({
 }) {
   const l = level as RiskLevel;
   return (
-    <Badge className={cn(RISK_LEVEL_CLASSES[l] ?? RISK_LEVEL_CLASSES.MEDIUM, className)}>
+    <Badge
+      className={cn(
+        "min-w-[4.5rem] justify-center",
+        RISK_LEVEL_CLASSES[l] ?? RISK_LEVEL_CLASSES.MEDIUM,
+        className,
+      )}
+    >
       {prefix ? `${prefix}: ` : ""}
       {RISK_LEVEL_LABELS[l] ?? level}
     </Badge>

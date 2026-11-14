@@ -21,6 +21,7 @@ import { ATTACHMENT_ACCEPT, humanSize } from "@/lib/attachments";
 import { describeAuditEvent } from "@/lib/audit-format";
 import { findingColor } from "@/lib/finding-colors";
 import type { PartySide } from "@/lib/taxonomy";
+import { WrapEmail } from "@/components/shared/wrap-email";
 import { AiBadge, ConfidenceBadge, McpCategoryBadge, SeverityBadge, StatusPill } from "@/components/shared/badges";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -507,7 +508,7 @@ export function FindingsTable({
           }
         />
       ) : (
-        <Table>
+        <Table className="[&_td]:px-2 [&_th]:px-2">
           <TableHeader>
             <TableRow>
               <TableHead className="w-1 p-0">
@@ -564,7 +565,7 @@ export function FindingsTable({
                 <TableCell>
                   <SeverityBadge severity={f.severity} />
                 </TableCell>
-                <TableCell className="min-w-[15rem] max-w-md">
+                <TableCell className="min-w-[13rem] max-w-md">
                   <div className="font-medium">{f.title}</div>
                   {f.threatVector ? (
                     <div className="text-xs text-muted-foreground">{f.threatVector.title}</div>
@@ -588,7 +589,10 @@ export function FindingsTable({
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {f.threatVector ? (
-                    <McpCategoryBadge category={f.threatVector.mcpCategory} />
+                    <McpCategoryBadge
+                      category={f.threatVector.mcpCategory}
+                      className="min-w-[9rem] justify-center"
+                    />
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
@@ -599,7 +603,7 @@ export function FindingsTable({
                       aria-label={`Status of ${f.displayId}`}
                       value={f.status}
                       onChange={(e) => inlineStatus(f.id, e.target.value)}
-                      className="h-8 w-36"
+                      className="h-8 w-32"
                     >
                       {statusOptionsFor(f.status).map((s) => (
                         <option key={s} value={s}>
@@ -612,7 +616,7 @@ export function FindingsTable({
                   )}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                  {f.owner || "—"}
+                  {f.owner ? <WrapEmail value={f.owner} /> : "—"}
                 </TableCell>
                 <TableCell className="hidden whitespace-nowrap text-sm tabular-nums text-muted-foreground lg:table-cell">
                   {f.dueDate ? toDateInput(f.dueDate) : "—"}

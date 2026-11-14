@@ -53,7 +53,7 @@ export default async function WorkspacePage({ params }: { params: { id: string }
   });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <Link
           href={`/projects/${project.id}`}

@@ -55,7 +55,12 @@
   * {
     @apply border-border;
   }
+  /* Never break inside a word in table cells or badges, but let free text (titles, names,
+     emails typed without spaces) break rather than widen the page. */
   main {
+    overflow-wrap: break-word;
+  }
+  main :is(h1, h2, h3, h4, p, li, a, dd, dt, label):not(td *, th *) {
     overflow-wrap: anywhere;
   }
   :focus-visible {

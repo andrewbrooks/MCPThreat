@@ -30,7 +30,7 @@ export default async function ActivityPage({ params }: { params: { id: string } 
   });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 [&>*]:max-w-4xl">
       <div>
         <Link
           href={`/projects/${params.id}`}

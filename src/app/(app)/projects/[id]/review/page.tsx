@@ -42,7 +42,7 @@ export default async function ReviewPage({ params }: { params: { id: string } })
   const policyLabel = (ACCEPTANCE_POLICY_LABELS[policy] ?? policy).replace(" — ", ", ");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 [&>*]:max-w-4xl">
       <header>
         <Link
           href={`/projects/${params.id}`}

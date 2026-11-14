@@ -35,7 +35,7 @@ export default async function ArchitecturePage({ params }: { params: { id: strin
   const isGithub = project.sourceType === "GITHUB";
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 [&>*]:max-w-4xl">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Architecture</h1>

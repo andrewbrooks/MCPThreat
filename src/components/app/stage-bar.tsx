@@ -20,7 +20,7 @@ export function StageBar({ projectId, readiness }: { projectId: string; readines
   const complete = readiness.currentStage === "COMPLETE";
 
   return (
-    <nav aria-label="Project progress" className="no-print mx-auto mb-6 max-w-5xl space-y-2">
+    <nav aria-label="Project progress" className="no-print mx-auto mb-6 max-w-6xl space-y-2">
       <ol className="relative flex gap-2 overflow-x-auto pb-1">
         {readiness.stages.map((s, i) => {
           const current = s.status === "CURRENT";
