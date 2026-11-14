@@ -1,11 +1,11 @@
 import { History } from "lucide-react";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { auth } from "@/lib/auth";
 import { AuthzError, requireProjectAccess } from "@/lib/authz";
 import { describeAuditEvent } from "@/lib/audit-format";
 import { prisma } from "@/lib/prisma";
+import { PageHeader } from "@/components/shared/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -31,18 +31,11 @@ export default async function ActivityPage({ params }: { params: { id: string } 
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 [&>*]:max-w-4xl">
-      <div>
-        <Link
-          href={`/projects/${params.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {project.name}
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Activity Log</h1>
-        <p className="text-sm text-muted-foreground">
-          A complete audit trail of finding changes — who did what, and when.
-        </p>
-      </div>
+      <PageHeader
+        back={{ href: `/projects/${params.id}`, label: project.name }}
+        title="Activity"
+        description="A complete audit trail of changes: who did what, and when."
+      />
 
       {events.length === 0 ? (
         <EmptyState

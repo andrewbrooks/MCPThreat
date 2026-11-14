@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FindingsTable } from "@/components/app/findings-table";
 import { resolveSide } from "@/lib/acceptance";
@@ -6,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { AuthzError } from "@/lib/authz";
 import { getProjectDetail } from "@/lib/data";
 import { mapFindingRows } from "@/lib/finding-view";
+import { PageHeader } from "@/components/shared/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -38,18 +38,11 @@ export default async function FindingsPage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <Link
-          href={`/projects/${project.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {project.name}
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Findings</h1>
-        <p className="text-sm text-muted-foreground">
-          Track, filter, and update findings across the project.
-        </p>
-      </div>
+      <PageHeader
+        back={{ href: `/projects/${project.id}`, label: project.name }}
+        title="Findings"
+        description="Track, filter, and update findings across the project."
+      />
 
       <FindingsTable
         projectId={project.id}

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ReadinessSection } from "@/components/app/review/readiness-section";
 import { SnapshotsSection } from "@/components/app/review/snapshots-section";
@@ -11,6 +10,7 @@ import {
   ACCEPTANCE_POLICY_LABELS,
   type AcceptancePolicy,
 } from "@/lib/taxonomy";
+import { PageHeader } from "@/components/shared/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -43,26 +43,18 @@ export default async function ReviewPage({ params }: { params: { id: string } })
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 [&>*]:max-w-4xl">
-      <header>
-        <Link
-          href={`/projects/${params.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          <span aria-hidden="true">← </span>
-          Back to {workflow.assessment.record.projectName}
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Review and sign-off</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Issue a frozen snapshot of the assessment, have it reviewed, and hand that record to an
-          auditor.
-        </p>
-        <p className="mt-2 text-sm">
+      <PageHeader
+        back={{ href: `/projects/${params.id}`, label: workflow.assessment.record.projectName }}
+        title="Review and sign-off"
+        description="Issue a frozen snapshot of the assessment, have it reviewed, and hand that record to an auditor."
+      >
+        <p className="text-sm">
           <span className="font-medium">Acceptance policy: {policyLabel}.</span>{" "}
           <span className="text-muted-foreground">
             {SIGNOFF_MEANING[requirement]} {ACCEPTANCE_POLICY_DESCRIPTIONS[policy]}
           </span>
         </p>
-      </header>
+      </PageHeader>
 
       <ReadinessSection readiness={workflow.readiness} projectId={params.id} />
 

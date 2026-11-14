@@ -5,6 +5,7 @@ import { ProfileEditor } from "@/components/app/profile-editor";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { PageHeader } from "@/components/shared/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -27,10 +28,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 [&>*]:max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your profile and project members.</p>
-      </div>
+      <PageHeader title="Settings" description="Manage your profile and project members." />
 
       <Card>
         <CardHeader>

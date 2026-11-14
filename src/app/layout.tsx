@@ -24,8 +24,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    // The font variables must be defined on <html>: Tailwind sets font-family there, and a
+    // variable defined on <body> is invisible to its parent.
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -8,6 +8,7 @@ import { AuthzError } from "@/lib/authz";
 import { getProjectDetail } from "@/lib/data";
 import { mapFindingRows } from "@/lib/finding-view";
 import { workspaceSteps } from "@/lib/metrics";
+import { PageHeader } from "@/components/shared/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -54,18 +55,11 @@ export default async function WorkspacePage({ params }: { params: { id: string }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <Link
-          href={`/projects/${project.id}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← {project.name}
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Threat Model Workspace</h1>
-        <p className="text-sm text-muted-foreground">
-          Work through the four steps to build a complete threat model.
-        </p>
-      </div>
+      <PageHeader
+        back={{ href: `/projects/${project.id}`, label: project.name }}
+        title="Threat model"
+        description="Work through the four steps to build a complete threat model."
+      />
 
       <Workspace
         projectId={project.id}

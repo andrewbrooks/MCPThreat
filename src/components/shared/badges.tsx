@@ -91,7 +91,7 @@ export function StrideBadge({ category, className }: { category: string; classNa
   return (
     <Badge
       className={cn(
-        "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-300",
+        "border-border bg-muted/60 text-foreground/80",
         className,
       )}
     >
@@ -139,7 +139,7 @@ export function McpCategoryBadge({
   return (
     <Badge
       className={cn(
-        "border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-500/30 dark:bg-cyan-500/15 dark:text-cyan-300",
+        "border-border bg-muted/60 text-foreground/80",
         className,
       )}
     >

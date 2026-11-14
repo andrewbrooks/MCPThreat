@@ -13,6 +13,7 @@ import { auth } from "@/lib/auth";
 import { listProjectSummaries, type ProjectSummary } from "@/lib/data";
 import { listWorklist } from "@/lib/worklist-loader";
 import type { WorklistItem } from "@/lib/workflow-types";
+import { PageHeader } from "@/components/shared/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -85,18 +86,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            One threat model per MCP server. Open counts exclude Mitigated, Accepted, and Closed findings.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ImportRepoDialog configured={configured} />
-          <NewProjectDialog />
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="One threat model per MCP server. Open counts exclude Mitigated, Accepted, and Closed findings."
+        actions={
+          <>
+            <ImportRepoDialog configured={configured} />
+            <NewProjectDialog />
+          </>
+        }
+      />
 
       <WorklistSection items={worklist} />
 

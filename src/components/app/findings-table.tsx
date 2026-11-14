@@ -403,7 +403,7 @@ export function FindingsTable({
             id="filter-severity"
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="h-8 w-36"
+            className="w-40"
           >
             <option value="">All severities</option>
             {SEVERITIES.map((s) => (
@@ -419,7 +419,7 @@ export function FindingsTable({
             id="filter-status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-8 w-36"
+            className="w-40"
           >
             <option value="">All statuses</option>
             {FINDING_STATUSES.map((s) => (
@@ -437,7 +437,7 @@ export function FindingsTable({
               value={ownerFilter}
               onChange={(e) => setOwnerFilter(e.target.value)}
               placeholder="Filter owner…"
-              className="h-8 w-40"
+              className="w-44"
             />
           </div>
         ) : null}
@@ -447,7 +447,7 @@ export function FindingsTable({
             id="filter-sort"
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="h-8 w-36"
+            className="w-40"
           >
             <option value="severity">Severity</option>
             <option value="status">Status</option>
