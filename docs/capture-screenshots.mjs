@@ -31,7 +31,8 @@ const shots = [
   { name: "dataflow", path: `/projects/${id}/dataflow`, full: true },
   { name: "findings", path: `/projects/${id}/findings`, full: true },
   { name: "review", path: `/projects/${id}/review`, full: true },
-  { name: "report", path: `/projects/${id}/report`, full: true },
+  // The report is a 17-page document; show its cover and executive summary, not all of it.
+  { name: "report", path: `/projects/${id}/report`, full: false, height: 2100 },
 ];
 
 const browser = await chromium.launch();
@@ -51,9 +52,11 @@ await page.click('button[type="submit"]');
 await page.waitForURL(`${BASE}/`, { timeout: 15000 });
 
 for (const s of shots) {
+  if (s.height) await page.setViewportSize({ width: 1440, height: s.height });
   await page.goto(`${BASE}${s.path}`, { waitUntil: "networkidle" });
   await page.waitForTimeout(600); // let charts/SVG settle
   await page.screenshot({ path: join(OUT, `${s.name}.png`), fullPage: s.full });
+  if (s.height) await page.setViewportSize({ width: 1440, height: 900 });
   console.log("captured", s.name);
 }
 
