@@ -10,6 +10,7 @@ import {
   SNAPSHOT_STATUS_LABELS,
 } from "@/lib/assessment";
 import { day as date, fmtBytes, utc } from "@/lib/report-format";
+import { executiveSummary, preparedBy, statusLine, type ExecutiveSummary } from "@/lib/report-summary";
 import { RISK_BAND_LABELS } from "@/lib/risk";
 import { PARTY_SIDE_LABELS, type PartySide } from "@/lib/taxonomy";
 
@@ -131,8 +132,6 @@ function paragraphs(s: string): string {
 export const REPORT_CSS = `
 .report-doc { color-scheme: light; background: #fff; color: #1a1f2b; padding: 44px 48px 56px; overflow-x: auto; font: 14.5px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; overflow-wrap: break-word; }
 .report-doc *, .report-doc *::before, .report-doc *::after { box-sizing: border-box; }
-.report-doc header { padding-bottom: 18px; border-bottom: 3px solid #1a1f2b; margin-bottom: 4px; }
-.report-doc header > p:first-child { margin: 0 0 8px; text-transform: uppercase; letter-spacing: .09em; font-size: 12px; font-weight: 600; color: #4a5262; }
 .report-doc h1 { font-size: 28px; margin: 0 0 8px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
 .report-doc h2 { font-size: 18px; margin: 38px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #98a2b3; line-height: 1.3; font-weight: 700; break-after: avoid; }
 .report-doc h3 { font-size: 15px; margin: 24px 0 8px; font-weight: 700; break-after: avoid; }
@@ -144,6 +143,7 @@ export const REPORT_CSS = `
 .report-doc a { color: #0b4fb3; text-decoration: underline; text-underline-offset: 2px; }
 .report-doc .muted { color: #4a5262; }
 .report-doc .small { font-size: 13px; }
+.report-doc .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .report-doc table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
 .report-doc th, .report-doc td { border: 1px solid #cfd4dc; padding: 6px 9px; text-align: left; vertical-align: top; }
 .report-doc th { background: #eef1f5; font-weight: 600; }
@@ -169,8 +169,59 @@ export const REPORT_CSS = `
 .report-doc .sev-low, .report-doc .sev-info { border-color: #1d4f91; color: #1d4f91; }
 .report-doc .finding { break-inside: avoid-page; border: 1px solid #cfd4dc; border-radius: 3px; padding: 4px 18px 14px; margin: 16px 0; }
 .report-doc .finding h3 { margin-bottom: 4px; }
-.report-doc nav ol { columns: 2; padding-left: 22px; margin: 8px 0; }
-.report-doc nav li { margin: 0; padding: 3px 0; break-inside: avoid; }
+.report-doc .cover { padding: 28px 0 36px; border-bottom: 1px solid #98a2b3; margin-bottom: 8px; }
+.report-doc .cover-kicker { margin: 0 0 14px; text-transform: uppercase; letter-spacing: .14em; font-size: 12.5px; font-weight: 700; color: #4a5262; }
+.report-doc .cover h1 { font-size: 40px; line-height: 1.12; letter-spacing: -.02em; margin: 0; padding: 0 0 18px; border-bottom: 4px solid #1a1f2b; }
+.report-doc .cover-url { margin: 14px 0 0; font-size: 15px; color: #2b3342; }
+.report-doc .cover-status { margin: 18px 0 4px; font-size: 16px; font-weight: 700; }
+.report-doc .cover h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .1em; color: #4a5262; border: 0; margin: 30px 0 4px; padding: 0; }
+.report-doc .cover table { margin: 6px 0 0; }
+.report-doc .cover .kv th { width: 210px; }
+.report-doc .cover td.sig { min-width: 150px; height: 44px; }
+.report-doc .exec { margin-top: 8px; }
+.report-doc .exec h2.front { margin-top: 32px; }
+.report-doc .exec h3 { font-size: 14px; margin: 22px 0 6px; }
+.report-doc .headline { font-size: 17px; line-height: 1.45; margin: 4px 0 14px; font-weight: 600; }
+.report-doc .tiles { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.report-doc .tiles li { margin: 0; border: 1px solid #98a2b3; border-top-width: 4px; border-radius: 3px; padding: 8px 10px; break-inside: avoid; }
+.report-doc .tiles .t-label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.report-doc .tiles .t-total { display: block; font-size: 28px; font-weight: 700; line-height: 1.15; }
+.report-doc .tiles .t-open { display: block; font-size: 12.5px; color: #2b3342; }
+.report-doc .tiles .sev-critical { border-top-color: #9b1c1c; }
+.report-doc .tiles .sev-high { border-top-color: #b43c00; }
+.report-doc .tiles .sev-medium { border-top-color: #8a5a00; }
+.report-doc .tiles .sev-low, .report-doc .tiles .sev-info { border-top-color: #1d4f91; }
+.report-doc .tiles .sev-info { border-top-style: dashed; }
+.report-doc .bar { display: flex; height: 30px; border: 1px solid #1a1f2b; border-radius: 2px; overflow: hidden; margin: 8px 0 8px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.report-doc .bar-empty { height: auto; padding: 5px 8px; font-size: 13px; }
+.report-doc .bar > span { display: flex; align-items: center; justify-content: center; overflow: hidden; border-right: 1px solid #1a1f2b; min-width: 3px; }
+.report-doc .bar > span:last-child { border-right: 0; }
+.report-doc .bar b { background: #fff; color: #1a1f2b; font-size: 12px; line-height: 1.3; padding: 0 5px; border: 1px solid #1a1f2b; border-radius: 2px; }
+.report-doc .st-open { background: #1a1f2b; }
+.report-doc .st-in_progress { background: repeating-linear-gradient(45deg, #5b6577 0 4px, #fff 4px 8px); }
+.report-doc .st-pending_acceptance { background: radial-gradient(#1a1f2b 1.4px, #fff 1.6px) 0 0 / 7px 7px; }
+.report-doc .st-mitigated { background: repeating-linear-gradient(0deg, #98a2b3 0 3px, #fff 3px 6px); }
+.report-doc .st-accepted { background: repeating-linear-gradient(135deg, #cfd4dc 0 3px, #fff 3px 6px, #5b6577 6px 7px, #fff 7px 10px); }
+.report-doc .st-closed { background: #fff; }
+.report-doc .legend { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; }
+.report-doc .legend li { margin: 0; display: flex; align-items: center; gap: 6px; }
+.report-doc .legend i { display: inline-block; width: 22px; height: 14px; border: 1px solid #1a1f2b; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.report-doc table.matrix { width: auto; max-width: 100%; table-layout: fixed; margin: 6px 0 0; }
+.report-doc table.matrix caption { text-align: left; font-size: 13px; color: #2b3342; padding-bottom: 6px; caption-side: top; }
+.report-doc table.matrix th, .report-doc table.matrix td { text-align: center; vertical-align: middle; padding: 6px 8px; width: 120px; }
+.report-doc table.matrix thead th:first-child { width: 150px; }
+.report-doc table.matrix tbody th { text-align: left; }
+.report-doc table.matrix td { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.report-doc table.matrix .n { display: block; font-size: 20px; font-weight: 700; line-height: 1.2; }
+.report-doc table.matrix .b { display: block; font-size: 12px; }
+.report-doc table.matrix .band-low { background: #eef3fa; }
+.report-doc table.matrix .band-medium { background: #fdf3dc; }
+.report-doc table.matrix .band-high { background: #fbe3d3; border: 2px solid #8a3b00; }
+.report-doc table.matrix .band-critical { background: #f6caca; border: 3px double #7a1212; }
+.report-doc table.attn td:nth-child(3) { min-width: 200px; }
+.report-doc .observations li { margin: 4px 0; }
+.report-doc .toc { list-style: none; columns: 2; padding-left: 0; margin: 8px 0; }
+.report-doc .toc li { margin: 0; padding: 3px 0; break-inside: avoid; }
 .report-doc .scroll td:first-child, .report-doc td a[href^="#"] { white-space: nowrap; }
 .report-doc dt { margin-top: 10px; }
 .report-doc dd { margin: 2px 0 0; }
@@ -178,13 +229,42 @@ export const REPORT_CSS = `
 @page { size: A4; margin: 18mm 16mm 20mm; @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size: 9pt; color: #4a5262; } }
 @media print {
   .report-doc { padding: 0; font-size: 11pt; overflow: visible; }
+  .report-doc .cover { break-after: page; border-bottom: 0; padding: 6mm 0 0; margin: 0; font-size: 10pt; }
+  .report-doc .cover h1 { font-size: 30pt; padding-bottom: 12px; }
+  .report-doc .cover h2 { margin-top: 18px; }
+  .report-doc .cover th, .report-doc .cover td { padding: 4px 8px; }
+  .report-doc .cover td.sig { height: 34px; }
+  .report-doc .cover table, .report-doc .cover .scroll { break-inside: avoid; }
+  .report-doc .exec { break-after: page; margin: 0; font-size: 10pt; }
+  .report-doc .exec h2.front { margin-top: 0; font-size: 16pt; }
+  .report-doc .exec h3 { margin: 10px 0 3px; font-size: 10.5pt; }
+  .report-doc .exec .headline { font-size: 12pt; margin: 2px 0 6px; }
+  .report-doc .exec .tiles { gap: 6px; margin-top: 4px; }
+  .report-doc .exec .tiles li { padding: 4px 8px; }
+  .report-doc .exec .tiles .t-total { font-size: 20px; line-height: 1.1; }
+  .report-doc .exec .bar { height: 22px; margin: 4px 0; }
+  .report-doc .exec table.matrix th, .report-doc .exec table.matrix td { padding: 3px 6px; width: 100px; }
+  .report-doc .exec table.matrix .n { font-size: 15px; line-height: 1.1; }
+  .report-doc .exec table.matrix caption { padding-bottom: 3px; }
+  .report-doc .exec th, .report-doc .exec td { padding: 3px 7px; }
+  .report-doc .exec p { margin: 4px 0; }
+  .report-doc .exec li { margin: 2px 0; }
+  .report-doc .exec table { margin: 4px 0; font-size: 9.5pt; }
+  .report-doc .exec li, .report-doc .exec table, .report-doc .tiles, .report-doc .bar, .report-doc .legend { break-inside: avoid; }
   .report-doc a { color: inherit; text-decoration: none; }
   .report-doc .scroll { overflow: visible; }
 }
 @media (max-width: 640px) {
   .report-doc { padding: 22px 16px 40px; }
-  .report-doc nav ol { columns: 1; }
+  .report-doc .toc { columns: 1; }
   .report-doc .kv th { width: 120px; }
+  .report-doc .cover { padding-top: 8px; }
+  .report-doc .cover h1 { font-size: 30px; }
+  .report-doc .cover .kv th { width: 120px; }
+  .report-doc .tiles { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+  .report-doc table.matrix th, .report-doc table.matrix td { width: auto; padding: 4px; }
+  .report-doc table.matrix thead th:first-child { width: 84px; }
+  .report-doc table.matrix .n { font-size: 17px; }
 }
 `;
 
@@ -263,34 +343,148 @@ const SECTIONS: [string, string][] = [
   ["definitions", "Definitions"],
 ];
 
-function snapshotHtml(a: Assessment): string {
+function kvTable(rows: [string, string][], cls = "kv"): string {
+  return `<table class="${cls}"><tbody>${rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>`;
+}
+
+function signoffTable(a: Assessment): string {
   const sn = a.snapshot;
   if (!sn) return "";
-  const rows: [string, string][] = [
-    ["Snapshot version", String(sn.version)],
-    ["Issued by", txt(sn.issuedBy)],
-    ["Issued at", utc(sn.issuedAt)],
-    ["Note", txt(sn.note)],
-    ["Content hash (SHA-256)", `<span class="hash">${h(sn.contentHash)}</span>`],
-    ["Review requirement", h(REQUIREMENT_LABELS[sn.requirement] ?? sn.requirement)],
-    ["Review status", h(SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status)],
-    ["Integrity check", h(SNAPSHOT_INTEGRITY_TEXT[sn.integrity])],
+  if (sn.signoffs.length === 0) return '<p class="muted">No sign-offs have been recorded for this snapshot.</p>';
+  return `<div class="scroll"><table><caption class="sr">Sign-offs recorded for this snapshot</caption><thead><tr><th scope="col">Party</th><th scope="col">Decision</th><th scope="col">Name</th><th scope="col">Date</th><th scope="col">Comment</th><th scope="col">Signature</th></tr></thead><tbody>${sn.signoffs
+    .map(
+      (so) =>
+        `<tr><td>${h(PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side)}</td><td>${so.decision === "APPROVED" ? "Approved" : "Returned for changes"}</td><td>${txt(so.by)}</td><td>${utc(so.at)}</td><td>${txt(so.comment)}</td><td class="sig"></td></tr>`,
+    )
+    .join("")}</tbody></table></div>`;
+}
+
+function coverHtml(a: Assessment): string {
+  const r = a.record;
+  const sn = a.snapshot;
+  const control: [string, string][] = [
+    ["Version", sn ? `Snapshot v${sn.version}` : "Live draft (not a numbered version)"],
+    [sn ? "Date issued" : "Date generated", utc(sn ? sn.issuedAt : a.generatedAt)],
   ];
+  if (sn) control.push(["Report generated", utc(a.generatedAt)]);
+  control.push(
+    ["Report format version", h(a.schemaVersion)],
+    ["Tool and version", `${h(a.tool.name)} ${h(a.tool.version)}`],
+    ["Risk-acceptance policy", h(r.acceptancePolicy.label)],
+  );
+  if (sn) {
+    control.push(["Content hash (SHA-256)", `<span class="hash">${h(sn.contentHash)}</span>`]);
+    if (sn.note.trim()) control.push(["Snapshot note", txt(sn.note)]);
+    control.push(["Integrity check", h(SNAPSHOT_INTEGRITY_TEXT[sn.integrity])]);
+  }
+  const review: [string, string][] = [["Prepared by", txt(preparedBy(a))]];
+  if (sn) {
+    review.push(["Review requirement", h(REQUIREMENT_LABELS[sn.requirement] ?? sn.requirement)]);
+    review.push(["Review status", h(SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status)]);
+  } else {
+    review.push(["Review status", "Not reviewed. This is a live draft."]);
+  }
   const alert =
-    sn.integrity === "FAILED"
+    sn?.integrity === "FAILED"
       ? `<div class="alert" role="alert"><strong>Integrity check failed.</strong> ${h(SNAPSHOT_INTEGRITY_TEXT.FAILED)}</div>`
       : "";
-  const signoffs = sn.signoffs.length
-    ? `<h4>Sign-offs</h4><table><thead><tr><th scope="col">Party</th><th scope="col">Decision</th><th scope="col">By</th><th scope="col">At</th><th scope="col">Comment</th></tr></thead><tbody>${sn.signoffs
+  return `<section class="cover" aria-labelledby="report-title">
+<p class="cover-kicker">Threat model report</p>
+<h1 id="report-title">${h(r.projectName)}</h1>
+${r.mcpServerUrl ? `<p class="cover-url">MCP server: ${h(r.mcpServerUrl)}</p>` : ""}
+<p class="cover-status">${h(statusLine(a))}</p>
+${alert}
+<h2>Document control</h2>
+${kvTable(control)}
+<h2>Review and sign-off</h2>
+${kvTable(review)}
+${
+  sn
+    ? signoffTable(a)
+    : `<div class="draft" role="note">${h(LIVE_DRAFT_NOTICE)}</div>`
+}
+</section>`;
+}
+
+function sevTileClass(sev: string): string {
+  return `sev-${slug(sev)}`;
+}
+
+function statusBarHtml(x: ExecutiveSummary): string {
+  const segs = x.statuses.filter((t) => t.count > 0);
+  const summary = x.statuses.map((t) => `${t.label} ${t.count}`).join(", ");
+  const bar = segs.length
+    ? `<div class="bar" role="img" aria-label="${h(`Findings by status: ${summary}`)}">${segs
         .map(
-          (so) =>
-            `<tr><td>${h(PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side)}</td><td>${so.decision === "APPROVED" ? "Approved" : "Returned for changes"}</td><td>${txt(so.by)}</td><td>${utc(so.at)}</td><td>${txt(so.comment)}</td></tr>`,
+          (t) =>
+            `<span class="st-${slug(t.status).replace(/-/g, "_")}" style="width:${t.pct.toFixed(2)}%"><b>${t.count}</b></span>`,
         )
-        .join("")}</tbody></table>`
-    : '<p class="muted">No sign-offs have been recorded for this snapshot.</p>';
-  return `<h3>Snapshot record</h3>${alert}<table class="kv"><tbody>${rows
-    .map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`)
-    .join("")}</tbody></table>${signoffs}`;
+        .join("")}</div>`
+    : '<div class="bar bar-empty">No findings recorded.</div>';
+  const legend = `<ul class="legend">${x.statuses
+    .map(
+      (t) =>
+        `<li><i class="st-${slug(t.status).replace(/-/g, "_")}"></i>${h(t.label)}: <strong>${t.count}</strong></li>`,
+    )
+    .join("")}</ul>`;
+  return bar + legend;
+}
+
+function matrixHtml(x: ExecutiveSummary): string {
+  const m = x.matrix;
+  return `<table class="matrix"><caption>Threat vectors by likelihood and impact (${m.vectorCount} in total). Each cell shows the number of threat vectors and the risk band for that combination.</caption><thead><tr><th scope="col">Likelihood by impact</th>${m.impactLabels
+    .map((c) => `<th scope="col">${h(c.label)} impact</th>`)
+    .join("")}</tr></thead><tbody>${m.rows
+    .map(
+      (row) =>
+        `<tr><th scope="row">${h(row.likelihoodLabel)} likelihood</th>${row.cells
+          .map(
+            (c) =>
+              `<td class="band-${c.band.toLowerCase()}"><span class="n">${c.count}</span><span class="b">${h(c.bandLabel)} risk</span></td>`,
+          )
+          .join("")}</tr>`,
+    )
+    .join("")}</tbody></table>`;
+}
+
+function executiveHtml(a: Assessment): string {
+  const x = executiveSummary(a);
+  const tiles = `<ul class="tiles" aria-label="Findings by severity">${x.tiles
+    .map(
+      (t) =>
+        `<li class="${sevTileClass(t.severity)}"><span class="t-label">${h(t.label)}</span><span class="t-total">${t.total}</span><span class="t-open">${t.open} open</span></li>`,
+    )
+    .join("")}</ul>`;
+  const attention = x.attention.length
+    ? `<div class="scroll"><table class="attn"><caption class="sr">Open findings requiring attention</caption><thead><tr><th scope="col">ID</th><th scope="col">Severity</th><th scope="col">Finding</th><th scope="col">Owner</th><th scope="col">Due</th></tr></thead><tbody>${x.attention
+        .map(
+          (f) =>
+            `<tr><td><a href="#${h(f.id)}">${h(f.id)}</a></td><td>${sevTag(f)}</td><td>${h(f.title)}</td><td>${txt(f.owner)}</td><td>${date(f.dueDate)}</td></tr>`,
+        )
+        .join("")}</tbody></table></div>${
+        x.attentionTotal > x.attention.length
+          ? `<p class="muted small">Showing ${x.attention.length} of ${x.attentionTotal} open findings. The full list is in section 7.</p>`
+          : ""
+      }`
+    : '<p class="muted">No findings are open.</p>';
+  const observations = x.observations.length
+    ? `<ul class="observations">${x.observations.map((o) => `<li>${h(o)}</li>`).join("")}</ul>`
+    : `<p>${h(x.noObservationsText)}</p>`;
+  return `<section class="exec" id="executive-summary" aria-labelledby="executive-summary-h">
+<h2 class="front" id="executive-summary-h">Executive summary</h2>
+<p class="headline">${h(x.headline)}</p>
+<h3>Findings by severity</h3>
+${tiles}
+<h3>Findings by status</h3>
+${statusBarHtml(x)}
+<h3>Threat vector risk matrix</h3>
+${matrixHtml(x)}
+<h3>Open findings requiring attention</h3>
+${attention}
+<h3>Key observations</h3>
+${observations}
+<p class="muted small">${h(x.observationsNote)}</p>
+</section>`;
 }
 
 /** The report as an HTML fragment (no <html>/<body>), for embedding under a .report-doc element. */
@@ -338,27 +532,14 @@ export function reportBodyHtml(a: Assessment): string {
       (r.audit.firstEventAt ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}` : ""),
   ]);
 
-  const statuses = s.byStatus.filter(
-    (x) => x.count > 0 || x.status !== "PENDING_ACCEPTANCE" || r.acceptancePolicy.value !== "OFF",
-  );
-
   const body = `
-<header>
-<p class="muted small">Threat model report</p>
-<h1>${h(r.projectName)}</h1>
-<p class="muted">Prepared with ${h(a.tool.name)} ${h(a.tool.version)} on ${utc(a.generatedAt)}. Report format version ${h(a.schemaVersion)}.</p>
-</header>
-${
-  a.snapshot
-    ? `<div class="draft" role="note"><strong>Snapshot v${a.snapshot.version}</strong>, ${h(SNAPSHOT_STATUS_LABELS[a.snapshot.status] ?? a.snapshot.status)}. The snapshot record is in section 1.${a.snapshot.integrity === "FAILED" ? " <strong>Integrity check failed.</strong>" : ""}</div>`
-    : `<div class="draft" role="note"><strong>${h(LIVE_DRAFT_NOTICE)}</strong></div>`
-}
-<nav aria-label="Contents"><h2 style="border:0;margin-top:24px">Contents</h2><ol>${SECTIONS.map(
-    ([k, t]) => `<li><a href="#${k}">${h(t)}</a></li>`,
+${coverHtml(a)}
+${executiveHtml(a)}
+<nav aria-label="Contents"><h2 style="border:0;margin-top:24px">Contents</h2><ol class="toc"><li><a href="#executive-summary">Executive summary</a></li>${SECTIONS.map(
+    ([k, t], idx) => `<li><a href="#${k}">${idx + 1}. ${h(t)}</a></li>`,
   ).join("")}</ol></nav>
 
 ${sec("record")}
-${snapshotHtml(a)}
 <table class="kv"><tbody>${record.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>
 ${
   r.people.length
@@ -378,13 +559,7 @@ ${a.scope.statements.map((t) => `<p>${h(t)}</p>`).join("")}
     .join("")}</ul></div>
 
 ${sec("summary")}
-<p>${h(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. Mitigation completion is ${s.completionPct}%. Definitions of &ldquo;open&rdquo; and &ldquo;completion&rdquo; are in section ${num("definitions")}.</p>
-<table><thead><tr><th scope="col">Severity</th><th scope="col">Total</th><th scope="col">Open</th></tr></thead><tbody>${s.bySeverity
-    .map((x) => `<tr><td>${h(x.label)}</td><td>${x.total}</td><td>${x.open}</td></tr>`)
-    .join("")}</tbody></table>
-<table><thead><tr><th scope="col">Status</th><th scope="col">Findings</th></tr></thead><tbody>${statuses
-    .map((x) => `<tr><td>${h(x.label)}</td><td>${x.count}</td></tr>`)
-    .join("")}</tbody></table>
+<p>${h(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. Mitigation completion is ${s.completionPct}%. Counts by severity and status are in the executive summary at the start of this report. Definitions of &ldquo;open&rdquo; and &ldquo;completion&rdquo; are in section ${num("definitions")}.</p>
 <table><thead><tr><th scope="col">Threat vector risk band</th><th scope="col">Vectors</th></tr></thead><tbody>${s.byRiskBand
     .map((x) => `<tr><td>${h(x.label)}</td><td>${x.count}</td></tr>`)
     .join("")}</tbody></table>

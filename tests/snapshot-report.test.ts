@@ -69,7 +69,7 @@ describe("live reports", () => {
     for (const out of [generateReport(live), generateHtml(live)]) {
       expect(out).toContain("live draft");
       expect(out).toContain("Review and sign-off");
-      expect(out).not.toContain("Snapshot record");
+      expect(out).not.toContain("Content hash");
     }
   });
 });
@@ -77,7 +77,7 @@ describe("live reports", () => {
 describe("snapshot reports", () => {
   it("show the snapshot record in markdown", () => {
     const md = generateReport(snap);
-    expect(md).toContain("### Snapshot record");
+    expect(md).toContain("### Review and sign-off");
     expect(md).toContain(HASH);
     expect(md).toContain("Pre-release review");
     expect(md).toContain("Returned for changes");
@@ -87,7 +87,7 @@ describe("snapshot reports", () => {
   });
   it("show the snapshot record in html and escape comments", () => {
     const html = generateHtml(snap);
-    expect(html).toContain("Snapshot record");
+    expect(html).toContain("Review and sign-off");
     expect(html).toContain(HASH);
     expect(html).not.toContain("<script>alert");
     expect(html).toContain("&lt;script&gt;alert");

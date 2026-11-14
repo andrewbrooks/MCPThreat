@@ -10,6 +10,7 @@ import {
   SNAPSHOT_STATUS_LABELS,
 } from "@/lib/assessment";
 import { day as date, fmtBytes, NOT_RECORDED as DASH, utc } from "@/lib/report-format";
+import { executiveSummary, preparedBy, statusLine } from "@/lib/report-summary";
 import { RISK_BAND_LABELS } from "@/lib/risk";
 import { PARTY_SIDE_LABELS, type PartySide } from "@/lib/taxonomy";
 
@@ -112,42 +113,127 @@ function findingDetail(f: AssessmentFinding): string[] {
   return lines;
 }
 
-function snapshotLines(a: Assessment): string[] {
+function coverLines(a: Assessment): string[] {
+  const r = a.record;
   const sn = a.snapshot;
-  if (!sn) return [];
   const L: string[] = [];
-  L.push("### Snapshot record");
+  L.push(`# ${esc(r.projectName)}`);
   L.push("");
-  if (sn.integrity === "FAILED") {
+  L.push("**Threat model report**");
+  L.push("");
+  if (r.mcpServerUrl) {
+    L.push(`MCP server: ${esc(r.mcpServerUrl)}`);
+    L.push("");
+  }
+  L.push(`**${statusLine(a)}**`);
+  L.push("");
+  if (sn?.integrity === "FAILED") {
     L.push(`> **Integrity check failed.** ${SNAPSHOT_INTEGRITY_TEXT.FAILED}`);
     L.push("");
   }
+  L.push("### Document control");
+  L.push("");
   L.push("| Item | Value |");
   L.push("| --- | --- |");
-  L.push(`| Snapshot version | ${sn.version} |`);
-  L.push(`| Issued by | ${cell(sn.issuedBy)} |`);
-  L.push(`| Issued at | ${utc(sn.issuedAt)} |`);
-  L.push(`| Note | ${cell(sn.note)} |`);
-  L.push(`| Content hash (SHA-256) | \`${sn.contentHash}\` |`);
-  L.push(`| Review requirement | ${REQUIREMENT_LABELS[sn.requirement] ?? sn.requirement} |`);
-  L.push(`| Review status | ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status} |`);
-  L.push(`| Integrity check | ${SNAPSHOT_INTEGRITY_TEXT[sn.integrity]} |`);
-  L.push("");
-  if (sn.signoffs.length) {
-    L.push("**Sign-offs**");
-    L.push("");
-    L.push("| Party | Decision | By | At | Comment |");
-    L.push("| --- | --- | --- | --- | --- |");
-    for (const so of sn.signoffs) {
-      L.push(
-        `| ${PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side} | ${so.decision === "APPROVED" ? "Approved" : "Returned for changes"} | ${cell(so.by)} | ${utc(so.at)} | ${cell(so.comment)} |`,
-      );
-    }
-    L.push("");
-  } else {
-    L.push("No sign-offs have been recorded for this snapshot.");
-    L.push("");
+  L.push(`| Version | ${sn ? `Snapshot v${sn.version}` : "Live draft (not a numbered version)"} |`);
+  L.push(`| ${sn ? "Date issued" : "Date generated"} | ${utc(sn ? sn.issuedAt : a.generatedAt)} |`);
+  if (sn) L.push(`| Report generated | ${utc(a.generatedAt)} |`);
+  L.push(`| Report format version | ${a.schemaVersion} |`);
+  L.push(`| Tool and version | ${a.tool.name} ${a.tool.version} |`);
+  L.push(`| Risk-acceptance policy | ${r.acceptancePolicy.label} |`);
+  if (sn) {
+    L.push(`| Content hash (SHA-256) | \`${sn.contentHash}\` |`);
+    if (sn.note.trim()) L.push(`| Snapshot note | ${cell(sn.note)} |`);
+    L.push(`| Integrity check | ${SNAPSHOT_INTEGRITY_TEXT[sn.integrity]} |`);
   }
+  L.push("");
+  L.push("### Review and sign-off");
+  L.push("");
+  L.push("| Item | Value |");
+  L.push("| --- | --- |");
+  L.push(`| Prepared by | ${cell(preparedBy(a))} |`);
+  if (sn) {
+    L.push(`| Review requirement | ${REQUIREMENT_LABELS[sn.requirement] ?? sn.requirement} |`);
+    L.push(`| Review status | ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status} |`);
+  } else {
+    L.push("| Review status | Not reviewed. This is a live draft. |");
+  }
+  L.push("");
+  if (sn) {
+    if (sn.signoffs.length) {
+      L.push("| Party | Decision | Name | Date | Comment | Signature |");
+      L.push("| --- | --- | --- | --- | --- | --- |");
+      for (const so of sn.signoffs) {
+        L.push(
+          `| ${PARTY_SIDE_LABELS[so.side as PartySide] ?? so.side} | ${so.decision === "APPROVED" ? "Approved" : "Returned for changes"} | ${cell(so.by)} | ${utc(so.at)} | ${cell(so.comment)} |  |`,
+        );
+      }
+    } else {
+      L.push("No sign-offs have been recorded for this snapshot.");
+    }
+  } else {
+    L.push(`> ${LIVE_DRAFT_NOTICE}`);
+  }
+  L.push("");
+  return L;
+}
+
+function executiveLines(a: Assessment): string[] {
+  const x = executiveSummary(a);
+  const L: string[] = [];
+  L.push("## Executive summary");
+  L.push("");
+  L.push(esc(x.headline));
+  L.push("");
+  L.push("### Findings by severity");
+  L.push("");
+  L.push("| Severity | Total | Open |");
+  L.push("| --- | --- | --- |");
+  for (const t of x.tiles) L.push(`| ${t.label} | ${t.total} | ${t.open} |`);
+  L.push("");
+  L.push("### Findings by status");
+  L.push("");
+  L.push("| Status | Findings | Share |");
+  L.push("| --- | --- | --- |");
+  for (const t of x.statuses) L.push(`| ${t.label} | ${t.count} | ${Math.round(t.pct)}% |`);
+  L.push("");
+  L.push("### Threat vector risk matrix");
+  L.push("");
+  L.push(
+    `Threat vectors by likelihood and impact (${x.matrix.vectorCount} in total). Each cell shows the number of threat vectors and the risk band.`,
+  );
+  L.push("");
+  L.push(`| Likelihood by impact | ${x.matrix.impactLabels.map((c) => `${c.label} impact`).join(" | ")} |`);
+  L.push("| --- | --- | --- | --- |");
+  for (const row of x.matrix.rows) {
+    L.push(
+      `| ${row.likelihoodLabel} likelihood | ${row.cells.map((c) => `${c.count} (${c.bandLabel} risk)`).join(" | ")} |`,
+    );
+  }
+  L.push("");
+  L.push("### Open findings requiring attention");
+  L.push("");
+  if (x.attention.length === 0) {
+    L.push("No findings are open.");
+  } else {
+    L.push("| ID | Severity | Finding | Owner | Due |");
+    L.push("| --- | --- | --- | --- | --- |");
+    for (const f of x.attention) {
+      L.push(`| ${f.id} | ${f.severityLabel} | ${cell(f.title)} | ${cell(f.owner)} | ${date(f.dueDate)} |`);
+    }
+    if (x.attentionTotal > x.attention.length) {
+      L.push("");
+      L.push(`Showing ${x.attention.length} of ${x.attentionTotal} open findings. The full list is in section 7.`);
+    }
+  }
+  L.push("");
+  L.push("### Key observations");
+  L.push("");
+  if (x.observations.length) for (const o of x.observations) L.push(`- ${esc(o)}`);
+  else L.push(x.noObservationsText);
+  L.push("");
+  L.push(x.observationsNote);
+  L.push("");
   return L;
 }
 
@@ -156,27 +242,12 @@ export function generateReport(a: Assessment): string {
   const s = a.summary;
   const L: string[] = [];
 
-  L.push(`# Threat Model Report: ${esc(r.projectName)}`);
-  L.push("");
-  L.push(
-    `Prepared with ${a.tool.name} ${a.tool.version} on ${utc(a.generatedAt)}. ` +
-      `Report format version ${a.schemaVersion}.`,
-  );
-  L.push("");
-
-  if (a.snapshot) {
-    const sn = a.snapshot;
-    L.push(
-      `**Snapshot v${sn.version}**, ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status}. Issued ${utc(sn.issuedAt)}. Details are in section 1.` +
-        (sn.integrity === "FAILED" ? " **Integrity check failed.**" : ""),
-    );
-  } else {
-    L.push(`> **${LIVE_DRAFT_NOTICE}**`);
-  }
-  L.push("");
+  L.push(...coverLines(a));
+  L.push(...executiveLines(a));
   L.push("## Contents");
   L.push("");
   [
+    "Executive summary",
     "1. Assessment record",
     "2. Scope and limitations",
     "3. Summary",
@@ -194,7 +265,6 @@ export function generateReport(a: Assessment): string {
   // 1. Record
   L.push("## 1. Assessment record");
   L.push("");
-  L.push(...snapshotLines(a));
   L.push("| Item | Value |");
   L.push("| --- | --- |");
   L.push(`| Project | ${cell(r.projectName)} |`);
@@ -250,19 +320,8 @@ export function generateReport(a: Assessment): string {
   L.push("");
   L.push(
     `${esc(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. ` +
-      `Mitigation completion is ${s.completionPct}%. Definitions of "open" and "completion" are in section 11.`,
+      `Mitigation completion is ${s.completionPct}%. Counts by severity and status are in the executive summary at the start of this report. Definitions of "open" and "completion" are in section 11.`,
   );
-  L.push("");
-  L.push("| Severity | Total | Open |");
-  L.push("| --- | --- | --- |");
-  for (const row of s.bySeverity) L.push(`| ${row.label} | ${row.total} | ${row.open} |`);
-  L.push("");
-  const shownStatuses = s.byStatus.filter(
-    (x) => x.count > 0 || x.status !== "PENDING_ACCEPTANCE" || r.acceptancePolicy.value !== "OFF",
-  );
-  L.push("| Status | Findings |");
-  L.push("| --- | --- |");
-  for (const row of shownStatuses) L.push(`| ${row.label} | ${row.count} |`);
   L.push("");
   L.push("| Threat vector risk band | Vectors |");
   L.push("| --- | --- |");
