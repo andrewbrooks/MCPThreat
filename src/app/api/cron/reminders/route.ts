@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { recordAudit } from "@/lib/audit";
 import { buildFindingEmail, isEmail, sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
+import { safeEqual } from "@/lib/secure-compare";
 
 // Dispatches due recurring owner reminders. Meant to be hit on a schedule by an
 // external cron (e.g. Vercel Cron, a GitHub Action, or `curl` in a system cron),
@@ -15,11 +16,11 @@ async function run(req: Request): Promise<NextResponse> {
       { status: 503 },
     );
   }
+  // The secret is accepted only in the Authorization header. A query-string secret would
+  // end up in access logs, proxies and browser history.
   const header = req.headers.get("authorization");
-  const provided = header?.startsWith("Bearer ")
-    ? header.slice(7)
-    : new URL(req.url).searchParams.get("secret");
-  if (provided !== secret) {
+  const provided = header?.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!provided || !safeEqual(provided, secret)) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
