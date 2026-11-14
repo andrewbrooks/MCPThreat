@@ -12,7 +12,7 @@ import { currentActor } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateFindingSchema } from "@/lib/validators";
 
-type Params = { params: { id: string; fid: string } };
+type Params = { params: Promise<{ id: string; fid: string }> };
 
 function fmt(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
@@ -20,7 +20,8 @@ function fmt(v: unknown): string {
   return String(v);
 }
 
-export async function PATCH(req: Request, { params }: Params) {
+export async function PATCH(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     const access = await requireProjectAccess(actor.id, params.id, { write: true });
@@ -148,7 +149,8 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id, { write: true });

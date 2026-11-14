@@ -5,9 +5,10 @@ import { currentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createBoundarySchema } from "@/lib/validators";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     await requireProjectAccess(userId, params.id);
@@ -26,7 +27,8 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
-export async function POST(req: Request, { params }: Params) {
+export async function POST(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     await requireProjectAccess(userId, params.id, { write: true });

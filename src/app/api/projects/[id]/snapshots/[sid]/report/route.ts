@@ -7,10 +7,11 @@ import { fileSlug, isReportFormat, reportResponse } from "@/lib/report-response"
 import { parseStoredAssessment } from "@/lib/snapshot";
 import { toSnapshotSummary } from "@/lib/snapshot-loader";
 
-type Params = { params: { id: string; sid: string } };
+type Params = { params: Promise<{ id: string; sid: string }> };
 
 // GET /api/projects/:id/snapshots/:sid/report?format=md|html|json|csv[&download=1]
-export async function GET(req: Request, { params }: Params) {
+export async function GET(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     await requireProjectAccess(userId, params.id);

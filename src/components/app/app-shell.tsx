@@ -64,6 +64,8 @@ export function AppShell({ user, projects, children }: AppShellProps) {
 
   // Restore + persist the collapsed preference.
   useEffect(() => {
+    // Read after mount: localStorage does not exist on the server, so reading it during render would mismatch hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
   }, []);
   function toggleCollapsed() {
@@ -135,7 +137,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
     );
   };
 
-  const Sidebar = ({ mini }: { mini: boolean }) => (
+  const renderSidebar = (mini: boolean) => (
     <div className="flex h-full flex-col gap-4">
       <div className={cn("flex items-center", mini ? "flex-col gap-2" : "justify-between")}>
         <Link
@@ -256,7 +258,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
           collapsed ? "w-[4.5rem]" : "w-60",
         )}
       >
-        <Sidebar mini={collapsed} />
+        {renderSidebar(collapsed)}
       </aside>
 
       {/* Mobile sidebar */}
@@ -268,7 +270,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
             aria-hidden
           />
           <aside className="absolute left-0 top-0 h-full w-64 border-r bg-card p-4">
-            <Sidebar mini={false} />
+            {renderSidebar(false)}
           </aside>
         </div>
       ) : null}

@@ -11,10 +11,11 @@ import { listSnapshotSummaries } from "@/lib/snapshot-loader";
 import { snapshotRequirement } from "@/lib/signoff";
 import { issueSnapshotSchema } from "@/lib/validators";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 // GET /api/projects/:id/snapshots -> { snapshots: SnapshotSummary[] }
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id);
@@ -26,7 +27,8 @@ export async function GET(_req: Request, { params }: Params) {
 
 // POST /api/projects/:id/snapshots { note? } -> 201 { snapshot }
 // 409 { error, checks } when blocking readiness checks fail.
-export async function POST(req: Request, { params }: Params) {
+export async function POST(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     const access = await requireProjectAccess(actor.id, params.id, { write: true });

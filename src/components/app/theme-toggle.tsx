@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export function ThemeToggle({ mini = false }: { mini?: boolean }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  // The theme is only known on the client, so wait for mount to avoid a hydration mismatch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const isDark = mounted && theme === "dark";

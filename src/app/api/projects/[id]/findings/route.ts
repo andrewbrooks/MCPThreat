@@ -14,9 +14,10 @@ import { prisma } from "@/lib/prisma";
 import { isFindingStatus, isSeverity } from "@/lib/taxonomy";
 import { bulkFindingStatusSchema, createFindingSchema } from "@/lib/validators";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
-export async function GET(req: Request, { params }: Params) {
+export async function GET(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id);
@@ -46,7 +47,8 @@ export async function GET(req: Request, { params }: Params) {
   }
 }
 
-export async function POST(req: Request, { params }: Params) {
+export async function POST(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id, { write: true });
@@ -85,7 +87,8 @@ export async function POST(req: Request, { params }: Params) {
 }
 
 // Bulk status change.
-export async function PATCH(req: Request, { params }: Params) {
+export async function PATCH(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     const access = await requireProjectAccess(actor.id, params.id, { write: true });

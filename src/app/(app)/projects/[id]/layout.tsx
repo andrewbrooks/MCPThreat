@@ -10,11 +10,12 @@ export const dynamic = "force-dynamic";
 
 export default async function ProjectLayout({
   children,
-  params,
+  params: paramsPromise,
 }: {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const params = await paramsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

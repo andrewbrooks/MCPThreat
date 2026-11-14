@@ -9,7 +9,12 @@ import { parseDataflow } from "@/lib/dataflow";
 
 export const dynamic = "force-dynamic";
 
-export default async function DataflowPage({ params }: { params: { id: string } }) {
+export default async function DataflowPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await paramsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

@@ -103,7 +103,7 @@ export function request(
   });
 }
 
-export const params = <T extends Record<string, string>>(p: T) => ({ params: p });
+export const params = <T extends Record<string, string>>(p: T) => ({ params: Promise.resolve(p) });
 
 export async function json<T = Record<string, unknown>>(res: Response): Promise<T> {
   return (await res.json()) as T;

@@ -22,7 +22,12 @@ import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
+export default async function ProjectPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await paramsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

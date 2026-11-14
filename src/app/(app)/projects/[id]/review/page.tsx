@@ -20,7 +20,12 @@ const SIGNOFF_MEANING = {
   DUAL: "A snapshot needs one assessor and one client to approve it.",
 } as const;
 
-export default async function ReviewPage({ params }: { params: { id: string } }) {
+export default async function ReviewPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await paramsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

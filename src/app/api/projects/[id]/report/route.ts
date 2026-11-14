@@ -6,7 +6,7 @@ import { generateHtml } from "@/lib/report-html";
 import { loadAssessment } from "@/lib/report-loader";
 import { generateReport } from "@/lib/report-markdown";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 const FORMATS = {
   md: { ext: "md", type: "text/markdown; charset=utf-8" },
@@ -32,7 +32,8 @@ function fileSlug(name: string): string {
 //   csv  the findings register, one row per finding
 // Earlier versions returned {"markdown": "..."} for ?format=json; that is now the
 // assessment object.
-export async function GET(req: Request, { params }: Params) {
+export async function GET(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     await requireProjectAccess(userId, params.id);

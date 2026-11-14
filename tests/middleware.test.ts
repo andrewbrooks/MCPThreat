@@ -12,7 +12,7 @@ beforeAll(() => {
 });
 
 async function run(path: string, authorization?: string) {
-  const { default: middleware } = await import("@/middleware");
+  const { default: middleware } = await import("@/proxy");
   const request = new NextRequest(`http://localhost:3000${path}`, {
     headers: authorization === undefined ? {} : { authorization },
   });

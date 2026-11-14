@@ -10,10 +10,11 @@ import { PARTY_SIDE_LABELS } from "@/lib/taxonomy";
 import { snapshotSignoffSchema } from "@/lib/validators";
 import type { SnapshotRequirement } from "@/lib/workflow-types";
 
-type Params = { params: { id: string; sid: string } };
+type Params = { params: Promise<{ id: string; sid: string }> };
 
 // POST /api/projects/:id/snapshots/:sid/signoff { decision, comment? } -> { snapshot }
-export async function POST(req: Request, { params }: Params) {
+export async function POST(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     const access = await requireProjectAccess(actor.id, params.id, { write: true });

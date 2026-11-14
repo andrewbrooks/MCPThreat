@@ -6,10 +6,11 @@ import { currentActor } from "@/lib/auth";
 import { buildFindingEmail, isEmail, sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
-type Params = { params: { id: string; fid: string } };
+type Params = { params: Promise<{ id: string; fid: string }> };
 
 // Send an immediate email alert to the finding's owner.
-export async function POST(_req: Request, { params }: Params) {
+export async function POST(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id, { write: true });
