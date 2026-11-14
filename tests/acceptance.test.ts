@@ -5,6 +5,10 @@ import {
   resolveSide,
 } from "@/lib/acceptance";
 
+// A fixed sign-off time. The logic only checks that a timestamp is present, so the tests
+// must not depend on the current time.
+const SIGNED_AT = new Date("2026-01-01T00:00:00.000Z");
+
 describe("acceptanceRequirement", () => {
   it("OFF needs no approval", () => {
     expect(acceptanceRequirement("OFF", "CRITICAL")).toBe("NONE");
@@ -49,7 +53,7 @@ describe("resolveSide", () => {
 describe("isAcceptanceComplete", () => {
   it("SINGLE completes on any one sign-off", () => {
     expect(
-      isAcceptanceComplete({ requireBothSides: false, assessorApprovedAt: new Date(), clientApprovedAt: null }),
+      isAcceptanceComplete({ requireBothSides: false, assessorApprovedAt: SIGNED_AT, clientApprovedAt: null }),
     ).toBe(true);
     expect(
       isAcceptanceComplete({ requireBothSides: false, assessorApprovedAt: null, clientApprovedAt: null }),
@@ -58,10 +62,10 @@ describe("isAcceptanceComplete", () => {
 
   it("DUAL requires both sides", () => {
     expect(
-      isAcceptanceComplete({ requireBothSides: true, assessorApprovedAt: new Date(), clientApprovedAt: null }),
+      isAcceptanceComplete({ requireBothSides: true, assessorApprovedAt: SIGNED_AT, clientApprovedAt: null }),
     ).toBe(false);
     expect(
-      isAcceptanceComplete({ requireBothSides: true, assessorApprovedAt: new Date(), clientApprovedAt: new Date() }),
+      isAcceptanceComplete({ requireBothSides: true, assessorApprovedAt: SIGNED_AT, clientApprovedAt: SIGNED_AT }),
     ).toBe(true);
   });
 });
