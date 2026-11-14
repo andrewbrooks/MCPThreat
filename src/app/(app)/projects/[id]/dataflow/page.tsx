@@ -1,9 +1,7 @@
 import { Workflow } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { DataflowDiagram } from "@/components/dataflow-diagram";
-import { DataflowFlowsTable } from "@/components/dataflow-flows-table";
+import { DataflowView } from "@/components/dataflow-view";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { AuthzError } from "@/lib/authz";
 import { getProjectDetail } from "@/lib/data";
@@ -28,7 +26,7 @@ export default async function DataflowPage({ params }: { params: { id: string } 
   const nodeLabel = new Map((dataflow?.nodes ?? []).map((n) => [n.id, n.label]));
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dataflow</h1>
         <p className="text-sm text-muted-foreground">
@@ -37,27 +35,18 @@ export default async function DataflowPage({ params }: { params: { id: string } 
       </div>
 
       {dataflow && dataflow.nodes.length > 0 ? (
-        <>
-          <Card>
-            <CardContent className="pt-4">
-              <DataflowDiagram dataflow={dataflow} filename={`${project.name}-dataflow`} />
-            </CardContent>
-          </Card>
-
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Flows</h2>
-            <DataflowFlowsTable
-              flows={dataflow.edges.map((e) => ({
-                id: e.id,
-                from: nodeLabel.get(e.from) ?? e.from,
-                to: nodeLabel.get(e.to) ?? e.to,
-                data: e.label || "",
-                dataClass: e.dataClass || "",
-                crosses: e.crossesBoundary,
-              }))}
-            />
-          </section>
-        </>
+        <DataflowView
+          dataflow={dataflow}
+          filename={`${project.name}-dataflow`}
+          flows={dataflow.edges.map((e) => ({
+            id: e.id,
+            from: nodeLabel.get(e.from) ?? e.from,
+            to: nodeLabel.get(e.to) ?? e.to,
+            data: e.label || "",
+            dataClass: e.dataClass || "",
+            crosses: e.crossesBoundary,
+          }))}
+        />
       ) : (
         <EmptyState
           icon={Workflow}

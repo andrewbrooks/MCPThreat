@@ -70,9 +70,19 @@ function slugify(s: string): string {
 export function DataflowDiagram({
   dataflow,
   filename = "dataflow",
+  activeId = null,
+  pinnedId = null,
+  onPreview,
+  onTogglePin,
+  onClear,
 }: {
   dataflow: Dataflow;
   filename?: string;
+  activeId?: string | null;
+  pinnedId?: string | null;
+  onPreview?: (id: string | null) => void;
+  onTogglePin?: (id: string) => void;
+  onClear?: () => void;
 }) {
   const { nodes, edges } = dataflow;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -80,6 +90,9 @@ export function DataflowDiagram({
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
   const drag = useRef<{ x0: number; y0: number; tx0: number; ty0: number } | null>(null);
+  const moved = useRef(false);
+  const activeEdge = activeId ? edges.find((e) => e.id === activeId) : undefined;
+  const hasActive = !!activeEdge;
 
   const { placed, width, height } = useMemo(() => {
     const tiers = [...new Set(nodes.map((n) => n.tier))].sort((a, b) => a - b);
@@ -141,11 +154,17 @@ export function DataflowDiagram({
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
+    moved.current = false;
+    // Edges are click targets, so they do not start a pan.
+    if ((e.target as Element).closest("[data-flow]")) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     drag.current = { x0: e.clientX, y0: e.clientY, tx0: tx, ty0: ty };
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag.current) return;
+    if (Math.abs(e.clientX - drag.current.x0) + Math.abs(e.clientY - drag.current.y0) > 4) {
+      moved.current = true;
+    }
     const svg = svgRef.current;
     if (!svg) return;
     // Convert the client-pixel delta into viewBox units so panning tracks the cursor.
@@ -156,6 +175,12 @@ export function DataflowDiagram({
   };
   const endDrag = () => {
     drag.current = null;
+  };
+
+  const onSvgClick = (e: React.MouseEvent) => {
+    const t = e.target as Element;
+    if (moved.current || t.closest("[data-flow]") || t.closest("[data-node]")) return;
+    onClear?.();
   };
 
   const reset = () => {
@@ -178,6 +203,27 @@ export function DataflowDiagram({
     clone.setAttribute("height", String(height));
     clone.removeAttribute("style"); // drop viewport height + grab cursor
 
+    // Strip all highlight and interaction state so the export is a neutral diagram.
+    clone.querySelectorAll("[data-highlight], [data-hit], #dfd-active-marker").forEach((n) => n.remove());
+    clone.querySelectorAll("[data-dim]").forEach((n) => (n as SVGElement).removeAttribute("style"));
+    clone.querySelectorAll("[data-base-width]").forEach((n) => {
+      n.setAttribute("stroke-width", n.getAttribute("data-base-width") ?? "1.5");
+      n.setAttribute("stroke", n.getAttribute("data-base-stroke") ?? edgeStroke);
+      n.setAttribute("marker-end", n.getAttribute("data-base-marker") ?? "");
+    });
+    clone.querySelectorAll("[data-base-weight]").forEach((n) => {
+      (n as SVGElement).style.fontWeight = n.getAttribute("data-base-weight") ?? "500";
+      n.setAttribute("fill", n.getAttribute("data-base-fill") ?? "currentColor");
+    });
+    clone
+      .querySelectorAll("[data-flow], [data-btn], [data-node], [data-base-width], [data-base-weight], [data-dim]")
+      .forEach((n) => {
+        for (const a of ["tabindex", "role", "aria-label", "aria-pressed", "class", "data-flow", "data-btn", "data-node", "data-dim", "aria-hidden"]) {
+          n.removeAttribute(a);
+        }
+      });
+    clone.removeAttribute("role");
+    clone.removeAttribute("aria-label");
     const root = clone.querySelector("#dfd-export-root");
     root?.removeAttribute("transform"); // export the whole diagram, not the pan/zoom view
 
@@ -271,8 +317,9 @@ export function DataflowDiagram({
           width="100%"
           style={{ height: VIEWPORT_H, touchAction: "none", cursor: drag.current ? "grabbing" : "grab" }}
           className="block text-foreground"
-          role="img"
+          role="group"
           aria-label="Application data-flow diagram; drag to pan, scroll or use the buttons to zoom"
+          onClick={onSvgClick}
           onWheel={onWheel}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -285,6 +332,9 @@ export function DataflowDiagram({
             </marker>
             <marker id="dfd-red" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
               <path d="M0,0 L7,3.5 L0,7 z" fill={RED} />
+            </marker>
+            <marker id="dfd-active-marker" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 z" style={{ fill: "hsl(var(--primary))" }} />
             </marker>
           </defs>
 
@@ -300,19 +350,80 @@ export function DataflowDiagram({
               const midY = (a.y + b.y) / 2;
               const crossing = e.crossesBoundary;
               const labelText = truncate([e.label, e.dataClass].filter(Boolean).join(" · "), 30);
+              const isActive = activeId === e.id;
+              const baseWidth = crossing ? 1.8 : 1.5;
+              const baseStroke = crossing ? RED : edgeStroke;
+              const baseMarker = crossing ? "url(#dfd-red)" : "url(#dfd-end)";
+              const fromLabel = from.node.label;
+              const toLabel = to.node.label;
+              const fullLabel = [e.label, e.dataClass].filter(Boolean).join(" · ");
+              const name = `Flow: ${fromLabel} to ${toLabel}${fullLabel ? `: ${fullLabel}` : ""}`;
               return (
-                <g key={e.id}>
+                <g
+                  key={e.id}
+                  data-flow={e.id}
+                  data-dim=""
+                  className="cursor-pointer motion-safe:transition-opacity motion-safe:duration-150"
+                  style={{ opacity: hasActive && !isActive ? 0.3 : 1 }}
+                  onMouseEnter={() => onPreview?.(e.id)}
+                  onMouseLeave={() => onPreview?.(null)}
+                  onClick={() => onTogglePin?.(e.id)}
+                >
+                  {/* The focusable control holds only shapes; the visible label sits beside it
+                      (aria-hidden) so the accessible name matches what is announced. */}
+                  <g
+                    data-btn=""
+                    role="button"
+                    tabIndex={0}
+                    aria-label={name}
+                    aria-pressed={pinnedId === e.id}
+                    onFocus={() => onPreview?.(e.id)}
+                    onBlur={() => onPreview?.(null)}
+                    onKeyDown={(ev) => {
+                      if (ev.key === "Enter" || ev.key === " ") {
+                        ev.preventDefault();
+                        onTogglePin?.(e.id);
+                      }
+                    }}
+                  >
+                  {isActive ? (
+                    <line
+                      data-highlight=""
+                      x1={a.x}
+                      y1={a.y}
+                      x2={b.x}
+                      y2={b.y}
+                      strokeWidth={10}
+                      strokeLinecap="round"
+                      style={{ stroke: "hsl(var(--primary) / 0.22)" }}
+                    />
+                  ) : null}
                   <line
                     x1={a.x}
                     y1={a.y}
                     x2={b.x}
                     y2={b.y}
                     fill="none"
-                    strokeWidth={crossing ? 1.8 : 1.5}
-                    stroke={crossing ? RED : edgeStroke}
+                    data-base-width={baseWidth}
+                    data-base-stroke={baseStroke}
+                    data-base-marker={baseMarker}
+                    strokeWidth={isActive ? 3.5 : baseWidth}
+                    stroke={isActive ? "hsl(var(--primary))" : baseStroke}
                     strokeDasharray={crossing ? "6 4" : undefined}
-                    markerEnd={crossing ? "url(#dfd-red)" : "url(#dfd-end)"}
+                    markerEnd={isActive ? "url(#dfd-active-marker)" : baseMarker}
                   />
+                  {/* Wide invisible hit path so thin lines are easy to hover */}
+                  <line
+                    data-hit=""
+                    x1={a.x}
+                    y1={a.y}
+                    x2={b.x}
+                    y2={b.y}
+                    stroke="transparent"
+                    strokeWidth={18}
+                    style={{ pointerEvents: "stroke" }}
+                  />
+                  </g>
                   {labelText ? (
                     <text
                       x={midX}
@@ -322,8 +433,11 @@ export function DataflowDiagram({
                       stroke={cardBg}
                       strokeWidth={3}
                       paintOrder="stroke"
-                      style={{ fontSize: "11px", fontWeight: 500 }}
-                      fill={crossing ? RED : "hsl(var(--muted-foreground))"}
+                      aria-hidden="true"
+                      data-base-weight="500"
+                      data-base-fill={crossing ? RED : "hsl(var(--muted-foreground))"}
+                      style={{ fontSize: "11px", fontWeight: isActive ? 700 : 500 }}
+                      fill={isActive ? "currentColor" : crossing ? RED : "hsl(var(--muted-foreground))"}
                     >
                       {labelText}
                     </text>
@@ -336,8 +450,28 @@ export function DataflowDiagram({
             {[...placed.values()].map(({ node, x, y }) => {
               const s = styleFor(node.type);
               const isProcess = node.type === "process";
+              const isEnd = !!activeEdge && (activeEdge.from === node.id || activeEdge.to === node.id);
               return (
-                <g key={node.id}>
+                <g
+                  key={node.id}
+                  data-node=""
+                  data-dim=""
+                  className="motion-safe:transition-opacity motion-safe:duration-150"
+                  style={{ opacity: hasActive && !isEnd ? 0.5 : 1 }}
+                >
+                  {isEnd ? (
+                    <rect
+                      data-highlight=""
+                      x={x - 4}
+                      y={y - 4}
+                      width={NODE_W + 8}
+                      height={NODE_H + 8}
+                      rx={isProcess ? (NODE_H + 8) / 2 : 7}
+                      fill="none"
+                      strokeWidth={2}
+                      style={{ stroke: "hsl(var(--primary) / 0.7)" }}
+                    />
+                  ) : null}
                   <rect
                     x={x}
                     y={y}
@@ -399,7 +533,7 @@ export function DataflowDiagram({
           <span className="inline-block w-6 border-t border-dashed" style={{ borderColor: RED }} />
           Crosses trust boundary
         </span>
-        <span className="ml-auto text-muted-foreground/80">Drag to pan · scroll to zoom</span>
+        <span className="ml-auto text-muted-foreground">Drag to pan, scroll to zoom</span>
       </div>
     </div>
   );

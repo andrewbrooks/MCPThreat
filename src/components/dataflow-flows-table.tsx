@@ -23,7 +23,19 @@ const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "crosses", label: "Crosses boundary" },
 ];
 
-export function DataflowFlowsTable({ flows }: { flows: FlowRow[] }) {
+export function DataflowFlowsTable({
+  flows,
+  activeId = null,
+  pinnedId = null,
+  onPreview,
+  onTogglePin,
+}: {
+  flows: FlowRow[];
+  activeId?: string | null;
+  pinnedId?: string | null;
+  onPreview?: (id: string | null) => void;
+  onTogglePin?: (id: string) => void;
+}) {
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
 
   const sorted = useMemo(() => {
@@ -87,21 +99,47 @@ export function DataflowFlowsTable({ flows }: { flows: FlowRow[] }) {
               </td>
             </tr>
           ) : (
-            sorted.map((e) => (
-              <tr key={e.id} className="border-b last:border-0 even:bg-muted/20">
+            sorted.map((e) => {
+              const active = activeId === e.id;
+              const pinned = pinnedId === e.id;
+              return (
+              <tr
+                key={e.id}
+                tabIndex={0}
+                aria-current={pinned ? "true" : undefined}
+                onMouseEnter={() => onPreview?.(e.id)}
+                onMouseLeave={() => onPreview?.(null)}
+                onFocus={() => onPreview?.(e.id)}
+                onBlur={() => onPreview?.(null)}
+                onClick={() => onTogglePin?.(e.id)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    ev.preventDefault();
+                    onTogglePin?.(e.id);
+                  }
+                }}
+                className={cn(
+                  "cursor-pointer border-b outline-none last:border-0 even:bg-muted/20",
+                  "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                  active && "bg-primary/10 even:bg-primary/10 dark:bg-primary/20 dark:even:bg-primary/20",
+                  // Inset shadow marks the row without changing its size, so nothing shifts.
+                  (active || pinned) && "shadow-[inset_3px_0_0_0_hsl(var(--primary))]",
+                )}
+              >
                 <td className="px-3 py-2">{e.from}</td>
                 <td className="px-3 py-2">{e.to}</td>
                 <td className="px-3 py-2">{e.data || "-"}</td>
                 <td className="px-3 py-2">{e.dataClass || "-"}</td>
                 <td className="px-3 py-2">
                   {e.crosses ? (
-                    <span className="font-medium text-red-600 dark:text-red-400">Yes</span>
+                    <span className="font-medium text-red-700 dark:text-red-400">Yes</span>
                   ) : (
                     <span className="text-muted-foreground">No</span>
                   )}
                 </td>
               </tr>
-            ))
+              );
+            })
           )}
         </tbody>
       </table>
