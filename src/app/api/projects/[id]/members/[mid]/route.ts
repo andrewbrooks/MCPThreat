@@ -3,9 +3,10 @@ import { AuthzError, errorResponse, requireProjectAccess } from "@/lib/authz";
 import { currentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-type Params = { params: { id: string; mid: string } };
+type Params = { params: Promise<{ id: string; mid: string }> };
 
-export async function DELETE(_req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     const { isOwner, role } = await requireProjectAccess(userId, params.id, {

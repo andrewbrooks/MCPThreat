@@ -7,11 +7,12 @@ import { currentActor } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requestAcceptanceSchema } from "@/lib/validators";
 
-type Params = { params: { id: string; fid: string } };
+type Params = { params: Promise<{ id: string; fid: string }> };
 
 // Open a risk-acceptance request. Moves the finding to PENDING_ACCEPTANCE until the
 // required sign-offs are collected.
-export async function POST(req: Request, { params }: Params) {
+export async function POST(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     const access = await requireProjectAccess(actor.id, params.id, { write: true });
@@ -75,7 +76,8 @@ export async function POST(req: Request, { params }: Params) {
 }
 
 // Cancel the pending request and restore the finding's prior status.
-export async function DELETE(_req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id, { write: true });

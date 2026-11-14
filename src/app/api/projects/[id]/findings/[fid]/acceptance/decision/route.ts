@@ -8,9 +8,10 @@ import { prisma } from "@/lib/prisma";
 import { PARTY_SIDE_LABELS } from "@/lib/taxonomy";
 import { acceptanceDecisionSchema } from "@/lib/validators";
 
-type Params = { params: { id: string; fid: string } };
+type Params = { params: Promise<{ id: string; fid: string }> };
 
-export async function POST(req: Request, { params }: Params) {
+export async function POST(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     const access = await requireProjectAccess(actor.id, params.id, { write: true });

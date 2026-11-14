@@ -8,7 +8,12 @@ import { loadAssessment } from "@/lib/report-loader";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReportPage({ params }: { params: { id: string } }) {
+export default async function ReportPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await paramsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

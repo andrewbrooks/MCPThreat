@@ -11,7 +11,11 @@ export const maxDuration = 120;
 // Reanalyze only takes an optional token; the repo URL comes from the project.
 const reanalyzeSchema = z.object({ token: z.string().trim().max(255).optional() }).strict();
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(
+  req: Request,
+  { params: paramsPromise }: { params: Promise<{ id: string }> },
+) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     const access = await requireProjectAccess(userId, params.id, { write: true });

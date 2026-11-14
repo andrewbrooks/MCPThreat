@@ -10,12 +10,14 @@ import { PageHeader } from "@/components/shared/page-header";
 export const dynamic = "force-dynamic";
 
 export default async function FindingsPage({
-  params,
-  searchParams,
+  params: paramsPromise,
+  searchParams: searchParamsPromise,
 }: {
-  params: { id: string };
-  searchParams: { finding?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ finding?: string }>;
 }) {
+  const params = await paramsPromise;
+  const searchParams = await searchParamsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

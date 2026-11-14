@@ -5,9 +5,10 @@ import { currentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateVectorSchema } from "@/lib/validators";
 
-type Params = { params: { id: string; vid: string } };
+type Params = { params: Promise<{ id: string; vid: string }> };
 
-export async function PATCH(req: Request, { params }: Params) {
+export async function PATCH(req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     await requireProjectAccess(userId, params.id, { write: true });
@@ -23,7 +24,8 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const userId = await currentUserId();
     await requireProjectAccess(userId, params.id, { write: true });

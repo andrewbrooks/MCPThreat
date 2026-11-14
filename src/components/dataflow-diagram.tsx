@@ -88,6 +88,7 @@ export function DataflowDiagram({
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
+  const [panning, setPanning] = useState(false);
   const drag = useRef<{ x0: number; y0: number; tx0: number; ty0: number } | null>(null);
   const moved = useRef(false);
   const activeEdge = activeId ? edges.find((e) => e.id === activeId) : undefined;
@@ -155,6 +156,7 @@ export function DataflowDiagram({
     if ((e.target as Element).closest("[data-flow]")) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     drag.current = { x0: e.clientX, y0: e.clientY, tx0: tx, ty0: ty };
+    setPanning(true);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag.current) return;
@@ -171,6 +173,7 @@ export function DataflowDiagram({
   };
   const endDrag = () => {
     drag.current = null;
+    setPanning(false);
   };
 
   const onSvgClick = (e: React.MouseEvent) => {
@@ -329,7 +332,7 @@ export function DataflowDiagram({
           style={{
             height: VIEWPORT_H,
             touchAction: "none",
-            cursor: drag.current ? "grabbing" : "grab",
+            cursor: panning ? "grabbing" : "grab",
           }}
           className="block text-foreground"
           role="group"

@@ -13,7 +13,12 @@ import { getProjectDetail } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-export default async function ArchitecturePage({ params }: { params: { id: string } }) {
+export default async function ArchitecturePage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await paramsPromise;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

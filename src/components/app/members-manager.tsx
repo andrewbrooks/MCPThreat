@@ -68,6 +68,8 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
   }, []);
 
   useEffect(() => {
+    // Fetch members when the selected project changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load(projectId);
   }, [projectId, load]);
 

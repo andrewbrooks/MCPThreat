@@ -10,7 +10,7 @@ const FOCUSABLE =
  * focus inside on open, keeps Tab within the surface, labels it from its first
  * heading, and returns focus to the control that opened it on close.
  */
-export function useModal(open: boolean, ref: React.RefObject<HTMLElement>) {
+export function useModal(open: boolean, ref: React.RefObject<HTMLElement | null>) {
   React.useEffect(() => {
     if (!open) return;
     const node = ref.current;

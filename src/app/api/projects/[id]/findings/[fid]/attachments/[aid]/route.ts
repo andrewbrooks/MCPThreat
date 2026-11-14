@@ -6,7 +6,7 @@ import { AuthzError, errorResponse, requireProjectAccess } from "@/lib/authz";
 import { currentActor } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-type Params = { params: { id: string; fid: string; aid: string } };
+type Params = { params: Promise<{ id: string; fid: string; aid: string }> };
 
 async function loadOwned(aid: string, findingId: string, projectId: string) {
   const attachment = await prisma.attachment.findUnique({ where: { id: aid } });
@@ -17,7 +17,8 @@ async function loadOwned(aid: string, findingId: string, projectId: string) {
 }
 
 // Download the attachment.
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id);
@@ -38,7 +39,8 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params: paramsPromise }: Params) {
+  const params = await paramsPromise;
   try {
     const actor = await currentActor();
     await requireProjectAccess(actor.id, params.id, { write: true });
