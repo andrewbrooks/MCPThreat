@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { requireProjectAccess } from "@/lib/authz";
 import { completionPct, openFindingCount, openSeverityBreakdown } from "@/lib/metrics";

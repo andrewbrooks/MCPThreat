@@ -5,5 +5,5 @@ import { defineConfig, globalIgnores } from "eslint/config";
 export default defineConfig([
   ...coreWebVitals,
   ...typescript,
-  globalIgnores(["demo/**", ".next/**", "node_modules/**", "next-env.d.ts"]),
+  globalIgnores(["demo/**", "src/generated/**", ".next/**", "node_modules/**", "next-env.d.ts"]),
 ]);

@@ -53,8 +53,13 @@ if (process.env.GITHUB_ID && process.env.GITHUB_SECRET) {
   );
 }
 
+// The adapter types its argument against "@prisma/client", but the client is generated
+// into src/generated. It only calls the model delegates (user, account, ...), which the
+// generated client provides; tests/integration/auth-adapter.test.ts exercises that.
+type AdapterClient = Parameters<typeof PrismaAdapter>[0];
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma as unknown as AdapterClient),
   // Credentials provider requires JWT session strategy in NextAuth v4.
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
