@@ -64,6 +64,7 @@ It can also **point at a GitHub repository and bootstrap the whole model for you
 ```bash
 npm install
 cp .env.example .env          # then set NEXTAUTH_SECRET (openssl rand -base64 32)
+npx prisma generate           # build the Prisma client
 npx prisma migrate dev        # create the SQLite dev database
 npm run seed                  # seed the demo project + logins
 npm run dev                   # http://localhost:3000
@@ -91,7 +92,7 @@ Set `GITHUB_ID` and `GITHUB_SECRET` to show a "Continue with GitHub" button; oth
 
 ### Production database
 
-Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and point `DATABASE_URL` at Postgres. Enum-like fields are stored as `String` columns validated at the app layer, so no schema rewrite is needed.
+Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql`, point `DATABASE_URL` at Postgres, and swap the SQLite driver adapter in `src/lib/prisma.ts` for `@prisma/adapter-pg`. Enum-like fields are stored as `String` columns validated at the app layer, so no schema rewrite is needed.
 
 ### Bundled demo MCP server
 
