@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { PartySide, ProjectRole } from "@/lib/taxonomy";
+import { log } from "@/lib/log";
 
 // Central authorization. Every project-scoped API route and server component must
 // resolve access through requireProjectAccess so a user can only ever read or mutate
@@ -75,6 +76,6 @@ export function errorResponse(err: unknown): NextResponse {
   if (err instanceof AuthzError) {
     return NextResponse.json({ error: err.message }, { status: err.status });
   }
-  console.error("Unhandled route error:", err);
+  log.error("Unhandled route error", { err });
   return NextResponse.json({ error: "Internal server error." }, { status: 500 });
 }

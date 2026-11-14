@@ -18,6 +18,7 @@ import { mapFindingRows } from "@/lib/finding-view";
 import { loadProjectWorkflow } from "@/lib/readiness-loader";
 import type { ReadinessCheck } from "@/lib/workflow-types";
 import { completionPct, openFindingCount } from "@/lib/metrics";
+import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,8 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   let nextActions: ReadinessCheck[] = [];
   try {
     nextActions = (await loadProjectWorkflow(project.id))?.readiness.nextActions ?? [];
-  } catch {
+  } catch (err) {
+    log.warn("Could not load next steps for the overview", { projectId: project.id, err });
     nextActions = [];
   }
 

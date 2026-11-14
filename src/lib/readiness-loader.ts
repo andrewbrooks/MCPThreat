@@ -5,6 +5,7 @@ import { assessmentModelHash } from "@/lib/snapshot";
 import { prisma } from "@/lib/prisma";
 import { listSnapshotSummaries } from "@/lib/snapshot-loader";
 import type { Readiness, SnapshotSummary } from "@/lib/workflow-types";
+import { log } from "@/lib/log";
 
 export interface ProjectWorkflow {
   assessment: Assessment;
@@ -34,8 +35,10 @@ export async function loadProjectWorkflow(
   if (latestStored) {
     try {
       latestSnapshotModelHash = assessmentModelHash(JSON.parse(latestStored.assessment));
-    } catch {
-      latestSnapshotModelHash = null; // unreadable: fall back to the full content hash
+    } catch (err) {
+      // Unreadable stored snapshot: fall back to the full content hash, and say so.
+      log.warn("Could not read the latest snapshot for change detection", { projectId, err });
+      latestSnapshotModelHash = null;
     }
   }
   const readiness = evaluateReadiness({

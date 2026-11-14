@@ -14,6 +14,7 @@ import { listProjectSummaries, type ProjectSummary } from "@/lib/data";
 import { listWorklist } from "@/lib/worklist-loader";
 import type { WorklistItem } from "@/lib/workflow-types";
 import { PageHeader } from "@/components/shared/page-header";
+import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
@@ -80,7 +81,8 @@ export default async function DashboardPage() {
   let worklist: WorklistItem[] = [];
   try {
     worklist = await listWorklist(session.user.id, session.user.email ?? null);
-  } catch {
+  } catch (err) {
+    log.warn("Could not load the dashboard worklist", { userId: session.user.id, err });
     worklist = [];
   }
 

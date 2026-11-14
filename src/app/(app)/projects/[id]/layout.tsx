@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { AuthzError, requireProjectAccess } from "@/lib/authz";
 import { loadProjectWorkflow } from "@/lib/readiness-loader";
 import type { Readiness } from "@/lib/workflow-types";
+import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,12 @@ export default async function ProjectLayout({
   let readiness: Readiness | null = null;
   try {
     readiness = (await loadProjectWorkflow(params.id))?.readiness ?? null;
-  } catch {
+  } catch (err) {
+    // The stage bar is a convenience; render the page without it, but record why.
+    log.warn("Could not load the project workflow; rendering without the stage bar", {
+      projectId: params.id,
+      err,
+    });
     readiness = null;
   }
 

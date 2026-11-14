@@ -5,6 +5,7 @@ import {
   type Severity,
   type FindingStatus,
 } from "@/lib/taxonomy";
+import { log } from "@/lib/log";
 
 // Email delivery. Uses SMTP when SMTP_HOST is configured; otherwise falls back to a
 // console "log" transport so the feature works in development without failing.
@@ -46,9 +47,11 @@ export async function sendEmail(
 ): Promise<{ delivered: boolean; transport: EmailTransport }> {
   const transporter = getTransporter();
   if (!transporter) {
-    console.info(
-      `[email:log] (no SMTP configured)\n  to: ${msg.to}\n  subject: ${msg.subject}\n  ${msg.text.replace(/\n/g, "\n  ")}`,
-    );
+    log.info("Email not sent: SMTP is not configured. Set LOG_LEVEL=debug to log the message body.", {
+      to: msg.to,
+      subject: msg.subject,
+    });
+    log.debug("Email body", { body: msg.text });
     return { delivered: false, transport: "log" };
   }
   await transporter.sendMail({ from: FROM, ...msg });
