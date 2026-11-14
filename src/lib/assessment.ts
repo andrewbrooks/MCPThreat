@@ -352,6 +352,11 @@ function byCreated<T extends { createdAt: DateLike; id: string }>(items: T[]): T
   return [...items].sort((a, b) => ts(a.createdAt) - ts(b.createdAt) || a.id.localeCompare(b.id));
 }
 
+/** "1 finding", "2 findings". Pass the plural for irregular nouns, such as boundary / boundaries. */
+export function count(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
 const pad = (n: number, width: number) => String(n).padStart(width, "0");
 export const boundaryDisplayId = (n: number) => `B-${pad(n, 2)}`;
 export const vectorDisplayId = (n: number) => `T-${pad(n, 2)}`;
@@ -439,6 +444,13 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
       .map((f) => f.threatVectorId),
   );
 
+  const findingIdsByVector = new Map<string, string[]>();
+  for (const f of findingsSorted) {
+    const list = findingIdsByVector.get(f.threatVectorId) ?? [];
+    list.push(findingIdByUid.get(f.id)!);
+    findingIdsByVector.set(f.threatVectorId, list);
+  }
+
   const vectors: AssessmentVector[] = vectorsSorted.map(({ v, boundaryUid }) => {
     const score = riskScore(v.likelihood, v.impact);
     const resolved = resolvedVectorUids.has(v.id);
@@ -462,11 +474,16 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
       source: asSource(v.source),
       confidence: v.source === "AI" ? v.confidence : null,
       frameworks: refs(v.mcpCategory),
-      findingIds: findingsSorted
-        .filter((f) => f.threatVectorId === v.id)
-        .map((f) => findingIdByUid.get(f.id)!),
+      findingIds: findingIdsByVector.get(v.id) ?? [],
     };
   });
+
+  const vectorIdsByBoundary = new Map<string, string[]>();
+  for (const v of vectors) {
+    const list = vectorIdsByBoundary.get(v.boundaryId) ?? [];
+    list.push(v.id);
+    vectorIdsByBoundary.set(v.boundaryId, list);
+  }
 
   const boundaries: AssessmentBoundary[] = boundariesSorted.map((b) => ({
     id: boundaryIdByUid.get(b.id)!,
@@ -476,7 +493,7 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
     typeLabel: label(TRUST_BOUNDARY_LABELS, b.type),
     description: b.description,
     source: asSource(b.source),
-    vectorIds: vectors.filter((v) => v.boundaryId === boundaryIdByUid.get(b.id)).map((v) => v.id),
+    vectorIds: vectorIdsByBoundary.get(boundaryIdByUid.get(b.id)!) ?? [],
   }));
 
   const findings: AssessmentFinding[] = findingsSorted.map((f) => {

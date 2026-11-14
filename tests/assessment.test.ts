@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAssessment, type AssessmentInput } from "@/lib/assessment";
+import { buildAssessment, count, type AssessmentInput } from "@/lib/assessment";
 import { csvField, generateCsv } from "@/lib/report-csv";
 import { escapeHtml, generateHtml, markdownToHtml } from "@/lib/report-html";
 import { demoteHeadings, generateReport } from "@/lib/report-markdown";
@@ -194,6 +194,23 @@ describe("html report", () => {
 
   it("shows severity as text", () => {
     expect(html).toMatch(/class="tag sev-critical">Critical</);
+  });
+});
+
+describe("markdownToHtml tables", () => {
+  it("accepts single-dash separator rows", () => {
+    const html = markdownToHtml("| a | b |\n| - | - |\n| 1 | 2 |");
+    expect(html).toContain("<table>");
+    expect(html).toContain("<th scope=\"col\">a</th>");
+  });
+});
+
+describe("pluralisation", () => {
+  it("uses singular and plural forms", () => {
+    expect(count(1, "finding")).toBe("1 finding");
+    expect(count(0, "finding")).toBe("0 findings");
+    expect(count(1, "boundary", "boundaries")).toBe("1 boundary");
+    expect(count(2, "boundary", "boundaries")).toBe("2 boundaries");
   });
 });
 

@@ -1,9 +1,12 @@
 import {
+  count,
   findingsBySeverity,
   type Assessment,
   type AssessmentAcceptance,
   type AssessmentFinding,
 } from "@/lib/assessment";
+import { day as date, fmtBytes, utc } from "@/lib/report-format";
+import { RISK_BAND_LABELS } from "@/lib/risk";
 import { PARTY_SIDE_LABELS, type PartySide } from "@/lib/taxonomy";
 
 // Self-contained HTML rendering of an Assessment: one file, no scripts, no external
@@ -21,19 +24,8 @@ export function escapeHtml(s: string | null | undefined): string {
 }
 const h = escapeHtml;
 
-function utc(isoString: string | null): string {
-  return isoString ? isoString.replace("T", " ").slice(0, 16) + " UTC" : "Not recorded";
-}
-function date(isoString: string | null): string {
-  return isoString ? isoString.slice(0, 10) : "—";
-}
 function txt(s: string | null | undefined): string {
   return s && s.trim() ? h(s.trim()) : "—";
-}
-function fmtBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -74,7 +66,7 @@ export function markdownToHtml(md: string, headingBase = 2): string {
       i++;
       continue;
     }
-    if (line.trim().startsWith("|") && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1] ?? "")) {
+    if (line.trim().startsWith("|") && /^\s*\|?\s*:?-+:?\s*(\||$)/.test(lines[i + 1] ?? "")) {
       const head = splitRow(line);
       i += 2;
       const rows: string[][] = [];
@@ -282,11 +274,11 @@ export function generateHtml(a: Assessment): string {
   record.push(["Risk-acceptance policy", h(r.acceptancePolicy.label)]);
   record.push([
     "AI-suggested items",
-    `${r.aiSuggested.boundaries} boundaries, ${r.aiSuggested.vectors} threat vectors, ${r.aiSuggested.findings} findings`,
+    `${count(r.aiSuggested.boundaries, "boundary", "boundaries")}, ${count(r.aiSuggested.vectors, "threat vector")}, ${count(r.aiSuggested.findings, "finding")}`,
   ]);
   record.push([
     "Audit trail",
-    `${r.audit.eventCount} events` +
+    `${count(r.audit.eventCount, "event")}` +
       (r.audit.firstEventAt ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}` : ""),
   ]);
 
@@ -324,7 +316,7 @@ ${a.scope.statements.map((t) => `<p>${h(t)}</p>`).join("")}
     .join("")}</ul></div>
 
 ${sec("summary")}
-<p>${h(r.projectName)} has ${s.boundaryCount} trust boundaries, ${s.vectorCount} threat vectors, and ${s.findingCount} findings, of which ${s.openCount} are open. Mitigation completion is ${s.completionPct}%. Definitions of &ldquo;open&rdquo; and &ldquo;completion&rdquo; are in section ${num("definitions")}.</p>
+<p>${h(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. Mitigation completion is ${s.completionPct}%. Definitions of &ldquo;open&rdquo; and &ldquo;completion&rdquo; are in section ${num("definitions")}.</p>
 <table><thead><tr><th scope="col">Severity</th><th scope="col">Total</th><th scope="col">Open</th></tr></thead><tbody>${s.bySeverity
     .map((x) => `<tr><td>${h(x.label)}</td><td>${x.total}</td><td>${x.open}</td></tr>`)
     .join("")}</tbody></table>
@@ -368,7 +360,7 @@ ${
     : `<table><thead><tr><th scope="col">ID</th><th scope="col">Threat vector</th><th scope="col">Boundary</th><th scope="col">STRIDE</th><th scope="col">MCP category</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Risk</th><th scope="col">Residual</th><th scope="col">Findings</th><th scope="col">Source</th></tr></thead><tbody>${a.vectors
         .map(
           (v) =>
-            `<tr id="${h(v.id)}"><td>${h(v.id)}</td><td>${h(v.title)}</td><td>${h(v.boundaryId)}</td><td>${h(v.strideLabel)}</td><td>${h(v.mcpCategoryLabel)}</td><td>${h(v.likelihoodLabel)}</td><td>${h(v.impactLabel)}</td><td>${h(v.riskBand.charAt(0) + v.riskBand.slice(1).toLowerCase())}</td><td>${h(v.residualBand.charAt(0) + v.residualBand.slice(1).toLowerCase())}</td><td>${v.findingIds.map((id) => `<a href="#${h(id)}">${h(id)}</a>`).join(", ") || "—"}</td><td>${v.source === "AI" ? `AI${v.confidence ? ` (${h(v.confidence.toLowerCase())})` : ""}` : "Manual"}</td></tr>`,
+            `<tr id="${h(v.id)}"><td>${h(v.id)}</td><td>${h(v.title)}</td><td>${h(v.boundaryId)}</td><td>${h(v.strideLabel)}</td><td>${h(v.mcpCategoryLabel)}</td><td>${h(v.likelihoodLabel)}</td><td>${h(v.impactLabel)}</td><td>${h(RISK_BAND_LABELS[v.riskBand])}</td><td>${h(RISK_BAND_LABELS[v.residualBand])}</td><td>${v.findingIds.map((id) => `<a href="#${h(id)}">${h(id)}</a>`).join(", ") || "—"}</td><td>${v.source === "AI" ? `AI${v.confidence ? ` (${h(v.confidence.toLowerCase())})` : ""}` : "Manual"}</td></tr>`,
         )
         .join("")}</tbody></table>`
 }

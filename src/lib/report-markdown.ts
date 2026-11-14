@@ -1,15 +1,16 @@
 import {
+  count,
   findingsBySeverity,
   type Assessment,
   type AssessmentAcceptance,
   type AssessmentFinding,
 } from "@/lib/assessment";
+import { day as date, fmtBytes, NOT_RECORDED as DASH, utc } from "@/lib/report-format";
+import { RISK_BAND_LABELS } from "@/lib/risk";
 import { PARTY_SIDE_LABELS, type PartySide } from "@/lib/taxonomy";
 
 // Markdown rendering of an Assessment. The same data feeds the HTML, CSV and JSON
 // exports (see report-html.ts, report-csv.ts), so wording lives in assessment.ts.
-
-const DASH = "Not recorded";
 
 /** Escape characters that would otherwise be read as markup or break a table row. */
 function esc(s: string): string {
@@ -24,17 +25,6 @@ function block(s: string): string {
   return esc(s.trim());
 }
 
-function utc(isoString: string | null): string {
-  return isoString ? isoString.replace("T", " ").slice(0, 16) + " UTC" : DASH;
-}
-function date(isoString: string | null): string {
-  return isoString ? isoString.slice(0, 10) : "—";
-}
-function fmtBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
-}
 
 /**
  * Nest an embedded markdown document under a parent heading by pushing every
@@ -69,7 +59,7 @@ function acceptanceLines(a: AssessmentAcceptance): string[] {
   return out;
 }
 
-function findingDetail(f: AssessmentFinding, a: Assessment): string[] {
+function findingDetail(f: AssessmentFinding): string[] {
   const lines: string[] = [];
   lines.push(`### ${f.id}: ${esc(f.title)}`);
   lines.push("");
@@ -115,7 +105,6 @@ function findingDetail(f: AssessmentFinding, a: Assessment): string[] {
     lines.push(...acceptanceLines(f.acceptance));
     lines.push("");
   }
-  void a;
   return lines;
 }
 
@@ -174,10 +163,10 @@ export function generateReport(a: Assessment): string {
   L.push(`| Tool and version | ${a.tool.name} ${a.tool.version} |`);
   L.push(`| Risk-acceptance policy | ${r.acceptancePolicy.label} |`);
   L.push(
-    `| AI-suggested items | ${r.aiSuggested.boundaries} boundaries, ${r.aiSuggested.vectors} threat vectors, ${r.aiSuggested.findings} findings |`,
+    `| AI-suggested items | ${count(r.aiSuggested.boundaries, "boundary", "boundaries")}, ${count(r.aiSuggested.vectors, "threat vector")}, ${count(r.aiSuggested.findings, "finding")} |`,
   );
   L.push(
-    `| Audit trail | ${r.audit.eventCount} events` +
+    `| Audit trail | ${count(r.audit.eventCount, "event")}` +
       (r.audit.firstEventAt ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}` : "") +
       " |",
   );
@@ -206,7 +195,7 @@ export function generateReport(a: Assessment): string {
   L.push("## 3. Summary");
   L.push("");
   L.push(
-    `${esc(r.projectName)} has ${s.boundaryCount} trust boundaries, ${s.vectorCount} threat vectors, and ${s.findingCount} findings, of which ${s.openCount} are open. ` +
+    `${esc(r.projectName)} has ${count(s.boundaryCount, "trust boundary", "trust boundaries")}, ${count(s.vectorCount, "threat vector")}, and ${count(s.findingCount, "finding")}, of which ${s.openCount} ${s.openCount === 1 ? "is" : "are"} open. ` +
       `Mitigation completion is ${s.completionPct}%. Definitions of "open" and "completion" are in section 11.`,
   );
   L.push("");
@@ -276,8 +265,8 @@ export function generateReport(a: Assessment): string {
     for (const v of a.vectors) {
       L.push(
         `| ${v.id} | ${cell(v.title)} | ${v.boundaryId} | ${v.strideLabel} | ${v.mcpCategoryLabel} | ` +
-          `${v.likelihoodLabel} | ${v.impactLabel} | ${v.riskBand.charAt(0) + v.riskBand.slice(1).toLowerCase()} | ` +
-          `${v.residualBand.charAt(0) + v.residualBand.slice(1).toLowerCase()} | ${v.findingIds.join(", ") || "—"} | ` +
+          `${v.likelihoodLabel} | ${v.impactLabel} | ${RISK_BAND_LABELS[v.riskBand]} | ` +
+          `${RISK_BAND_LABELS[v.residualBand]} | ${v.findingIds.join(", ") || "—"} | ` +
           `${v.source === "AI" ? `AI${v.confidence ? ` (${v.confidence.toLowerCase()})` : ""}` : "Manual"} |`,
       );
     }
@@ -305,7 +294,7 @@ export function generateReport(a: Assessment): string {
     L.push("## 8. Finding details");
     L.push("");
     for (const f of ordered) {
-      L.push(...findingDetail(f, a));
+      L.push(...findingDetail(f));
     }
   }
   if (ordered.length === 0) {

@@ -7,33 +7,31 @@ import { prisma } from "@/lib/prisma";
  * Attachments are listed by metadata only; file contents are never loaded here.
  */
 export async function loadAssessment(projectId: string): Promise<Assessment | null> {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: {
-      owner: { select: { name: true, email: true } },
-      members: { select: { email: true, role: true, side: true } },
-      findings: {
-        include: {
-          attachments: { select: { filename: true, mimeType: true, size: true } },
-          acceptanceRequests: true,
+  const [project, audit] = await Promise.all([
+    prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        owner: { select: { name: true, email: true } },
+        members: { select: { email: true, role: true, side: true } },
+        findings: {
+          include: {
+            attachments: { select: { filename: true, mimeType: true, size: true } },
+            acceptanceRequests: true,
+          },
         },
-      },
-      threatModel: {
-        include: {
-          boundaries: {
-            orderBy: { createdAt: "asc" },
-            include: { vectors: { orderBy: { createdAt: "asc" } } },
+        threatModel: {
+          include: {
+            boundaries: {
+              orderBy: { createdAt: "asc" },
+              include: { vectors: { orderBy: { createdAt: "asc" } } },
+            },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.auditEvent.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
+  ]);
   if (!project) return null;
-
-  const audit = await prisma.auditEvent.findMany({
-    where: { projectId },
-    orderBy: { createdAt: "asc" },
-  });
 
   return buildAssessment({
     project,

@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { ReportView } from "@/components/app/report-view";
 import { auth } from "@/lib/auth";
 import { AuthzError, requireProjectAccess } from "@/lib/authz";
-import { generateReport } from "@/lib/report-markdown";
 import { loadAssessment } from "@/lib/report-loader";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +20,6 @@ export default async function ReportPage({ params }: { params: { id: string } })
 
   const assessment = await loadAssessment(params.id);
   if (!assessment) notFound();
-  const markdown = generateReport(assessment);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -38,7 +36,7 @@ export default async function ReportPage({ params }: { params: { id: string } })
           JSON, or a findings CSV, or print it to PDF.
         </p>
       </div>
-      <ReportView data={assessment} markdown={markdown} />
+      <ReportView data={assessment} />
     </div>
   );
 }

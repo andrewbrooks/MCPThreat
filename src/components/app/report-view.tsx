@@ -23,7 +23,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import type { Assessment } from "@/lib/assessment";
+import { count, type Assessment } from "@/lib/assessment";
+import { day, utc } from "@/lib/report-format";
 import { RISK_BAND_CLASSES, RISK_BAND_LABELS, type RiskBand } from "@/lib/risk";
 import {
   FINDING_STATUSES,
@@ -48,12 +49,6 @@ const TABS: { key: Tab; label: string }[] = [
 
 const H2 = "mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground";
 
-function utc(iso: string | null): string {
-  return iso ? `${iso.replace("T", " ").slice(0, 16)} UTC` : "Not recorded";
-}
-function day(iso: string | null): string {
-  return iso ? iso.slice(0, 10) : "—";
-}
 function Dl({ rows }: { rows: [string, React.ReactNode][] }) {
   return (
     <dl className="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[11rem_1fr]">
@@ -107,7 +102,7 @@ function SortHeader({
   );
 }
 
-export function ReportView({ data, markdown }: { data: Assessment; markdown: string }) {
+export function ReportView({ data }: { data: Assessment }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<Tab>("overview");
@@ -118,7 +113,9 @@ export function ReportView({ data, markdown }: { data: Assessment; markdown: str
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(markdown);
+      const res = await fetch(`${base}?format=md`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await navigator.clipboard.writeText(await res.text());
       setCopied(true);
       toast("Markdown copied to clipboard.", "success");
       setTimeout(() => setCopied(false), 2000);
@@ -321,11 +318,11 @@ export function ReportView({ data, markdown }: { data: Assessment; markdown: str
                   ["Risk-acceptance policy", r.acceptancePolicy.label],
                   [
                     "AI-suggested items",
-                    `${r.aiSuggested.boundaries} boundaries, ${r.aiSuggested.vectors} threat vectors, ${r.aiSuggested.findings} findings`,
+                    `${count(r.aiSuggested.boundaries, "boundary", "boundaries")}, ${count(r.aiSuggested.vectors, "threat vector")}, ${count(r.aiSuggested.findings, "finding")}`,
                   ],
                   [
                     "Audit trail",
-                    `${r.audit.eventCount} events` +
+                    count(r.audit.eventCount, "event") +
                       (r.audit.firstEventAt
                         ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}`
                         : ""),
