@@ -25,7 +25,6 @@ const id = project.id;
 
 const shots = [
   { name: "dashboard", path: "/", full: false },
-  { name: "overview", path: `/projects/${id}`, full: true },
   { name: "threat-model", path: `/projects/${id}/model`, full: true },
   { name: "architecture", path: `/projects/${id}/architecture`, full: true },
   { name: "dataflow", path: `/projects/${id}/dataflow`, full: true },
