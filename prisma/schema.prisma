@@ -100,6 +100,7 @@ model Project {
   threatModel ThreatModel?
   findings    Finding[]
   members     ProjectMember[]
+  snapshots   AssessmentSnapshot[]
 
   @@index([ownerId])
 }
@@ -274,4 +275,44 @@ model ProjectMember {
 
   @@unique([projectId, email])
   @@index([projectId])
+}
+
+// A frozen, versioned record of the assessment at a point in time. The assessment JSON
+// is written once and never updated, so what was reviewed is exactly what is exported
+// later. `requirement` is fixed at issue time from the project's acceptancePolicy, so a
+// later policy change cannot alter an existing snapshot. Status is computed from the
+// sign-offs (see src/lib/signoff.ts), never stored.
+model AssessmentSnapshot {
+  id             String   @id @default(cuid())
+  projectId      String
+  version        Int
+  note           String   @default("")
+  requirement    String   @default("NONE") // NONE | SINGLE | DUAL
+  contentHash    String // sha256 (hex) of the canonical assessment JSON
+  assessment     String // frozen Assessment JSON, without the snapshot block
+  createdById    String?
+  createdByLabel String   @default("")
+  createdAt      DateTime @default(now())
+
+  project  Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  signoffs SnapshotSignoff[]
+
+  @@unique([projectId, version])
+  @@index([projectId])
+}
+
+// Append-only review decisions on a snapshot. One per party side per user.
+model SnapshotSignoff {
+  id         String   @id @default(cuid())
+  snapshotId String
+  side       String // PartySide: ASSESSOR | CLIENT
+  decision   String // APPROVED | RETURNED
+  comment    String   @default("")
+  userId     String?
+  userLabel  String   @default("")
+  createdAt  DateTime @default(now())
+
+  snapshot AssessmentSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([snapshotId])
 }
