@@ -137,7 +137,8 @@ export function AcceptancePanel({
           ) : null}
           {acceptance?.clientApprovedAt ? (
             <div>
-              Client sign-off: {acceptance.clientApproverLabel} · {fmtDate(acceptance.clientApprovedAt)}
+              Client sign-off: {acceptance.clientApproverLabel} ·{" "}
+              {fmtDate(acceptance.clientApprovedAt)}
             </div>
           ) : null}
           {acceptance?.expiresAt ? (
@@ -157,8 +158,7 @@ export function AcceptancePanel({
       (viewerSide === "ASSESSOR" && acceptance.assessorApprovedAt) ||
       (viewerSide === "CLIENT" && acceptance.clientApprovedAt);
     const isRequester = viewerId != null && viewerId === acceptance.requestedById;
-    const canApprove =
-      !mySlotSigned && (acceptance.requireBothSides || !isRequester);
+    const canApprove = !mySlotSigned && (acceptance.requireBothSides || !isRequester);
 
     return (
       <div className="space-y-3 rounded-md border border-violet-200 bg-violet-50 p-3 dark:border-violet-500/30 dark:bg-violet-500/10">
@@ -245,8 +245,11 @@ export function AcceptancePanel({
       {requesting ? (
         <div className="space-y-2">
           <div className="space-y-1">
-            <Label htmlFor="acc-justification" className="text-xs">Justification</Label>
-            <Textarea id="acc-justification"
+            <Label htmlFor="acc-justification" className="text-xs">
+              Justification
+            </Label>
+            <Textarea
+              id="acc-justification"
               className="min-h-[60px]"
               placeholder="Why is this risk being accepted?"
               value={justification}
@@ -254,16 +257,26 @@ export function AcceptancePanel({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="acc-residual-risk-optional" className="text-xs">Residual risk (optional)</Label>
-            <Textarea id="acc-residual-risk-optional"
+            <Label htmlFor="acc-residual-risk-optional" className="text-xs">
+              Residual risk (optional)
+            </Label>
+            <Textarea
+              id="acc-residual-risk-optional"
               className="min-h-[44px]"
               value={residualRisk}
               onChange={(e) => setResidualRisk(e.target.value)}
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="acc-acceptance-expires-reopens-for-review" className="text-xs">Acceptance expires (reopens for review)</Label>
-            <Select id="acc-acceptance-expires-reopens-for-review" value={interval} onChange={(e) => setInterval(e.target.value)} className="w-48">
+            <Label htmlFor="acc-acceptance-expires-reopens-for-review" className="text-xs">
+              Acceptance expires (reopens for review)
+            </Label>
+            <Select
+              id="acc-acceptance-expires-reopens-for-review"
+              value={interval}
+              onChange={(e) => setInterval(e.target.value)}
+              className="w-48"
+            >
               <option value="">No expiry</option>
               <option value="30">In 30 days</option>
               <option value="60">In 60 days</option>

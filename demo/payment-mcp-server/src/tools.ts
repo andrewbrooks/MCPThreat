@@ -22,12 +22,20 @@ export function registerTools(server: McpServer, cfg: Config, merchantId: string
     {
       amount: z.number().int().positive().describe("Amount in minor units (e.g. cents)."),
       currency: z.string().length(3).describe("ISO 4217 currency code, e.g. USD."),
-      cardToken: z.string().min(1).describe("Single-use card token from the client; never a raw PAN."),
+      cardToken: z
+        .string()
+        .min(1)
+        .describe("Single-use card token from the client; never a raw PAN."),
     },
     async ({ amount, currency, cardToken }) => {
       const result = await processor.charge(amount, currency, cardToken);
       if (result.status === "succeeded") {
-        await ledger.record({ transactionId: result.transactionId, merchantId, amount, kind: "charge" });
+        await ledger.record({
+          transactionId: result.transactionId,
+          merchantId,
+          amount,
+          kind: "charge",
+        });
       }
       return { content: [{ type: "text", text: JSON.stringify(result) }] };
     },

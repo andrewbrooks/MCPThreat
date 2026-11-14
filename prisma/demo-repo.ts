@@ -11,7 +11,8 @@ const DEMO_DIR = join(process.cwd(), "demo", "payment-mcp-server");
 
 // Short purpose blurbs for the SBOM, keyed by package name.
 const PURPOSE: Record<string, string> = {
-  "@modelcontextprotocol/sdk": "MCP server SDK for tool registration and the Streamable HTTP transport",
+  "@modelcontextprotocol/sdk":
+    "MCP server SDK for tool registration and the Streamable HTTP transport",
   express: "HTTP server hosting the /mcp endpoint",
   pino: "Structured logging",
   zod: "Strict tool input-schema validation",
@@ -33,10 +34,7 @@ function readDemoPkg(): DemoPkg {
 }
 
 function sbomTable(pkg: DemoPkg): string {
-  const rows: string[] = [
-    "| Component | Version | Scope | Purpose |",
-    "| --- | --- | --- | --- |",
-  ];
+  const rows: string[] = ["| Component | Version | Scope | Purpose |", "| --- | --- | --- | --- |"];
   const add = (deps: Record<string, string> | undefined, scope: string) => {
     for (const [name, version] of Object.entries(deps ?? {})) {
       rows.push(`| \`${name}\` | ${version} | ${scope} | ${PURPOSE[name] ?? "-"} |`);
@@ -126,28 +124,108 @@ The deployment crosses five trust boundaries, each modeled in this project's Thr
 
   const df: Dataflow = {
     nodes: [
-      { id: "agent", label: "LLM Agent (MCP client)", type: "external_entity", tier: 0, trustZone: "Agent runtime" },
-      { id: "merchant", label: "Merchant App", type: "external_entity", tier: 0, trustZone: "Client" },
+      {
+        id: "agent",
+        label: "LLM Agent (MCP client)",
+        type: "external_entity",
+        tier: 0,
+        trustZone: "Agent runtime",
+      },
+      {
+        id: "merchant",
+        label: "Merchant App",
+        type: "external_entity",
+        tier: 0,
+        trustZone: "Client",
+      },
       { id: "mcp", label: "Payment MCP Server", type: "process", tier: 1, trustZone: "Server" },
       { id: "charge", label: "charge tool", type: "process", tier: 2, trustZone: "Server" },
       { id: "refund", label: "refund tool", type: "process", tier: 2, trustZone: "Server" },
       { id: "receipt", label: "get_receipt tool", type: "process", tier: 2, trustZone: "Server" },
-      { id: "processor", label: "Payment Processor", type: "external_entity", tier: 3, trustZone: "Card network" },
+      {
+        id: "processor",
+        label: "Payment Processor",
+        type: "external_entity",
+        tier: 3,
+        trustZone: "Card network",
+      },
       { id: "ledger", label: "Ledger Service", type: "datastore", tier: 3, trustZone: "Internal" },
-      { id: "store", label: "Receipt Store (RAG)", type: "datastore", tier: 3, trustZone: "Internal" },
+      {
+        id: "store",
+        label: "Receipt Store (RAG)",
+        type: "datastore",
+        tier: 3,
+        trustZone: "Internal",
+      },
     ],
     edges: [
-      { id: "e1", from: "agent", to: "mcp", label: "tool call (JSON-RPC)", dataClass: "tool args", crossesBoundary: true },
-      { id: "e2", from: "merchant", to: "mcp", label: "session init / results", dataClass: "session", crossesBoundary: true },
+      {
+        id: "e1",
+        from: "agent",
+        to: "mcp",
+        label: "tool call (JSON-RPC)",
+        dataClass: "tool args",
+        crossesBoundary: true,
+      },
+      {
+        id: "e2",
+        from: "merchant",
+        to: "mcp",
+        label: "session init / results",
+        dataClass: "session",
+        crossesBoundary: true,
+      },
       { id: "e3", from: "mcp", to: "charge", label: "dispatch", crossesBoundary: false },
       { id: "e4", from: "mcp", to: "refund", label: "dispatch", crossesBoundary: false },
       { id: "e5", from: "mcp", to: "receipt", label: "dispatch", crossesBoundary: false },
-      { id: "e6", from: "charge", to: "processor", label: "charge", dataClass: "card token, amount (PCI)", crossesBoundary: true },
-      { id: "e7", from: "charge", to: "ledger", label: "record charge", dataClass: "txn record", crossesBoundary: true },
-      { id: "e8", from: "refund", to: "processor", label: "refund", dataClass: "txn id, amount", crossesBoundary: true },
-      { id: "e9", from: "refund", to: "ledger", label: "record refund", dataClass: "txn record", crossesBoundary: true },
-      { id: "e10", from: "receipt", to: "store", label: "lookup receipt", dataClass: "receipt (PII)", crossesBoundary: true },
-      { id: "e11", from: "mcp", to: "agent", label: "tool result", dataClass: "receipt text (untrusted)", crossesBoundary: true },
+      {
+        id: "e6",
+        from: "charge",
+        to: "processor",
+        label: "charge",
+        dataClass: "card token, amount (PCI)",
+        crossesBoundary: true,
+      },
+      {
+        id: "e7",
+        from: "charge",
+        to: "ledger",
+        label: "record charge",
+        dataClass: "txn record",
+        crossesBoundary: true,
+      },
+      {
+        id: "e8",
+        from: "refund",
+        to: "processor",
+        label: "refund",
+        dataClass: "txn id, amount",
+        crossesBoundary: true,
+      },
+      {
+        id: "e9",
+        from: "refund",
+        to: "ledger",
+        label: "record refund",
+        dataClass: "txn record",
+        crossesBoundary: true,
+      },
+      {
+        id: "e10",
+        from: "receipt",
+        to: "store",
+        label: "lookup receipt",
+        dataClass: "receipt (PII)",
+        crossesBoundary: true,
+      },
+      {
+        id: "e11",
+        from: "mcp",
+        to: "agent",
+        label: "tool result",
+        dataClass: "receipt text (untrusted)",
+        crossesBoundary: true,
+      },
     ],
   };
 

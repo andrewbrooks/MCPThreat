@@ -30,7 +30,13 @@ function StageStatusLabel({ status }: { status: StageStatus }) {
   );
 }
 
-function CheckItem({ check, projectId }: { check: StageState["checks"][number]; projectId: string }) {
+function CheckItem({
+  check,
+  projectId,
+}: {
+  check: StageState["checks"][number];
+  projectId: string;
+}) {
   const blocker = !check.passed && check.level === "BLOCKER";
   return (
     <li
@@ -60,7 +66,11 @@ function CheckItem({ check, projectId }: { check: StageState["checks"][number]; 
       <div className="min-w-0 space-y-0.5">
         <p className="font-medium">
           <span className="sr-only">
-            {check.passed ? "Passed: " : check.level === "INFO" ? "For information: " : "Not passed: "}
+            {check.passed
+              ? "Passed: "
+              : check.level === "INFO"
+                ? "For information: "
+                : "Not passed: "}
           </span>
           {check.title}
           {blocker ? (

@@ -3,11 +3,7 @@
 import { Download, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  DATAFLOW_NODE_TYPE_LABELS,
-  type Dataflow,
-  type DataflowNode,
-} from "@/lib/dataflow";
+import { DATAFLOW_NODE_TYPE_LABELS, type Dataflow, type DataflowNode } from "@/lib/dataflow";
 
 // Interactive layered data-flow diagram (DFD), in the same theme-safe SVG style as
 // TrustBoundaryMap: hsl(var(--…)) fills + currentColor text so it reads in both
@@ -29,7 +25,10 @@ const MAX_SCALE = 3;
 // Outlines use muted-foreground / accent-foreground (not the very light --border)
 // so the boxes read clearly against the card in both light and dark themes.
 const zoneStyle = { fill: "hsl(var(--muted))", stroke: "hsl(var(--muted-foreground) / 0.7)" };
-const processStyle = { fill: "hsl(var(--accent) / 0.15)", stroke: "hsl(var(--accent-foreground) / 0.6)" };
+const processStyle = {
+  fill: "hsl(var(--accent) / 0.15)",
+  stroke: "hsl(var(--accent-foreground) / 0.6)",
+};
 const storeStyle = { fill: "hsl(var(--secondary))", stroke: "hsl(var(--muted-foreground) / 0.7)" };
 const edgeStroke = "hsl(var(--muted-foreground) / 0.6)";
 const cardBg = "hsl(var(--card))";
@@ -131,20 +130,17 @@ export function DataflowDiagram({
     return { x: p.x, y: p.y };
   }, []);
 
-  const zoomTo = useCallback(
-    (nextScale: number, center?: { x: number; y: number }) => {
-      const s2 = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
-      setScale((s) => {
-        if (center) {
-          // Keep the world point under `center` fixed while scaling.
-          setTx((t) => center.x - ((center.x - t) / s) * s2);
-          setTy((t) => center.y - ((center.y - t) / s) * s2);
-        }
-        return s2;
-      });
-    },
-    [],
-  );
+  const zoomTo = useCallback((nextScale: number, center?: { x: number; y: number }) => {
+    const s2 = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
+    setScale((s) => {
+      if (center) {
+        // Keep the world point under `center` fixed while scaling.
+        setTx((t) => center.x - ((center.x - t) / s) * s2);
+        setTy((t) => center.y - ((center.y - t) / s) * s2);
+      }
+      return s2;
+    });
+  }, []);
 
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -204,7 +200,9 @@ export function DataflowDiagram({
     clone.removeAttribute("style"); // drop viewport height + grab cursor
 
     // Strip all highlight and interaction state so the export is a neutral diagram.
-    clone.querySelectorAll("[data-highlight], [data-hit], #dfd-active-marker").forEach((n) => n.remove());
+    clone
+      .querySelectorAll("[data-highlight], [data-hit], #dfd-active-marker")
+      .forEach((n) => n.remove());
     clone.querySelectorAll("[data-dim]").forEach((n) => (n as SVGElement).removeAttribute("style"));
     clone.querySelectorAll("[data-base-width]").forEach((n) => {
       n.setAttribute("stroke-width", n.getAttribute("data-base-width") ?? "1.5");
@@ -216,9 +214,22 @@ export function DataflowDiagram({
       n.setAttribute("fill", n.getAttribute("data-base-fill") ?? "currentColor");
     });
     clone
-      .querySelectorAll("[data-flow], [data-btn], [data-node], [data-base-width], [data-base-weight], [data-dim]")
+      .querySelectorAll(
+        "[data-flow], [data-btn], [data-node], [data-base-width], [data-base-weight], [data-dim]",
+      )
       .forEach((n) => {
-        for (const a of ["tabindex", "role", "aria-label", "aria-pressed", "class", "data-flow", "data-btn", "data-node", "data-dim", "aria-hidden"]) {
+        for (const a of [
+          "tabindex",
+          "role",
+          "aria-label",
+          "aria-pressed",
+          "class",
+          "data-flow",
+          "data-btn",
+          "data-node",
+          "data-dim",
+          "aria-hidden",
+        ]) {
           n.removeAttribute(a);
         }
       });
@@ -315,7 +326,11 @@ export function DataflowDiagram({
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
           width="100%"
-          style={{ height: VIEWPORT_H, touchAction: "none", cursor: drag.current ? "grabbing" : "grab" }}
+          style={{
+            height: VIEWPORT_H,
+            touchAction: "none",
+            cursor: drag.current ? "grabbing" : "grab",
+          }}
           className="block text-foreground"
           role="group"
           aria-label="Application data-flow diagram; drag to pan, scroll or use the buttons to zoom"
@@ -330,10 +345,24 @@ export function DataflowDiagram({
             <marker id="dfd-end" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
               <path d="M0,0 L6.5,3 L0,6 z" style={{ fill: edgeStroke }} />
             </marker>
-            <marker id="dfd-red" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
+            <marker
+              id="dfd-red"
+              markerWidth="10"
+              markerHeight="10"
+              refX="7"
+              refY="3.5"
+              orient="auto"
+            >
               <path d="M0,0 L7,3.5 L0,7 z" fill={RED} />
             </marker>
-            <marker id="dfd-active-marker" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
+            <marker
+              id="dfd-active-marker"
+              markerWidth="10"
+              markerHeight="10"
+              refX="7"
+              refY="3.5"
+              orient="auto"
+            >
               <path d="M0,0 L7,3.5 L0,7 z" style={{ fill: "hsl(var(--primary))" }} />
             </marker>
           </defs>
@@ -386,43 +415,43 @@ export function DataflowDiagram({
                       }
                     }}
                   >
-                  {isActive ? (
+                    {isActive ? (
+                      <line
+                        data-highlight=""
+                        x1={a.x}
+                        y1={a.y}
+                        x2={b.x}
+                        y2={b.y}
+                        strokeWidth={10}
+                        strokeLinecap="round"
+                        style={{ stroke: "hsl(var(--primary) / 0.22)" }}
+                      />
+                    ) : null}
                     <line
-                      data-highlight=""
                       x1={a.x}
                       y1={a.y}
                       x2={b.x}
                       y2={b.y}
-                      strokeWidth={10}
-                      strokeLinecap="round"
-                      style={{ stroke: "hsl(var(--primary) / 0.22)" }}
+                      fill="none"
+                      data-base-width={baseWidth}
+                      data-base-stroke={baseStroke}
+                      data-base-marker={baseMarker}
+                      strokeWidth={isActive ? 3.5 : baseWidth}
+                      stroke={isActive ? "hsl(var(--primary))" : baseStroke}
+                      strokeDasharray={crossing ? "6 4" : undefined}
+                      markerEnd={isActive ? "url(#dfd-active-marker)" : baseMarker}
                     />
-                  ) : null}
-                  <line
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
-                    fill="none"
-                    data-base-width={baseWidth}
-                    data-base-stroke={baseStroke}
-                    data-base-marker={baseMarker}
-                    strokeWidth={isActive ? 3.5 : baseWidth}
-                    stroke={isActive ? "hsl(var(--primary))" : baseStroke}
-                    strokeDasharray={crossing ? "6 4" : undefined}
-                    markerEnd={isActive ? "url(#dfd-active-marker)" : baseMarker}
-                  />
-                  {/* Wide invisible hit path so thin lines are easy to hover */}
-                  <line
-                    data-hit=""
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
-                    stroke="transparent"
-                    strokeWidth={18}
-                    style={{ pointerEvents: "stroke" }}
-                  />
+                    {/* Wide invisible hit path so thin lines are easy to hover */}
+                    <line
+                      data-hit=""
+                      x1={a.x}
+                      y1={a.y}
+                      x2={b.x}
+                      y2={b.y}
+                      stroke="transparent"
+                      strokeWidth={18}
+                      style={{ pointerEvents: "stroke" }}
+                    />
                   </g>
                   {labelText ? (
                     <text
@@ -437,7 +466,9 @@ export function DataflowDiagram({
                       data-base-weight="500"
                       data-base-fill={crossing ? RED : "hsl(var(--muted-foreground))"}
                       style={{ fontSize: "11px", fontWeight: isActive ? 700 : 500 }}
-                      fill={isActive ? "currentColor" : crossing ? RED : "hsl(var(--muted-foreground))"}
+                      fill={
+                        isActive ? "currentColor" : crossing ? RED : "hsl(var(--muted-foreground))"
+                      }
                     >
                       {labelText}
                     </text>
@@ -450,7 +481,8 @@ export function DataflowDiagram({
             {[...placed.values()].map(({ node, x, y }) => {
               const s = styleFor(node.type);
               const isProcess = node.type === "process";
-              const isEnd = !!activeEdge && (activeEdge.from === node.id || activeEdge.to === node.id);
+              const isEnd =
+                !!activeEdge && (activeEdge.from === node.id || activeEdge.to === node.id);
               return (
                 <g
                   key={node.id}
@@ -521,7 +553,8 @@ export function DataflowDiagram({
       {/* Legend */}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-3 w-4 rounded-sm border" style={zoneStyle} /> External entity
+          <span className="inline-block h-3 w-4 rounded-sm border" style={zoneStyle} /> External
+          entity
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-4 rounded-full border" style={processStyle} /> Process

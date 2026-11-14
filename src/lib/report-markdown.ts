@@ -24,12 +24,13 @@ function esc(s: string): string {
 function cell(s: string | null | undefined): string {
   const v = (s ?? "").trim();
   if (!v) return "—";
-  return esc(v).replace(/\|/g, "\\|").replace(/\r?\n+/g, " ");
+  return esc(v)
+    .replace(/\|/g, "\\|")
+    .replace(/\r?\n+/g, " ");
 }
 function block(s: string): string {
   return esc(s.trim());
 }
-
 
 /**
  * Nest an embedded markdown document under a parent heading by pushing every
@@ -51,7 +52,9 @@ export function demoteHeadings(md: string, by: number): string {
 
 function acceptanceLines(a: AssessmentAcceptance): string[] {
   const out: string[] = [];
-  out.push(`- **Acceptance request:** ${a.status.charAt(0) + a.status.slice(1).toLowerCase()}, requested by ${cell(a.requestedBy)} on ${date(a.requestedAt)}`);
+  out.push(
+    `- **Acceptance request:** ${a.status.charAt(0) + a.status.slice(1).toLowerCase()}, requested by ${cell(a.requestedBy)} on ${date(a.requestedAt)}`,
+  );
   if (a.justification) out.push(`- **Justification:** ${cell(a.justification)}`);
   if (a.residualRisk) out.push(`- **Residual risk accepted:** ${cell(a.residualRisk)}`);
   for (const ap of a.approvals) {
@@ -59,7 +62,8 @@ function acceptanceLines(a: AssessmentAcceptance): string[] {
       `- **${PARTY_SIDE_LABELS[ap.side as PartySide] ?? ap.side} approval:** ${cell(ap.by)} on ${date(ap.at)}`,
     );
   }
-  if (a.rejection) out.push(`- **Rejected by:** ${cell(a.rejection.by)}. ${cell(a.rejection.reason)}`);
+  if (a.rejection)
+    out.push(`- **Rejected by:** ${cell(a.rejection.by)}. ${cell(a.rejection.reason)}`);
   if (a.expiresAt) out.push(`- **Acceptance expires:** ${date(a.expiresAt)}`);
   return out;
 }
@@ -203,7 +207,9 @@ function executiveLines(a: Assessment): string[] {
     `Threat vectors by likelihood and impact (${x.matrix.vectorCount} in total). Each cell shows the number of threat vectors and the risk band.`,
   );
   L.push("");
-  L.push(`| Likelihood by impact | ${x.matrix.impactLabels.map((c) => `${c.label} impact`).join(" | ")} |`);
+  L.push(
+    `| Likelihood by impact | ${x.matrix.impactLabels.map((c) => `${c.label} impact`).join(" | ")} |`,
+  );
   L.push("| --- | --- | --- | --- |");
   for (const row of x.matrix.rows) {
     L.push(
@@ -219,11 +225,15 @@ function executiveLines(a: Assessment): string[] {
     L.push("| ID | Severity | Finding | Owner | Due |");
     L.push("| --- | --- | --- | --- | --- |");
     for (const f of x.attention) {
-      L.push(`| ${f.id} | ${f.severityLabel} | ${cell(f.title)} | ${cell(f.owner)} | ${date(f.dueDate)} |`);
+      L.push(
+        `| ${f.id} | ${f.severityLabel} | ${cell(f.title)} | ${cell(f.owner)} | ${date(f.dueDate)} |`,
+      );
     }
     if (x.attentionTotal > x.attention.length) {
       L.push("");
-      L.push(`Showing ${x.attention.length} of ${x.attentionTotal} open findings. The full list is in section 7.`);
+      L.push(
+        `Showing ${x.attention.length} of ${x.attentionTotal} open findings. The full list is in section 7.`,
+      );
     }
   }
   L.push("");
@@ -276,7 +286,9 @@ export function generateReport(a: Assessment): string {
   );
   if (r.source.type === "GITHUB") {
     L.push(`| Repository | ${cell(r.source.repoUrl)} |`);
-    L.push(`| Repository ref | ${r.source.repoRef ? cell(r.source.repoRef) : "Default branch at import time"} |`);
+    L.push(
+      `| Repository ref | ${r.source.repoRef ? cell(r.source.repoRef) : "Default branch at import time"} |`,
+    );
     L.push(`| Analysis run | ${utc(r.source.analyzedAt)} |`);
     L.push(`| AI model | ${DASH} (configured per deployment, not stored with the analysis) |`);
   }
@@ -291,7 +303,9 @@ export function generateReport(a: Assessment): string {
   );
   L.push(
     `| Audit trail | ${count(r.audit.eventCount, "event")}` +
-      (r.audit.firstEventAt ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}` : "") +
+      (r.audit.firstEventAt
+        ? `, ${utc(r.audit.firstEventAt)} to ${utc(r.audit.lastEventAt)}`
+        : "") +
       " |",
   );
   L.push("");
@@ -301,7 +315,9 @@ export function generateReport(a: Assessment): string {
     L.push("| Person | Role | Party |");
     L.push("| --- | --- | --- |");
     for (const p of r.people) {
-      L.push(`| ${cell(p.label)} | ${p.role} | ${PARTY_SIDE_LABELS[p.side as PartySide] ?? p.side} |`);
+      L.push(
+        `| ${cell(p.label)} | ${p.role} | ${PARTY_SIDE_LABELS[p.side as PartySide] ?? p.side} |`,
+      );
     }
     L.push("");
   }
@@ -373,7 +389,9 @@ export function generateReport(a: Assessment): string {
     L.push("_No threat vectors mapped._");
     L.push("");
   } else {
-    L.push("| ID | Threat vector | Boundary | STRIDE | MCP category | Likelihood | Impact | Risk | Residual | Findings | Source |");
+    L.push(
+      "| ID | Threat vector | Boundary | STRIDE | MCP category | Likelihood | Impact | Risk | Residual | Findings | Source |",
+    );
     L.push("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
     for (const v of a.vectors) {
       L.push(
@@ -430,7 +448,9 @@ export function generateReport(a: Assessment): string {
     L.push("| --- | --- | --- | --- |");
     for (const i of a.frameworks.owasp) {
       const ids = a.vectors.filter((v) => v.frameworks.owasp.includes(i.id)).map((v) => v.id);
-      L.push(`| OWASP Top 10 for LLM Applications (2025) | ${i.id} | ${i.name} | ${ids.join(", ")} |`);
+      L.push(
+        `| OWASP Top 10 for LLM Applications (2025) | ${i.id} | ${i.name} | ${ids.join(", ")} |`,
+      );
     }
     for (const i of a.frameworks.atlas) {
       const ids = a.vectors.filter((v) => v.frameworks.atlas.includes(i.id)).map((v) => v.id);
@@ -446,7 +466,9 @@ export function generateReport(a: Assessment): string {
     L.push("_No MCP categories in use._");
     L.push("");
   } else {
-    L.push("General guidance for each MCP category present in the model. It is not specific to any one finding.");
+    L.push(
+      "General guidance for each MCP category present in the model. It is not specific to any one finding.",
+    );
     L.push("");
     for (const c of a.controls) {
       L.push(`### ${c.title}`);

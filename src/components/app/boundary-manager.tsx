@@ -86,7 +86,8 @@ export function BoundaryManager({
         <h3 className="font-medium">{editingId ? "Edit boundary" : "Add a trust boundary"}</h3>
         <div className="space-y-1.5">
           <Label htmlFor="bnd-label">Label</Label>
-          <Input id="bnd-label"
+          <Input
+            id="bnd-label"
             value={form.label}
             onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
             placeholder="Agent → MCP Server"
@@ -94,7 +95,8 @@ export function BoundaryManager({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bnd-type">Type</Label>
-          <Select id="bnd-type"
+          <Select
+            id="bnd-type"
             value={form.type}
             onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
           >
@@ -107,7 +109,8 @@ export function BoundaryManager({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bnd-description">Description</Label>
-          <Textarea id="bnd-description"
+          <Textarea
+            id="bnd-description"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="What crosses this boundary?"
@@ -128,8 +131,7 @@ export function BoundaryManager({
 
       <div className="space-y-2">
         <h3 className="font-medium">
-          Trust boundaries{" "}
-          <span className="text-muted-foreground">({boundaries.length})</span>
+          Trust boundaries <span className="text-muted-foreground">({boundaries.length})</span>
         </h3>
         {boundaries.length === 0 ? (
           <EmptyState

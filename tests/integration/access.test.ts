@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { GET as listSnapshots, POST as issueSnapshot } from "@/app/api/projects/[id]/snapshots/route";
+import {
+  GET as listSnapshots,
+  POST as issueSnapshot,
+} from "@/app/api/projects/[id]/snapshots/route";
 import { addMember, json, makeProject, makeUser, params, request } from "./helpers";
 import { signInAs } from "./session";
 
@@ -19,8 +22,10 @@ async function world() {
   return { owner, admin, member, viewer, outsider, project };
 }
 
-const read = (id: string) => listSnapshots(request("GET", `/api/projects/${id}/snapshots`), params({ id }));
-const write = (id: string) => issueSnapshot(request("POST", `/api/projects/${id}/snapshots`, {}), params({ id }));
+const read = (id: string) =>
+  listSnapshots(request("GET", `/api/projects/${id}/snapshots`), params({ id }));
+const write = (id: string) =>
+  issueSnapshot(request("POST", `/api/projects/${id}/snapshots`, {}), params({ id }));
 
 describe("reading a project", () => {
   it("allows the owner and every member role", async () => {

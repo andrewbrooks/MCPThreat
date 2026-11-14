@@ -22,7 +22,13 @@ import { describeAuditEvent } from "@/lib/audit-format";
 import { findingColor } from "@/lib/finding-colors";
 import type { PartySide } from "@/lib/taxonomy";
 import { WrapEmail } from "@/components/shared/wrap-email";
-import { AiBadge, ConfidenceBadge, McpCategoryBadge, SeverityBadge, StatusPill } from "@/components/shared/badges";
+import {
+  AiBadge,
+  ConfidenceBadge,
+  McpCategoryBadge,
+  SeverityBadge,
+  StatusPill,
+} from "@/components/shared/badges";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
@@ -116,7 +122,6 @@ function toDateInput(iso: string | null): string {
   return iso ? new Date(iso).toISOString().slice(0, 10) : "";
 }
 
-
 export function FindingsTable({
   projectId,
   findings,
@@ -194,7 +199,10 @@ export function FindingsTable({
     return [...rows].sort((a, b) => {
       switch (sortKey) {
         case "severity":
-          return (SEVERITY_RANK[b.severity as Severity] ?? 0) - (SEVERITY_RANK[a.severity as Severity] ?? 0);
+          return (
+            (SEVERITY_RANK[b.severity as Severity] ?? 0) -
+            (SEVERITY_RANK[a.severity as Severity] ?? 0)
+          );
         case "status":
           return a.status.localeCompare(b.status);
         case "owner":
@@ -235,10 +243,9 @@ export function FindingsTable({
 
   async function deleteAttachment(aid: string) {
     if (!editingId) return;
-    const res = await fetch(
-      `/api/projects/${projectId}/findings/${editingId}/attachments/${aid}`,
-      { method: "DELETE" },
-    );
+    const res = await fetch(`/api/projects/${projectId}/findings/${editingId}/attachments/${aid}`, {
+      method: "DELETE",
+    });
     if (!res.ok) {
       toast("Failed to remove attachment.", "error");
       return;
@@ -398,7 +405,9 @@ export function FindingsTable({
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <Label htmlFor="filter-severity" className="text-xs">Severity</Label>
+          <Label htmlFor="filter-severity" className="text-xs">
+            Severity
+          </Label>
           <Select
             id="filter-severity"
             value={severityFilter}
@@ -414,7 +423,9 @@ export function FindingsTable({
           </Select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="filter-status" className="text-xs">Status</Label>
+          <Label htmlFor="filter-status" className="text-xs">
+            Status
+          </Label>
           <Select
             id="filter-status"
             value={statusFilter}
@@ -431,7 +442,9 @@ export function FindingsTable({
         </div>
         {editable ? (
           <div className="space-y-1">
-            <Label htmlFor="filter-owner" className="text-xs">Owner</Label>
+            <Label htmlFor="filter-owner" className="text-xs">
+              Owner
+            </Label>
             <Input
               id="filter-owner"
               value={ownerFilter}
@@ -442,7 +455,9 @@ export function FindingsTable({
           </div>
         ) : null}
         <div className="space-y-1">
-          <Label htmlFor="filter-sort" className="text-xs">Sort by</Label>
+          <Label htmlFor="filter-sort" className="text-xs">
+            Sort by
+          </Label>
           <Select
             id="filter-sort"
             value={sortKey}
@@ -520,9 +535,7 @@ export function FindingsTable({
                     type="checkbox"
                     checked={allSelected}
                     onChange={(e) =>
-                      setSelected(
-                        e.target.checked ? new Set(filtered.map((f) => f.id)) : new Set(),
-                      )
+                      setSelected(e.target.checked ? new Set(filtered.map((f) => f.id)) : new Set())
                     }
                     aria-label="Select all"
                   />
@@ -623,7 +636,12 @@ export function FindingsTable({
                 </TableCell>
                 {editable ? (
                   <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(f)} aria-label="Edit">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEdit(f)}
+                      aria-label="Edit"
+                    >
                       <Pencil className="size-4" />
                     </Button>
                   </TableCell>
@@ -637,14 +655,19 @@ export function FindingsTable({
       <Drawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingId ? `Edit finding ${findings.find((x) => x.id === editingId)?.displayId ?? ""}`.trim() : "New finding"}
+        title={
+          editingId
+            ? `Edit finding ${findings.find((x) => x.id === editingId)?.displayId ?? ""}`.trim()
+            : "New finding"
+        }
         description={editingId ? undefined : "Attach this finding to a threat vector."}
       >
         <div className="space-y-4">
           {!editingId ? (
             <div className="space-y-1.5">
               <Label htmlFor="fnd-threat-vector">Threat Vector</Label>
-              <Select id="fnd-threat-vector"
+              <Select
+                id="fnd-threat-vector"
                 value={form.threatVectorId}
                 onChange={(e) => setForm((f) => ({ ...f, threatVectorId: e.target.value }))}
               >
@@ -658,7 +681,8 @@ export function FindingsTable({
           ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="fnd-title">Title</Label>
-            <Input id="fnd-title"
+            <Input
+              id="fnd-title"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             />
@@ -666,7 +690,8 @@ export function FindingsTable({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="fnd-severity">Severity</Label>
-              <Select id="fnd-severity"
+              <Select
+                id="fnd-severity"
                 value={form.severity}
                 onChange={(e) => setForm((f) => ({ ...f, severity: e.target.value }))}
               >
@@ -701,7 +726,8 @@ export function FindingsTable({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="fnd-owner">Owner</Label>
-              <Input id="fnd-owner"
+              <Input
+                id="fnd-owner"
                 value={form.owner}
                 onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
                 placeholder="name or email"
@@ -709,7 +735,8 @@ export function FindingsTable({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="fnd-due-date">Due date</Label>
-              <Input id="fnd-due-date"
+              <Input
+                id="fnd-due-date"
                 type="date"
                 value={form.dueDate}
                 onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
@@ -718,7 +745,8 @@ export function FindingsTable({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="fnd-revisit-reminder">Revisit reminder</Label>
-            <Select id="fnd-revisit-reminder"
+            <Select
+              id="fnd-revisit-reminder"
               value={form.reviewInterval}
               onChange={(e) => setForm((f) => ({ ...f, reviewInterval: e.target.value }))}
             >
@@ -776,21 +804,24 @@ export function FindingsTable({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="fnd-description">Description</Label>
-            <Textarea id="fnd-description"
+            <Textarea
+              id="fnd-description"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="fnd-recommendation">Recommendation</Label>
-            <Textarea id="fnd-recommendation"
+            <Textarea
+              id="fnd-recommendation"
               value={form.recommendation}
               onChange={(e) => setForm((f) => ({ ...f, recommendation: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="fnd-evidence">Evidence</Label>
-            <Textarea id="fnd-evidence"
+            <Textarea
+              id="fnd-evidence"
               value={form.evidence}
               onChange={(e) => setForm((f) => ({ ...f, evidence: e.target.value }))}
             />
@@ -876,7 +907,9 @@ export function FindingsTable({
                     }}
                   />
                 </label>
-                <p className="text-xs text-muted-foreground">DOCX, PDF, or image files. Max 15 MB.</p>
+                <p className="text-xs text-muted-foreground">
+                  DOCX, PDF, or image files. Max 15 MB.
+                </p>
               </div>
 
               <div className="space-y-2 border-t pt-4">

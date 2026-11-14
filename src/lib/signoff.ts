@@ -32,10 +32,7 @@ export function snapshotStatus(
 }
 
 /** Sides still needed, lower case, while the snapshot is pending. */
-export function awaitingSides(
-  requirement: SnapshotRequirement,
-  signoffs: SignoffLike[],
-): string[] {
+export function awaitingSides(requirement: SnapshotRequirement, signoffs: SignoffLike[]): string[] {
   if (snapshotStatus(requirement, signoffs) !== "PENDING") return [];
   if (requirement === "SINGLE") return ["a reviewer other than the issuer"];
   const sides = new Set(signoffs.filter((s) => s.decision === "APPROVED").map((s) => s.side));
@@ -71,12 +68,18 @@ export function canSignOff(
   issuerId: string | null,
 ): { ok: true } | { ok: false; reason: string } {
   if (requirement === "NONE") {
-    return { ok: false, reason: "This snapshot does not require sign-off under the project policy." };
+    return {
+      ok: false,
+      reason: "This snapshot does not require sign-off under the project policy.",
+    };
   }
   const status = snapshotStatus(requirement, signoffs);
   if (status === "APPROVED") return { ok: false, reason: "This snapshot is already approved." };
   if (status === "RETURNED") {
-    return { ok: false, reason: "This snapshot was returned. Issue a new snapshot after making changes." };
+    return {
+      ok: false,
+      reason: "This snapshot was returned. Issue a new snapshot after making changes.",
+    };
   }
   if (viewer.userId && signoffs.some((s) => s.userId === viewer.userId)) {
     return { ok: false, reason: "You have already recorded a decision on this snapshot." };

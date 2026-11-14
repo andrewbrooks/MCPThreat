@@ -89,7 +89,8 @@ export function StageBar({ projectId, readiness }: { projectId: string; readines
           role="status"
           className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"
         >
-          The model has changed since the latest snapshot. Issue a new snapshot to record the changes.
+          The model has changed since the latest snapshot. Issue a new snapshot to record the
+          changes.
         </p>
       ) : null}
     </nav>

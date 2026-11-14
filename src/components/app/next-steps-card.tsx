@@ -9,8 +9,10 @@ const LEVEL_TEXT: Record<CheckLevel, string> = {
   INFO: "For information",
 };
 const LEVEL_CLASS: Record<CheckLevel, string> = {
-  BLOCKER: "border-red-300 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
-  WARNING: "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200",
+  BLOCKER:
+    "border-red-300 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
+  WARNING:
+    "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200",
   INFO: "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-500/30 dark:bg-slate-500/10 dark:text-slate-300",
 };
 
@@ -40,7 +42,10 @@ export function NextStepsCard({
           </div>
           {shown.length === 0 ? (
             <p className="flex items-start gap-2 text-sm text-muted-foreground">
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
+              <CheckCircle2
+                className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+                aria-hidden
+              />
               Nothing is outstanding right now. You can review the checks or issue a snapshot.
             </p>
           ) : (

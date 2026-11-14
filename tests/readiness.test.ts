@@ -121,7 +121,13 @@ describe("check inventory", () => {
     }
   });
   it("lists the five stages in order", () => {
-    expect(r.stages.map((s) => s.key)).toEqual(["SCOPE", "MODEL", "ASSESS", "REMEDIATE", "SIGN_OFF"]);
+    expect(r.stages.map((s) => s.key)).toEqual([
+      "SCOPE",
+      "MODEL",
+      "ASSESS",
+      "REMEDIATE",
+      "SIGN_OFF",
+    ]);
   });
 });
 
@@ -136,7 +142,13 @@ describe("empty project", () => {
   it("starts at scope and cannot be issued", () => {
     expect(r.currentStage).toBe("SCOPE");
     expect(r.canIssue).toBe(false);
-    expect(r.stages.map((s) => s.status)).toEqual(["CURRENT", "UPCOMING", "UPCOMING", "UPCOMING", "UPCOMING"]);
+    expect(r.stages.map((s) => s.status)).toEqual([
+      "CURRENT",
+      "UPCOMING",
+      "UPCOMING",
+      "UPCOMING",
+      "UPCOMING",
+    ]);
   });
   it("starts at model once the description is written", () => {
     const r2 = run(clean({ boundaries: [], findings: [] }));
@@ -149,8 +161,14 @@ describe("empty project", () => {
 
 describe("scope checks", () => {
   it("description is a warning, url is only info", () => {
-    const r = run(clean({ project: { ...clean().project, description: "  ", mcpServerUrl: null } }));
-    expect(get(r, "project-description")).toMatchObject({ level: "WARNING", passed: false, href: "" });
+    const r = run(
+      clean({ project: { ...clean().project, description: "  ", mcpServerUrl: null } }),
+    );
+    expect(get(r, "project-description")).toMatchObject({
+      level: "WARNING",
+      passed: false,
+      href: "",
+    });
     expect(get(r, "mcp-server-url")).toMatchObject({ level: "INFO", passed: false });
     expect(r.currentStage).toBe("SCOPE");
   });
@@ -172,22 +190,32 @@ describe("model checks", () => {
     const b = clean().boundaries[0];
     const empty = (id: string) => ({ ...b, id, vectors: [] });
     const one = run(clean({ boundaries: [b, empty("b2")] }));
-    expect(get(one, "boundaries-without-vectors").title).toBe("1 trust boundary has no threat vectors");
+    expect(get(one, "boundaries-without-vectors").title).toBe(
+      "1 trust boundary has no threat vectors",
+    );
     const two = run(clean({ boundaries: [b, empty("b2"), empty("b3")] }));
-    expect(get(two, "boundaries-without-vectors").title).toBe("2 trust boundaries have no threat vectors");
+    expect(get(two, "boundaries-without-vectors").title).toBe(
+      "2 trust boundaries have no threat vectors",
+    );
   });
   it("reports AI-suggested items as info and passes at zero", () => {
     const b = clean().boundaries[0];
     const ai = run(clean({ boundaries: [{ ...b, source: "AI" }] }));
     expect(get(ai, "ai-suggested-items")).toMatchObject({ level: "INFO", passed: false, count: 1 });
-    expect(get(ai, "ai-suggested-items").title).toBe("1 AI-suggested item to confirm before issuing");
+    expect(get(ai, "ai-suggested-items").title).toBe(
+      "1 AI-suggested item to confirm before issuing",
+    );
     expect(ai.stages[1].status).toBe("DONE");
     expect(get(run(clean()), "ai-suggested-items").passed).toBe(true);
   });
   it("pluralises AI-suggested items", () => {
     const b = clean().boundaries[0];
-    const r = run(clean({ boundaries: [{ ...b, source: "AI", vectors: [{ ...b.vectors[0], source: "AI" }] }] }));
-    expect(get(r, "ai-suggested-items").title).toBe("2 AI-suggested items to confirm before issuing");
+    const r = run(
+      clean({ boundaries: [{ ...b, source: "AI", vectors: [{ ...b.vectors[0], source: "AI" }] }] }),
+    );
+    expect(get(r, "ai-suggested-items").title).toBe(
+      "2 AI-suggested items to confirm before issuing",
+    );
   });
 });
 
@@ -225,7 +253,12 @@ describe("assess checks", () => {
         findings: [
           finding({ id: "a", evidence: "", severity: "CRITICAL" }),
           finding({ id: "b", evidence: "", severity: "LOW" }),
-          finding({ id: "c", evidence: "", severity: "HIGH", attachments: [{ filename: "x.png", mimeType: "image/png", size: 1 }] }),
+          finding({
+            id: "c",
+            evidence: "",
+            severity: "HIGH",
+            attachments: [{ filename: "x.png", mimeType: "image/png", size: 1 }],
+          }),
         ],
       }),
     );
@@ -285,7 +318,14 @@ describe("remediate checks", () => {
     expect(r.currentStage).toBe("SIGN_OFF");
   });
   it("pluralises open Critical findings", () => {
-    const r = run(clean({ findings: [open({ id: "a", severity: "CRITICAL" }), open({ id: "b", severity: "CRITICAL" })] }));
+    const r = run(
+      clean({
+        findings: [
+          open({ id: "a", severity: "CRITICAL" }),
+          open({ id: "b", severity: "CRITICAL" }),
+        ],
+      }),
+    );
     expect(get(r, "open-critical-findings").title).toBe("2 Critical findings are still open");
   });
 });
@@ -302,8 +342,12 @@ describe("sign-off checks and stage progression", () => {
     expect(r.nextActions.map((c) => c.id)).toEqual(["snapshot-issued"]);
   });
   it("pending snapshot names the sides awaited", () => {
-    const r = run(clean(), [snap({ status: "PENDING", requirement: "DUAL", awaiting: ["assessor", "client"] })]);
-    expect(get(r, "snapshot-decided").title).toBe("Snapshot v1 is awaiting sign-off from assessor and client");
+    const r = run(clean(), [
+      snap({ status: "PENDING", requirement: "DUAL", awaiting: ["assessor", "client"] }),
+    ]);
+    expect(get(r, "snapshot-decided").title).toBe(
+      "Snapshot v1 is awaiting sign-off from assessor and client",
+    );
     expect(r.currentStage).toBe("SIGN_OFF");
   });
   it("returned snapshot is a blocker for the sign-off stage but not for issuing", () => {
@@ -315,7 +359,9 @@ describe("sign-off checks and stage progression", () => {
   it("drift is detected against the latest snapshot", () => {
     const r = run(clean(), [snap()], "hash-b");
     expect(r.changedSinceSnapshot).toBe(true);
-    expect(get(r, "model-changed-since-snapshot").title).toBe("The model has changed since snapshot v1");
+    expect(get(r, "model-changed-since-snapshot").title).toBe(
+      "The model has changed since snapshot v1",
+    );
     expect(r.currentStage).toBe("SIGN_OFF");
   });
   it("is complete when the snapshot is decided and unchanged", () => {
@@ -328,7 +374,10 @@ describe("sign-off checks and stage progression", () => {
     }
   });
   it("only the newest snapshot counts", () => {
-    const r = run(clean(), [snap({ id: "s2", version: 2, contentHash: "hash-a" }), snap({ status: "RETURNED", contentHash: "old" })]);
+    const r = run(clean(), [
+      snap({ id: "s2", version: 2, contentHash: "hash-a" }),
+      snap({ status: "RETURNED", contentHash: "old" }),
+    ]);
     expect(r.latestSnapshot?.id).toBe("s2");
     expect(r.currentStage).toBe("COMPLETE");
   });
@@ -358,7 +407,15 @@ describe("canIssue and next actions", () => {
       }),
     );
     expect(r.nextActions.map((c) => c.id)).toEqual(["project-description"]);
-    const r2 = run(clean({ boundaries: [{ ...b, source: "AI", vectors: [] }, { ...b, id: "b2", vectors: [] }], findings: [] }));
+    const r2 = run(
+      clean({
+        boundaries: [
+          { ...b, source: "AI", vectors: [] },
+          { ...b, id: "b2", vectors: [] },
+        ],
+        findings: [],
+      }),
+    );
     expect(r2.nextActions.map((c) => c.level)).toEqual(["BLOCKER", "WARNING", "INFO"]);
     expect(r2.nextActions.length).toBeLessThanOrEqual(5);
   });
@@ -375,8 +432,16 @@ describe("drift against the frozen model hash", () => {
       snapshots: [snap({ contentHash: "full-hash" })],
       now: NOW,
     };
-    const same = evaluateReadiness({ ...base, liveHash: "model-1", latestSnapshotModelHash: "model-1" });
-    const diff = evaluateReadiness({ ...base, liveHash: "model-2", latestSnapshotModelHash: "model-1" });
+    const same = evaluateReadiness({
+      ...base,
+      liveHash: "model-1",
+      latestSnapshotModelHash: "model-1",
+    });
+    const diff = evaluateReadiness({
+      ...base,
+      liveHash: "model-2",
+      latestSnapshotModelHash: "model-1",
+    });
     expect(same.changedSinceSnapshot).toBe(false);
     expect(diff.changedSinceSnapshot).toBe(true);
   });

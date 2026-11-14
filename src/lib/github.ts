@@ -84,10 +84,7 @@ async function ghJson<T>(path: string, token?: string): Promise<T> {
   if (res.status === 403) {
     const remaining = res.headers.get("x-ratelimit-remaining");
     if (remaining === "0") {
-      throw new GithubError(
-        429,
-        "GitHub API rate limit reached. Add a token or try again later.",
-      );
+      throw new GithubError(429, "GitHub API rate limit reached. Add a token or try again later.");
     }
     throw new GithubError(403, "GitHub denied the request (private repo or blocked).");
   }
@@ -128,7 +125,8 @@ const NAME_SIGNALS = [
   /(^|\/)docs?\/.*\.(md|mdx)$/i,
 ];
 
-const SKIP_DIR = /(^|\/)(node_modules|dist|build|\.git|vendor|test|tests|__pycache__|\.next|coverage|examples?)\//i;
+const SKIP_DIR =
+  /(^|\/)(node_modules|dist|build|\.git|vendor|test|tests|__pycache__|\.next|coverage|examples?)\//i;
 
 function scorePath(entry: TreeEntry): number {
   const p = entry.path;
@@ -151,11 +149,23 @@ function scorePath(entry: TreeEntry): number {
 
 // MCP-specific content signals we surface to the analyzer.
 const CONTENT_SIGNALS: { re: RegExp; label: string }[] = [
-  { re: /@modelcontextprotocol\/sdk/i, label: "Uses @modelcontextprotocol/sdk (TypeScript MCP SDK)" },
-  { re: /\bfrom\s+mcp\b|\bimport\s+mcp\b|\bfastmcp\b/i, label: "Uses a Python MCP SDK (mcp / FastMCP)" },
+  {
+    re: /@modelcontextprotocol\/sdk/i,
+    label: "Uses @modelcontextprotocol/sdk (TypeScript MCP SDK)",
+  },
+  {
+    re: /\bfrom\s+mcp\b|\bimport\s+mcp\b|\bfastmcp\b/i,
+    label: "Uses a Python MCP SDK (mcp / FastMCP)",
+  },
   { re: /new\s+Server\s*\(|McpServer\s*\(/i, label: "Instantiates an MCP Server" },
-  { re: /registerTool|setRequestHandler|list_tools|call_tool|add_tool/i, label: "Registers MCP tools/handlers" },
-  { re: /StdioServerTransport|SSEServerTransport|StreamableHTTP/i, label: "Declares an MCP transport" },
+  {
+    re: /registerTool|setRequestHandler|list_tools|call_tool|add_tool/i,
+    label: "Registers MCP tools/handlers",
+  },
+  {
+    re: /StdioServerTransport|SSEServerTransport|StreamableHTTP/i,
+    label: "Declares an MCP transport",
+  },
   { re: /list_resources|read_resource|resources\/list/i, label: "Exposes MCP resources" },
 ];
 

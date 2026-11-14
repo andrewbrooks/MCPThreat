@@ -54,7 +54,11 @@ export async function POST(req: Request) {
     const outcome = await runAnalysis(project.id, normalizedUrl, data.token);
 
     return NextResponse.json(
-      { projectId: project.id, status: outcome.ok ? "READY" : "FAILED", error: outcome.ok ? undefined : outcome.error },
+      {
+        projectId: project.id,
+        status: outcome.ok ? "READY" : "FAILED",
+        error: outcome.ok ? undefined : outcome.error,
+      },
       { status: 201 },
     );
   } catch (err) {

@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  acceptanceRequirement,
-  isAcceptanceComplete,
-  resolveSide,
-} from "@/lib/acceptance";
+import { acceptanceRequirement, isAcceptanceComplete, resolveSide } from "@/lib/acceptance";
 
 // A fixed sign-off time. The logic only checks that a timestamp is present, so the tests
 // must not depend on the current time.
@@ -53,19 +49,35 @@ describe("resolveSide", () => {
 describe("isAcceptanceComplete", () => {
   it("SINGLE completes on any one sign-off", () => {
     expect(
-      isAcceptanceComplete({ requireBothSides: false, assessorApprovedAt: SIGNED_AT, clientApprovedAt: null }),
+      isAcceptanceComplete({
+        requireBothSides: false,
+        assessorApprovedAt: SIGNED_AT,
+        clientApprovedAt: null,
+      }),
     ).toBe(true);
     expect(
-      isAcceptanceComplete({ requireBothSides: false, assessorApprovedAt: null, clientApprovedAt: null }),
+      isAcceptanceComplete({
+        requireBothSides: false,
+        assessorApprovedAt: null,
+        clientApprovedAt: null,
+      }),
     ).toBe(false);
   });
 
   it("DUAL requires both sides", () => {
     expect(
-      isAcceptanceComplete({ requireBothSides: true, assessorApprovedAt: SIGNED_AT, clientApprovedAt: null }),
+      isAcceptanceComplete({
+        requireBothSides: true,
+        assessorApprovedAt: SIGNED_AT,
+        clientApprovedAt: null,
+      }),
     ).toBe(false);
     expect(
-      isAcceptanceComplete({ requireBothSides: true, assessorApprovedAt: SIGNED_AT, clientApprovedAt: SIGNED_AT }),
+      isAcceptanceComplete({
+        requireBothSides: true,
+        assessorApprovedAt: SIGNED_AT,
+        clientApprovedAt: SIGNED_AT,
+      }),
     ).toBe(true);
   });
 });

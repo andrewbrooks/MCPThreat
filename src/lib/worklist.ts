@@ -170,7 +170,9 @@ export function buildWorklist(
       }
     }
 
-    const unowned = p.findings.filter((f) => isOpenStatus(f.status) && f.owner.trim() === "").length;
+    const unowned = p.findings.filter(
+      (f) => isOpenStatus(f.status) && f.owner.trim() === "",
+    ).length;
     if (unowned > 0) {
       items.push({
         ...base,
@@ -189,7 +191,12 @@ export function buildWorklist(
       const req = (latest.requirement as SnapshotRequirement) ?? "NONE";
       const status = snapshotStatus(req, latest.signoffs);
       if (status === "PENDING") {
-        const can = canSignOff(req, latest.signoffs, { userId: viewer.userId, side }, latest.createdById);
+        const can = canSignOff(
+          req,
+          latest.signoffs,
+          { userId: viewer.userId, side },
+          latest.createdById,
+        );
         if (can.ok) {
           items.push({
             ...base,

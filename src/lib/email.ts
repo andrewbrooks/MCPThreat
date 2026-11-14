@@ -1,10 +1,5 @@
 import nodemailer, { type Transporter } from "nodemailer";
-import {
-  SEVERITY_LABELS,
-  STATUS_LABELS,
-  type Severity,
-  type FindingStatus,
-} from "@/lib/taxonomy";
+import { SEVERITY_LABELS, STATUS_LABELS, type Severity, type FindingStatus } from "@/lib/taxonomy";
 import { log } from "@/lib/log";
 
 // Email delivery. Uses SMTP when SMTP_HOST is configured; otherwise falls back to a
@@ -47,10 +42,13 @@ export async function sendEmail(
 ): Promise<{ delivered: boolean; transport: EmailTransport }> {
   const transporter = getTransporter();
   if (!transporter) {
-    log.info("Email not sent: SMTP is not configured. Set LOG_LEVEL=debug to log the message body.", {
-      to: msg.to,
-      subject: msg.subject,
-    });
+    log.info(
+      "Email not sent: SMTP is not configured. Set LOG_LEVEL=debug to log the message body.",
+      {
+        to: msg.to,
+        subject: msg.subject,
+      },
+    );
     log.debug("Email body", { body: msg.text });
     return { delivered: false, transport: "log" };
   }
@@ -87,9 +85,7 @@ export function buildFindingEmail(input: FindingEmailInput): EmailMessage {
   const sev = SEVERITY_LABELS[finding.severity as Severity] ?? finding.severity;
   const status = STATUS_LABELS[finding.status as FindingStatus] ?? finding.status;
   const link = `${appUrl()}/projects/${projectId}/findings`;
-  const due = finding.dueDate
-    ? new Date(finding.dueDate).toISOString().slice(0, 10)
-    : "none";
+  const due = finding.dueDate ? new Date(finding.dueDate).toISOString().slice(0, 10) : "none";
 
   const heading =
     kind === "reminder"

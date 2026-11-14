@@ -37,7 +37,8 @@ export default async function ReviewPage({ params }: { params: { id: string } })
 
   const canWrite = access.role !== "VIEWER";
   const rawPolicy = access.project?.acceptancePolicy ?? "OFF";
-  const policy: AcceptancePolicy = rawPolicy === "SINGLE" || rawPolicy === "DUAL" ? rawPolicy : "OFF";
+  const policy: AcceptancePolicy =
+    rawPolicy === "SINGLE" || rawPolicy === "DUAL" ? rawPolicy : "OFF";
   const requirement = snapshotRequirement(policy);
   const policyLabel = (ACCEPTANCE_POLICY_LABELS[policy] ?? policy).replace(" — ", ", ");
 
@@ -74,8 +75,8 @@ export default async function ReviewPage({ params }: { params: { id: string } })
           <li>It freezes the assessment as it is now.</li>
           <li>It cannot be edited. Later changes to the model need a new snapshot.</li>
           <li>
-            The SHA-256 hash identifies the assessed content, so a later copy can be checked
-            against it.
+            The SHA-256 hash identifies the assessed content, so a later copy can be checked against
+            it.
           </li>
           <li>It is not a digital signature or a certification.</li>
         </ul>

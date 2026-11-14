@@ -23,7 +23,9 @@ export function productionEnvProblems(env: Env): string[] {
   }
   // Hosted platforms such as Vercel provide the URL themselves.
   if (!env.NEXTAUTH_URL?.trim() && !env.VERCEL_URL) {
-    problems.push("NEXTAUTH_URL is not set. Set it to the public URL of this app, for example https://mcpthreat.example.com");
+    problems.push(
+      "NEXTAUTH_URL is not set. Set it to the public URL of this app, for example https://mcpthreat.example.com",
+    );
   }
   if (!env.DATABASE_URL?.trim()) {
     problems.push("DATABASE_URL is not set. Point it at your database.");

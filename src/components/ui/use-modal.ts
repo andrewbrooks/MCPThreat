@@ -28,7 +28,8 @@ export function useModal(open: boolean, ref: React.RefObject<HTMLElement>) {
         (el) => el.offsetParent !== null,
       );
     // Prefer the first form field over the close button.
-    const first = focusables().find((el) => el.getAttribute("aria-label") !== "Close") ?? focusables()[0];
+    const first =
+      focusables().find((el) => el.getAttribute("aria-label") !== "Close") ?? focusables()[0];
     (first ?? node).focus();
 
     const onKey = (e: KeyboardEvent) => {

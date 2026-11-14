@@ -10,10 +10,7 @@ export type AcceptanceRequirement = "NONE" | "SINGLE" | "DUAL";
  * project policy and the finding severity. DUAL only applies to HIGH/CRITICAL;
  * lower severities fall back to SINGLE.
  */
-export function acceptanceRequirement(
-  policy: string,
-  severity: string,
-): AcceptanceRequirement {
+export function acceptanceRequirement(policy: string, severity: string): AcceptanceRequirement {
   if (policy === "OFF") return "NONE";
   if (policy === "SINGLE") return "SINGLE";
   // DUAL

@@ -20,10 +20,7 @@ export async function POST(req: Request, { params }: Params) {
     const finding = await prisma.finding.findUnique({ where: { id: params.fid } });
     if (!finding) throw new AuthzError(404, "Finding not found.");
 
-    const requirement = acceptanceRequirement(
-      access.project!.acceptancePolicy,
-      finding.severity,
-    );
+    const requirement = acceptanceRequirement(access.project!.acceptancePolicy, finding.severity);
     if (requirement === "NONE") {
       throw new AuthzError(
         400,

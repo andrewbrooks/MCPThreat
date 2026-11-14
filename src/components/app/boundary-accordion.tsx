@@ -2,7 +2,13 @@
 
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import { useState } from "react";
-import { AiBadge, ConfidenceBadge, McpCategoryBadge, RiskBadge, StrideBadge } from "@/components/shared/badges";
+import {
+  AiBadge,
+  ConfidenceBadge,
+  McpCategoryBadge,
+  RiskBadge,
+  StrideBadge,
+} from "@/components/shared/badges";
 import { Badge } from "@/components/ui/badge";
 import { TRUST_BOUNDARY_LABELS, type TrustBoundaryType } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
@@ -65,9 +71,7 @@ function BoundaryItem({ b }: { b: BoundaryData }) {
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-3 p-4 text-left"
       >
-        <ChevronRight
-          className={cn("size-4 shrink-0 transition-transform", open && "rotate-90")}
-        />
+        <ChevronRight className={cn("size-4 shrink-0 transition-transform", open && "rotate-90")} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{b.label}</span>

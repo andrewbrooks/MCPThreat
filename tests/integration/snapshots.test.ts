@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { GET as listSnapshots, POST as issueSnapshot } from "@/app/api/projects/[id]/snapshots/route";
+import {
+  GET as listSnapshots,
+  POST as issueSnapshot,
+} from "@/app/api/projects/[id]/snapshots/route";
 import { GET as snapshotReport } from "@/app/api/projects/[id]/snapshots/[sid]/report/route";
 import { POST as signoff } from "@/app/api/projects/[id]/snapshots/[sid]/signoff/route";
-import { addMember, json, makeProject, makeUser, params, prisma, request, type TestUser } from "./helpers";
+import {
+  addMember,
+  json,
+  makeProject,
+  makeUser,
+  params,
+  prisma,
+  request,
+  type TestUser,
+} from "./helpers";
 import { signInAs } from "./session";
 
 interface Summary {
@@ -16,12 +28,19 @@ interface Summary {
 }
 
 const issue = async (projectId: string, note?: string) =>
-  issueSnapshot(request("POST", `/api/projects/${projectId}/snapshots`, note ? { note } : {}), params({ id: projectId }));
+  issueSnapshot(
+    request("POST", `/api/projects/${projectId}/snapshots`, note ? { note } : {}),
+    params({ id: projectId }),
+  );
 
 const sign = async (projectId: string, sid: string, body: unknown) =>
-  signoff(request("POST", `/api/projects/${projectId}/snapshots/${sid}/signoff`, body), params({ id: projectId, sid }));
+  signoff(
+    request("POST", `/api/projects/${projectId}/snapshots/${sid}/signoff`, body),
+    params({ id: projectId, sid }),
+  );
 
-const issued = async (projectId: string): Promise<Summary> => (await json<{ snapshot: Summary }>(await issue(projectId))).snapshot;
+const issued = async (projectId: string): Promise<Summary> =>
+  (await json<{ snapshot: Summary }>(await issue(projectId))).snapshot;
 
 /** A DUAL project: the owner is the assessor, one member is the client. */
 async function dualProject() {
@@ -48,9 +67,16 @@ describe("issuing a snapshot", () => {
   it("fixes the review requirement from the project's policy at issue time", async () => {
     const owner = await makeUser();
     signInAs(owner);
-    const expected = { OFF: ["NONE", "ISSUED"], SINGLE: ["SINGLE", "PENDING"], DUAL: ["DUAL", "PENDING"] } as const;
+    const expected = {
+      OFF: ["NONE", "ISSUED"],
+      SINGLE: ["SINGLE", "PENDING"],
+      DUAL: ["DUAL", "PENDING"],
+    } as const;
     for (const [policy, [requirement, status]] of Object.entries(expected)) {
-      const project = await makeProject(owner, { policy: policy as "OFF" | "SINGLE" | "DUAL", complete: true });
+      const project = await makeProject(owner, {
+        policy: policy as "OFF" | "SINGLE" | "DUAL",
+        complete: true,
+      });
       const s = await issued(project.id);
       expect([s.requirement, s.status]).toEqual([requirement, status]);
     }
@@ -64,9 +90,15 @@ describe("issuing a snapshot", () => {
     const second = await issued(project.id);
     expect([first.version, second.version]).toEqual([1, 2]);
     const list = await json<{ snapshots: Summary[] }>(
-      await listSnapshots(request("GET", `/api/projects/${project.id}/snapshots`), params({ id: project.id })),
+      await listSnapshots(
+        request("GET", `/api/projects/${project.id}/snapshots`),
+        params({ id: project.id }),
+      ),
     );
-    expect(list.snapshots.map((s) => [s.version, s.superseded])).toEqual([[2, false], [1, true]]);
+    expect(list.snapshots.map((s) => [s.version, s.superseded])).toEqual([
+      [2, false],
+      [1, true],
+    ]);
   });
 
   it("rejects a note over 500 characters", async () => {
@@ -85,13 +117,17 @@ describe("dual sign-off", () => {
     expect(s.awaiting).toEqual(["assessor", "client"]);
 
     signInAs(client);
-    const afterClient = await json<{ snapshot: Summary }>(await sign(project.id, s.id, { decision: "APPROVE" }));
+    const afterClient = await json<{ snapshot: Summary }>(
+      await sign(project.id, s.id, { decision: "APPROVE" }),
+    );
     expect(afterClient.snapshot.status).toBe("PENDING");
     expect(afterClient.snapshot.awaiting).toEqual(["assessor"]);
     expect((await sign(project.id, s.id, { decision: "APPROVE" })).status).toBe(409); // already decided
 
     signInAs(assessor);
-    const done = await json<{ snapshot: Summary }>(await sign(project.id, s.id, { decision: "APPROVE", comment: "ok" }));
+    const done = await json<{ snapshot: Summary }>(
+      await sign(project.id, s.id, { decision: "APPROVE", comment: "ok" }),
+    );
     expect(done.snapshot.status).toBe("APPROVED");
     expect(done.snapshot.signoffs.map((x) => x.side).sort()).toEqual(["ASSESSOR", "CLIENT"]);
     expect((await sign(project.id, s.id, { decision: "APPROVE" })).status).toBe(409); // closed
@@ -134,7 +170,9 @@ describe("single-approver sign-off (four eyes)", () => {
     expect(self.status).toBe(409);
     expect((await json<{ error: string }>(self)).error).toMatch(/different person/i);
     signInAs(reviewer);
-    const ok = await json<{ snapshot: Summary }>(await sign(project.id, s.id, { decision: "APPROVE" }));
+    const ok = await json<{ snapshot: Summary }>(
+      await sign(project.id, s.id, { decision: "APPROVE" }),
+    );
     expect(ok.snapshot.status).toBe("APPROVED");
   });
 });
@@ -145,7 +183,10 @@ describe("snapshot integrity and isolation", () => {
     const project = await makeProject(owner, { complete: true });
     signInAs(owner);
     const s = await issued(project.id);
-    await prisma.finding.update({ where: { id: project.findingId! }, data: { title: "Renamed after the snapshot" } });
+    await prisma.finding.update({
+      where: { id: project.findingId! },
+      data: { title: "Renamed after the snapshot" },
+    });
 
     const frozen = await json<{ findings: { title: string }[] }>(
       await snapshotReport(

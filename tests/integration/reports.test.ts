@@ -50,17 +50,22 @@ describe("live report export", () => {
     const owner = await makeUser();
     const project = await makeProject(owner, { complete: true, name: "Payments / Core (v2)" });
     signInAs(owner);
-    const disposition = (await get(project.id, "?format=csv&download=1")).headers.get("content-disposition") ?? "";
-    expect(disposition).toMatch(/^attachment; filename="payments-core-v2-threat-model-\d{4}-\d{2}-\d{2}\.csv"$/);
+    const disposition =
+      (await get(project.id, "?format=csv&download=1")).headers.get("content-disposition") ?? "";
+    expect(disposition).toMatch(
+      /^attachment; filename="payments-core-v2-threat-model-\d{4}-\d{2}-\d{2}\.csv"$/,
+    );
   });
 
   it("returns the full assessment as JSON with a schema version and no attachment contents", async () => {
     const owner = await makeUser();
     const project = await makeProject(owner, { complete: true });
     signInAs(owner);
-    const body = await json<{ schemaVersion: string; findings: { id: string }[]; snapshot: unknown }>(
-      await get(project.id, "?format=json"),
-    );
+    const body = await json<{
+      schemaVersion: string;
+      findings: { id: string }[];
+      snapshot: unknown;
+    }>(await get(project.id, "?format=json"));
     expect(body.schemaVersion).toBe("1.0");
     expect(body.findings.map((f) => f.id)).toEqual(["F-001"]);
     expect(body.snapshot).toBeNull(); // a live report is not a snapshot

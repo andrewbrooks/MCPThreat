@@ -8,7 +8,12 @@ import {
 } from "@/lib/snapshot";
 
 const base = (over: Record<string, unknown> = {}) =>
-  ({ generatedAt: "2026-01-01T00:00:00.000Z", title: "t", n: [1, { b: 2, a: 1 }], ...over }) as unknown as Assessment;
+  ({
+    generatedAt: "2026-01-01T00:00:00.000Z",
+    title: "t",
+    n: [1, { b: 2, a: 1 }],
+    ...over,
+  }) as unknown as Assessment;
 
 describe("canonicalJson", () => {
   it("sorts keys at every level", () => {
@@ -36,7 +41,10 @@ describe("assessmentContentHash", () => {
 describe("stored snapshot round trip", () => {
   it("parses back intact", () => {
     const a = base();
-    const { intact, assessment } = parseStoredAssessment(serialiseForSnapshot(a), assessmentContentHash(a));
+    const { intact, assessment } = parseStoredAssessment(
+      serialiseForSnapshot(a),
+      assessmentContentHash(a),
+    );
     expect(intact).toBe(true);
     expect((assessment as unknown as { title: string }).title).toBe("t");
   });
@@ -53,7 +61,12 @@ import { assessmentModelHash } from "@/lib/snapshot";
 describe("assessmentModelHash", () => {
   const model = (over: Record<string, unknown> = {}, record: Record<string, unknown> = {}) =>
     base({
-      record: { projectName: "P", lastUpdatedAt: "2026-01-01", audit: { eventCount: 1 }, ...record },
+      record: {
+        projectName: "P",
+        lastUpdatedAt: "2026-01-01",
+        audit: { eventCount: 1 },
+        ...record,
+      },
       audit: [{ id: "e1" }],
       tool: { version: "1.0.0" },
       definitions: [{ term: "x" }],

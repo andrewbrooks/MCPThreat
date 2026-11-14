@@ -39,7 +39,10 @@ export async function GET(req: Request, { params }: Params) {
     try {
       parsed = parseStoredAssessment(row.assessment, row.contentHash);
     } catch {
-      return NextResponse.json({ error: "The stored snapshot could not be read." }, { status: 500 });
+      return NextResponse.json(
+        { error: "The stored snapshot could not be read." },
+        { status: 500 },
+      );
     }
     const summary = toSnapshotSummary(row, latest?.version ?? row.version);
     const issuedAt = row.createdAt.toISOString();

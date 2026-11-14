@@ -48,8 +48,8 @@ export function SnapshotsSection({
       )}
       {sorted.length === 0 ? (
         <p className="rounded-md border px-3 py-3 text-sm text-muted-foreground">
-          No snapshots yet. When the readiness checks above look right, issue the first snapshot.
-          It freezes the assessment so it can be reviewed and handed to an auditor.
+          No snapshots yet. When the readiness checks above look right, issue the first snapshot. It
+          freezes the assessment so it can be reviewed and handed to an auditor.
         </p>
       ) : (
         <ul className="space-y-4" aria-label="Snapshots, newest first">

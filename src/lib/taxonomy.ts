@@ -123,8 +123,7 @@ export const PROJECT_ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
     "Full control. Can edit the project, threat model, and findings, manage members, and delete the project.",
   ADMIN:
     "Can edit the threat model and findings, and invite or remove members. Cannot delete the project.",
-  MEMBER:
-    "Can edit the threat model and findings. Cannot manage members or delete the project.",
+  MEMBER: "Can edit the threat model and findings. Cannot manage members or delete the project.",
   VIEWER:
     "Read-only. Can view the project, threat model, findings, and reports, but cannot make changes.",
 };

@@ -61,7 +61,7 @@ export const KNOWLEDGE_BASE: Record<McpCategory, KnowledgeEntry> = {
     strideAlignment: ["ELEVATION_OF_PRIVILEGE", "SPOOFING"],
     mitigations: [
       "Validate tool invocation authorization at execution time, not just at session establishment — consent at connection time is not a substitute for per-call authorization checks.",
-      'Execute actions with the requesting user\'s permissions, not the server\'s ambient authority; the server should have no privileged actions it can take "on its own."',
+      "Execute actions with the requesting user's permissions, not the server's ambient authority; the server should have no privileged actions it can take \"on its own.\"",
       "Require per-client consent stored server-side, checked before forwarding to the third-party authorization server; do not rely on lingering consent cookies.",
       "Exactly match the registered redirect_uri (no wildcards, no prefix matching); reject changes without full re-registration.",
       "Generate a cryptographically random OAuth state parameter, bind it to the session, set it only after consent is confirmed, and validate it as single-use at the callback.",

@@ -62,9 +62,7 @@ export function Drawer({
         <div className="flex items-start justify-between border-b p-5">
           <div className="space-y-1 pr-6">
             {title ? <h2 className="text-lg font-semibold">{title}</h2> : null}
-            {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            ) : null}
+            {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
           <Button
             type="button"

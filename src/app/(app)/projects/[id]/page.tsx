@@ -88,8 +88,8 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           <div className="min-w-0 flex-1">
             <p className="font-medium">Generated from {repoShort || "a GitHub repository"}</p>
             <p className="text-xs text-violet-700/90 dark:text-violet-300/90">
-              {aiTotal} AI-suggested item{aiTotal === 1 ? "" : "s"} to review:{" "}
-              {aiBoundaries} boundar{aiBoundaries === 1 ? "y" : "ies"}, {aiVectors} vector
+              {aiTotal} AI-suggested item{aiTotal === 1 ? "" : "s"} to review: {aiBoundaries}{" "}
+              boundar{aiBoundaries === 1 ? "y" : "ies"}, {aiVectors} vector
               {aiVectors === 1 ? "" : "s"}, {aiFindings} finding{aiFindings === 1 ? "" : "s"}.
               Verify each before relying on it.
             </p>
@@ -105,7 +105,9 @@ export default async function ProjectPage({ params }: { params: { id: string } }
       {isGithub && project.analysisStatus === "FAILED" ? (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
           <p className="font-medium">Automated analysis failed</p>
-          <p className="text-xs">{project.analysisError ?? "The analysis did not complete."} Open Architecture to retry.</p>
+          <p className="text-xs">
+            {project.analysisError ?? "The analysis did not complete."} Open Architecture to retry.
+          </p>
         </div>
       ) : null}
       <div className="flex flex-col gap-4">
@@ -163,7 +165,10 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold">{openCount}</div>
-            <p className="text-xs text-muted-foreground">of {project.findings.length} total. Open means Open, In Progress, or Pending Acceptance.</p>
+            <p className="text-xs text-muted-foreground">
+              of {project.findings.length} total. Open means Open, In Progress, or Pending
+              Acceptance.
+            </p>
           </CardContent>
         </Card>
         <Card>

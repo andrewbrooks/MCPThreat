@@ -100,10 +100,7 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
 
   if (projects.length === 0) {
     return (
-      <EmptyState
-        title="No projects to manage"
-        description="Create a project to invite members."
-      />
+      <EmptyState title="No projects to manage" description="Create a project to invite members." />
     );
   }
 
@@ -157,7 +154,8 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="mem-side">Side</Label>
-            <Select id="mem-side"
+            <Select
+              id="mem-side"
               value={side}
               onChange={(e) => setSide(e.target.value as PartySide)}
               className="w-28"
@@ -186,10 +184,7 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
           <p className="text-sm text-muted-foreground">No members invited yet.</p>
         ) : (
           members.map((m) => (
-            <div
-              key={m.id}
-              className="flex items-center justify-between rounded-md border p-2.5"
-            >
+            <div key={m.id} className="flex items-center justify-between rounded-md border p-2.5">
               <div className="min-w-0">
                 <span className="text-sm">{m.email}</span>
                 {m.userId ? null : (
@@ -200,11 +195,7 @@ export function MembersManager({ projects }: { projects: ProjectOption[] }) {
                 <Badge className="border-border bg-muted text-muted-foreground">
                   {PARTY_SIDE_LABELS[m.side as PartySide] ?? m.side}
                 </Badge>
-                <Tooltip
-                  content={
-                    PROJECT_ROLE_DESCRIPTIONS[m.role as ProjectRole] ?? m.role
-                  }
-                >
+                <Tooltip content={PROJECT_ROLE_DESCRIPTIONS[m.role as ProjectRole] ?? m.role}>
                   <Badge className="cursor-help border-border bg-muted text-muted-foreground">
                     {PROJECT_ROLE_LABELS[m.role as ProjectRole] ?? m.role}
                   </Badge>

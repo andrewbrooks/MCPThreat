@@ -53,7 +53,10 @@ function LoginForm() {
       </CardHeader>
       <CardContent className="space-y-4">
         {error ? (
-          <div role="alert" className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
+          <div
+            role="alert"
+            className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400"
+          >
             <ShieldAlert className="size-4" /> {error}
           </div>
         ) : null}

@@ -40,7 +40,10 @@ export async function POST(req: Request, { params }: Params) {
         .flatMap((s) => s.checks)
         .filter((c) => c.level === "BLOCKER" && !c.passed);
       return NextResponse.json(
-        { error: "The assessment has blocking issues. Resolve them before issuing a snapshot.", checks },
+        {
+          error: "The assessment has blocking issues. Resolve them before issuing a snapshot.",
+          checks,
+        },
         { status: 409 },
       );
     }

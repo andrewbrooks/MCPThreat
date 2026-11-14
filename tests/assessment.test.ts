@@ -65,7 +65,7 @@ function input(over: Partial<AssessmentInput> = {}): AssessmentInput {
       {
         id: "f-b",
         threatVectorId: "v1",
-        title: "=HYPERLINK(\"http://x\")",
+        title: '=HYPERLINK("http://x")',
         description: "Desc | with pipe",
         recommendation: "Fix it",
         evidence: "",
@@ -201,7 +201,7 @@ describe("markdownToHtml tables", () => {
   it("accepts single-dash separator rows", () => {
     const html = markdownToHtml("| a | b |\n| - | - |\n| 1 | 2 |");
     expect(html).toContain("<table>");
-    expect(html).toContain("<th scope=\"col\">a</th>");
+    expect(html).toContain('<th scope="col">a</th>');
   });
 });
 

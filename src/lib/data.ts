@@ -1,11 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { requireProjectAccess } from "@/lib/authz";
-import {
-  completionPct,
-  openFindingCount,
-  openSeverityBreakdown,
-} from "@/lib/metrics";
+import { completionPct, openFindingCount, openSeverityBreakdown } from "@/lib/metrics";
 import { prisma } from "@/lib/prisma";
 
 // Read-side data access for server components. Mutations go through the API routes;
@@ -64,11 +60,7 @@ export async function listProjectSummaries(userId: string) {
   const email = user?.email?.toLowerCase() ?? "";
 
   const accessFilter = {
-    OR: [
-      { ownerId: userId },
-      { members: { some: { userId } } },
-      { members: { some: { email } } },
-    ],
+    OR: [{ ownerId: userId }, { members: { some: { userId } } }, { members: { some: { email } } }],
   };
 
   // Reopen any due findings across the user's projects so dashboard counts are current.

@@ -12,7 +12,10 @@ function Item({ item }: { item: WorklistItem }) {
   return (
     <li className="py-2 first:pt-0 last:pb-0">
       <p className="text-xs text-muted-foreground break-words">{item.projectName}</p>
-      <Link href={item.href} className="break-words text-sm font-medium underline underline-offset-2">
+      <Link
+        href={item.href}
+        className="break-words text-sm font-medium underline underline-offset-2"
+      >
         {item.title}
       </Link>
       <p className="break-words text-sm text-muted-foreground">{item.detail}</p>

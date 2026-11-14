@@ -26,9 +26,7 @@ export function ChangePasswordForm({ hasPassword }: { hasPassword: boolean }) {
     const res = await fetch("/api/profile/password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        hasPassword ? { currentPassword, newPassword } : { newPassword },
-      ),
+      body: JSON.stringify(hasPassword ? { currentPassword, newPassword } : { newPassword }),
     });
     const data = await res.json().catch(() => ({}));
     setSaving(false);
@@ -57,8 +55,8 @@ export function ChangePasswordForm({ hasPassword }: { hasPassword: boolean }) {
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Your account signs in with an OAuth provider. Set a password to also enable
-          email/password sign-in.
+          Your account signs in with an OAuth provider. Set a password to also enable email/password
+          sign-in.
         </p>
       )}
       <div className="space-y-1.5">

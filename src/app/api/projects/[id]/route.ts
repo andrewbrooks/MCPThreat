@@ -40,14 +40,10 @@ export async function PATCH(req: Request, { params }: Params) {
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
-        ...(data.mcpServerUrl !== undefined
-          ? { mcpServerUrl: data.mcpServerUrl || null }
-          : {}),
+        ...(data.mcpServerUrl !== undefined ? { mcpServerUrl: data.mcpServerUrl || null } : {}),
         ...(data.architecture !== undefined ? { architecture: data.architecture } : {}),
         ...(data.status !== undefined ? { status: data.status } : {}),
-        ...(data.acceptancePolicy !== undefined
-          ? { acceptancePolicy: data.acceptancePolicy }
-          : {}),
+        ...(data.acceptancePolicy !== undefined ? { acceptancePolicy: data.acceptancePolicy } : {}),
       },
     });
     return NextResponse.json({ project });

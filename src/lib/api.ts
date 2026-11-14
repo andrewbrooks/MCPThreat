@@ -14,7 +14,10 @@ export async function parseJson<T>(req: Request, schema: ZodSchema<T>): Promise<
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     const path = first?.path?.join(".");
-    throw new AuthzError(400, `Validation failed${path ? ` for "${path}"` : ""}: ${first?.message ?? "invalid input"}`);
+    throw new AuthzError(
+      400,
+      `Validation failed${path ? ` for "${path}"` : ""}: ${first?.message ?? "invalid input"}`,
+    );
   }
   return parsed.data;
 }

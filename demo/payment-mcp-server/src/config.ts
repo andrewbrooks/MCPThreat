@@ -20,7 +20,10 @@ export function loadConfig(): Config {
     ledgerUrl: process.env.LEDGER_URL ?? "https://ledger.internal.local",
     receiptStoreUrl: process.env.RECEIPT_STORE_URL ?? "https://receipts.internal.local",
     processorApiKey: process.env.PROCESSOR_API_KEY ?? "sk_demo_processor_key",
-    allowedEgressHosts: (process.env.ALLOWED_EGRESS_HOSTS ?? "processor.internal.local,ledger.internal.local,receipts.internal.local")
+    allowedEgressHosts: (
+      process.env.ALLOWED_EGRESS_HOSTS ??
+      "processor.internal.local,ledger.internal.local,receipts.internal.local"
+    )
       .split(",")
       .map((h) => h.trim())
       .filter(Boolean),

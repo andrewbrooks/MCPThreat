@@ -38,12 +38,7 @@ export const analyzeRepoSchema = z
   })
   .strict();
 
-const optionalUrl = z
-  .string()
-  .trim()
-  .max(2048)
-  .optional()
-  .or(z.literal(""));
+const optionalUrl = z.string().trim().max(2048).optional().or(z.literal(""));
 
 // --- Auth -------------------------------------------------------------------
 
@@ -87,9 +82,7 @@ export const updateProjectSchema = z
 
 // --- Threat model -----------------------------------------------------------
 
-export const updateThreatModelSchema = z
-  .object({ notes: z.string().max(20000) })
-  .strict();
+export const updateThreatModelSchema = z.object({ notes: z.string().max(20000) }).strict();
 
 // --- Trust boundary ---------------------------------------------------------
 
@@ -136,12 +129,7 @@ export const updateVectorSchema = z
 
 // --- Finding ----------------------------------------------------------------
 
-const dueDate = z
-  .string()
-  .datetime()
-  .optional()
-  .nullable()
-  .or(z.literal(""));
+const dueDate = z.string().datetime().optional().nullable().or(z.literal(""));
 
 // Review/revisit interval in days. null clears the reminder.
 export const REVIEW_INTERVALS = [30, 60, 90] as const;

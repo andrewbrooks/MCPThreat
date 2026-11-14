@@ -104,11 +104,14 @@ export function VectorManager({
         <h3 className="font-medium">Map a threat vector</h3>
         <div className="space-y-1.5">
           <Label htmlFor="vec-trust-boundary">Trust boundary</Label>
-          <Select id="vec-trust-boundary"
+          <Select
+            id="vec-trust-boundary"
             value={form.trustBoundaryId}
             onChange={(e) => setForm((f) => ({ ...f, trustBoundaryId: e.target.value }))}
           >
-            {boundaries.length === 0 ? <option value="">No boundaries — add one first</option> : null}
+            {boundaries.length === 0 ? (
+              <option value="">No boundaries — add one first</option>
+            ) : null}
             {boundaries.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.label}
@@ -118,7 +121,8 @@ export function VectorManager({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="vec-title">Title</Label>
-          <Input id="vec-title"
+          <Input
+            id="vec-title"
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="Tool poisoning via schema injection"
@@ -126,7 +130,8 @@ export function VectorManager({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="vec-description">Description</Label>
-          <Textarea id="vec-description"
+          <Textarea
+            id="vec-description"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           />
@@ -134,7 +139,8 @@ export function VectorManager({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="vec-stride-category">STRIDE category</Label>
-            <Select id="vec-stride-category"
+            <Select
+              id="vec-stride-category"
               value={form.strideCategory}
               onChange={(e) => setForm((f) => ({ ...f, strideCategory: e.target.value }))}
             >
@@ -147,7 +153,8 @@ export function VectorManager({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="vec-mcp-category">MCP category</Label>
-            <Select id="vec-mcp-category"
+            <Select
+              id="vec-mcp-category"
               value={form.mcpCategory}
               onChange={(e) => setForm((f) => ({ ...f, mcpCategory: e.target.value }))}
             >
@@ -160,7 +167,8 @@ export function VectorManager({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="vec-likelihood">Likelihood</Label>
-            <Select id="vec-likelihood"
+            <Select
+              id="vec-likelihood"
               value={form.likelihood}
               onChange={(e) => setForm((f) => ({ ...f, likelihood: e.target.value }))}
             >
@@ -173,7 +181,8 @@ export function VectorManager({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="vec-impact">Impact</Label>
-            <Select id="vec-impact"
+            <Select
+              id="vec-impact"
               value={form.impact}
               onChange={(e) => setForm((f) => ({ ...f, impact: e.target.value }))}
             >

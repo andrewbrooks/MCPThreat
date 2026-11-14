@@ -22,9 +22,7 @@ export async function GET(_req: Request, { params }: Params) {
     });
     const vectors = threatModel?.boundaries.flatMap((b) => b.vectors) ?? [];
     return NextResponse.json({
-      threatModel: threatModel
-        ? { id: threatModel.id, notes: threatModel.notes }
-        : null,
+      threatModel: threatModel ? { id: threatModel.id, notes: threatModel.notes } : null,
       completionPct: completionPct(vectors, findings),
     });
   } catch (err) {

@@ -56,7 +56,8 @@ export async function requireProjectAccess(
 
   const isOwner = project.ownerId === userId;
   const membership = project.members.find(
-    (m) => m.userId === userId || (user?.email && m.email.toLowerCase() === user.email.toLowerCase()),
+    (m) =>
+      m.userId === userId || (user?.email && m.email.toLowerCase() === user.email.toLowerCase()),
   );
 
   if (!isOwner && !membership) throw new AuthzError(404, "Project not found.");

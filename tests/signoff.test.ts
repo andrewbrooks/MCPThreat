@@ -59,7 +59,9 @@ describe("canSignOff", () => {
     expect(canSignOff("DUAL", [], viewer("issuer", "ASSESSOR"), "issuer").ok).toBe(true);
     const r = canSignOff("DUAL", [ok("ASSESSOR", "a")], viewer("b", "ASSESSOR"), "issuer");
     expect(r.ok).toBe(false);
-    expect(canSignOff("DUAL", [ok("ASSESSOR", "a")], viewer("c", "CLIENT"), "issuer").ok).toBe(true);
+    expect(canSignOff("DUAL", [ok("ASSESSOR", "a")], viewer("c", "CLIENT"), "issuer").ok).toBe(
+      true,
+    );
   });
   it("each person decides once", () => {
     const r = canSignOff("DUAL", [ok("ASSESSOR", "a")], viewer("a", "ASSESSOR"), "issuer");

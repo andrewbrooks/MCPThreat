@@ -10,7 +10,12 @@ import {
   SNAPSHOT_STATUS_LABELS,
 } from "@/lib/assessment";
 import { day as date, fmtBytes, utc } from "@/lib/report-format";
-import { executiveSummary, preparedBy, statusLine, type ExecutiveSummary } from "@/lib/report-summary";
+import {
+  executiveSummary,
+  preparedBy,
+  statusLine,
+  type ExecutiveSummary,
+} from "@/lib/report-summary";
 import { RISK_BAND_LABELS } from "@/lib/risk";
 import { PARTY_SIDE_LABELS, type PartySide } from "@/lib/taxonomy";
 
@@ -49,7 +54,12 @@ export function markdownToHtml(md: string, headingBase = 2): string {
   const out: string[] = [];
   let i = 0;
   const splitRow = (l: string) =>
-    l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+    l
+      .trim()
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((c) => c.trim());
   while (i < lines.length) {
     const line = lines[i];
     if (!line.trim()) {
@@ -93,7 +103,8 @@ export function markdownToHtml(md: string, headingBase = 2): string {
     }
     if (/^\s*>\s?/.test(line)) {
       const buf: string[] = [];
-      while (i < lines.length && /^\s*>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^\s*>\s?/, ""));
+      while (i < lines.length && /^\s*>\s?/.test(lines[i]))
+        buf.push(lines[i++].replace(/^\s*>\s?/, ""));
       out.push(`<blockquote>${inline(buf.join(" "))}</blockquote>`);
       continue;
     }
@@ -276,14 +287,21 @@ function acceptanceHtml(a: AssessmentAcceptance): string {
   const rows: string[] = [
     `<tr><th scope="row">Request</th><td>${h(a.status.charAt(0) + a.status.slice(1).toLowerCase())}, requested by ${txt(a.requestedBy)} on ${date(a.requestedAt)}</td></tr>`,
   ];
-  if (a.justification) rows.push(`<tr><th scope="row">Justification</th><td>${txt(a.justification)}</td></tr>`);
-  if (a.residualRisk) rows.push(`<tr><th scope="row">Residual risk accepted</th><td>${txt(a.residualRisk)}</td></tr>`);
+  if (a.justification)
+    rows.push(`<tr><th scope="row">Justification</th><td>${txt(a.justification)}</td></tr>`);
+  if (a.residualRisk)
+    rows.push(
+      `<tr><th scope="row">Residual risk accepted</th><td>${txt(a.residualRisk)}</td></tr>`,
+    );
   for (const ap of a.approvals) {
     rows.push(
       `<tr><th scope="row">${h(PARTY_SIDE_LABELS[ap.side as PartySide] ?? ap.side)} approval</th><td>${txt(ap.by)} on ${date(ap.at)}</td></tr>`,
     );
   }
-  if (a.rejection) rows.push(`<tr><th scope="row">Rejected by</th><td>${txt(a.rejection.by)}. ${txt(a.rejection.reason)}</td></tr>`);
+  if (a.rejection)
+    rows.push(
+      `<tr><th scope="row">Rejected by</th><td>${txt(a.rejection.by)}. ${txt(a.rejection.reason)}</td></tr>`,
+    );
   if (a.expiresAt) rows.push(`<tr><th scope="row">Expires</th><td>${date(a.expiresAt)}</td></tr>`);
   return `<table class="kv"><tbody>${rows.join("")}</tbody></table>`;
 }
@@ -350,7 +368,8 @@ function kvTable(rows: [string, string][], cls = "kv"): string {
 function signoffTable(a: Assessment): string {
   const sn = a.snapshot;
   if (!sn) return "";
-  if (sn.signoffs.length === 0) return '<p class="muted">No sign-offs have been recorded for this snapshot.</p>';
+  if (sn.signoffs.length === 0)
+    return '<p class="muted">No sign-offs have been recorded for this snapshot.</p>';
   return `<div class="scroll"><table><caption class="sr">Sign-offs recorded for this snapshot</caption><thead><tr><th scope="col">Party</th><th scope="col">Decision</th><th scope="col">Name</th><th scope="col">Date</th><th scope="col">Comment</th><th scope="col">Signature</th></tr></thead><tbody>${sn.signoffs
     .map(
       (so) =>
@@ -398,11 +417,7 @@ ${alert}
 ${kvTable(control)}
 <h2>Review and sign-off</h2>
 ${kvTable(review)}
-${
-  sn
-    ? signoffTable(a)
-    : `<div class="draft" role="note">${h(LIVE_DRAFT_NOTICE)}</div>`
-}
+${sn ? signoffTable(a) : `<div class="draft" role="note">${h(LIVE_DRAFT_NOTICE)}</div>`}
 </section>`;
 }
 
@@ -514,7 +529,10 @@ export function reportBodyHtml(a: Assessment): string {
       r.source.repoRef ? txt(r.source.repoRef) : "Default branch at import time",
     ]);
     record.push(["Analysis run", utc(r.source.analyzedAt)]);
-    record.push(["AI model", "Not recorded (configured per deployment, not stored with the analysis)"]);
+    record.push([
+      "AI model",
+      "Not recorded (configured per deployment, not stored with the analysis)",
+    ]);
   }
   if (r.source.techStack.length) record.push(["Technology", txt(r.source.techStack.join(", "))]);
   record.push(["Model created", utc(r.createdAt)]);
@@ -623,7 +641,11 @@ ${
   a.frameworks.owasp.length === 0 && a.frameworks.atlas.length === 0
     ? '<p class="muted">No threat vectors to map.</p>'
     : `<table><thead><tr><th scope="col">Framework</th><th scope="col">Reference</th><th scope="col">Name</th><th scope="col">Threat vectors</th></tr></thead><tbody>${[
-        ...a.frameworks.owasp.map((i) => ({ fw: "OWASP Top 10 for LLM Applications (2025)", i, key: "owasp" as const })),
+        ...a.frameworks.owasp.map((i) => ({
+          fw: "OWASP Top 10 for LLM Applications (2025)",
+          i,
+          key: "owasp" as const,
+        })),
         ...a.frameworks.atlas.map((i) => ({ fw: "MITRE ATLAS", i, key: "atlas" as const })),
       ]
         .map(({ fw, i, key }) => {

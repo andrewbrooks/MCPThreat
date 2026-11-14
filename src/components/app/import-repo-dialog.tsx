@@ -91,8 +91,8 @@ export function ImportRepoDialog({
             role="alert"
             className="mb-4 rounded-sm border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
           >
-            Import is not available on this server because no <code>ANTHROPIC_API_KEY</code> is
-            set. Manual threat modeling is not affected. See the README for setup.
+            Import is not available on this server because no <code>ANTHROPIC_API_KEY</code> is set.
+            Manual threat modeling is not affected. See the README for setup.
           </p>
         )}
         <form onSubmit={submit} className="space-y-4">
@@ -132,10 +132,13 @@ export function ImportRepoDialog({
               What happens when you import
             </p>
             <ul className="list-disc space-y-0.5 pl-5">
-              <li>Up to 24 relevant files from github.com are fetched, and each is truncated at 24 KB.</li>
+              <li>
+                Up to 24 relevant files from github.com are fetched, and each is truncated at 24 KB.
+              </li>
               <li>Those file contents are sent to the Anthropic API for analysis.</li>
               <li>
-                Items it proposes are labelled AI-suggested, with a confidence level, and need review.
+                Items it proposes are labelled AI-suggested, with a confidence level, and need
+                review.
               </li>
               <li>The run is synchronous and can take up to a minute.</li>
             </ul>

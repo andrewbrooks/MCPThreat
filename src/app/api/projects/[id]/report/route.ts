@@ -17,7 +17,12 @@ const FORMATS = {
 type Format = keyof typeof FORMATS;
 
 function fileSlug(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project";
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "project"
+  );
 }
 
 // GET /api/projects/:id/report?format=md|html|json|csv[&download=1]
@@ -66,7 +71,8 @@ export async function GET(req: Request, { params }: Params) {
       "Cache-Control": "private, no-store",
     };
     if (format === "html") {
-      headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'";
+      headers["Content-Security-Policy"] =
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'";
     }
     if (url.searchParams.get("download") === "1") {
       const stamp = assessment.generatedAt.slice(0, 10);

@@ -140,7 +140,8 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       href: "/model",
       fail: () => "The model has no trust boundaries",
       pass: `The model has ${count(a.boundaries.length, "trust boundary", "trust boundaries")}`,
-      detail: "Trust boundaries are where data and control cross between components, so start there.",
+      detail:
+        "Trust boundaries are where data and control cross between components, so start there.",
     }),
     check({
       id: "boundaries-without-vectors",
@@ -150,7 +151,8 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       href: "/model",
       fail: (n) => `${have(n, "trust boundary", "trust boundaries")} no threat vectors`,
       pass: "Every trust boundary has threat vectors",
-      detail: "Add the threats that apply at each boundary, or remove boundaries that are out of scope.",
+      detail:
+        "Add the threats that apply at each boundary, or remove boundaries that are out of scope.",
     }),
     check({
       id: "has-vectors",
@@ -160,7 +162,8 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       href: "/model",
       fail: () => "The model has no threat vectors",
       pass: `The model has ${count(a.vectors.length, "threat vector")}`,
-      detail: "Threat vectors describe what could go wrong at a boundary and are what findings attach to.",
+      detail:
+        "Threat vectors describe what could go wrong at a boundary and are what findings attach to.",
     }),
     check({
       id: "ai-suggested-items",
@@ -170,7 +173,8 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       href: "/model",
       fail: (n) => `${count(n, "AI-suggested item")} to confirm before issuing`,
       pass: "No AI-suggested items are waiting for confirmation",
-      detail: "Review each AI-suggested item and keep, edit or delete it so a person stands behind the record.",
+      detail:
+        "Review each AI-suggested item and keep, edit or delete it so a person stands behind the record.",
     }),
     // ASSESS
     check({
@@ -191,7 +195,8 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       href: "/findings",
       fail: (n) => `${have(n, "threat vector")} no finding yet, meaning not assessed`,
       pass: "Every threat vector has at least one finding",
-      detail: "A vector with no finding reads as not assessed, so add one even if the conclusion is low risk.",
+      detail:
+        "A vector with no finding reads as not assessed, so add one even if the conclusion is low risk.",
     }),
     check({
       id: "findings-without-rationale",
@@ -294,7 +299,8 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       href: "/review",
       fail: () => "No snapshot has been issued",
       pass: `Snapshot v${latest?.version ?? 0} has been issued`,
-      detail: "Issue a snapshot to give reviewers a frozen record that will not change underneath them.",
+      detail:
+        "Issue a snapshot to give reviewers a frozen record that will not change underneath them.",
     }),
     check({
       id: "snapshot-decided",

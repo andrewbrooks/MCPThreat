@@ -53,10 +53,22 @@ const FILTERS: Filter[] = [
   { key: "OPEN", label: "Open", test: (f) => f.status === "OPEN" },
   { key: "IN_PROGRESS", label: "In Progress", test: (f) => f.status === "IN_PROGRESS" },
   { key: "MITIGATED", label: "Mitigated", test: (f) => f.status === "MITIGATED" },
-  { key: "TOOL_POISONING", label: "Tool Poisoning", test: (f) => f.threatVector?.mcpCategory === "TOOL_POISONING" },
+  {
+    key: "TOOL_POISONING",
+    label: "Tool Poisoning",
+    test: (f) => f.threatVector?.mcpCategory === "TOOL_POISONING",
+  },
   { key: "SSRF", label: "SSRF", test: (f) => f.threatVector?.mcpCategory === "SSRF" },
-  { key: "SUPPLY_CHAIN", label: "Supply Chain", test: (f) => f.threatVector?.mcpCategory === "SUPPLY_CHAIN" },
-  { key: "DATA_EXFILTRATION", label: "Data Exfiltration", test: (f) => f.threatVector?.mcpCategory === "DATA_EXFILTRATION" },
+  {
+    key: "SUPPLY_CHAIN",
+    label: "Supply Chain",
+    test: (f) => f.threatVector?.mcpCategory === "SUPPLY_CHAIN",
+  },
+  {
+    key: "DATA_EXFILTRATION",
+    label: "Data Exfiltration",
+    test: (f) => f.threatVector?.mcpCategory === "DATA_EXFILTRATION",
+  },
 ];
 
 const ink = { fill: "hsl(var(--foreground))" };
@@ -67,7 +79,17 @@ const boundaryStroke = "hsl(var(--muted-foreground) / 0.55)";
 const arrowStroke = "hsl(var(--muted-foreground) / 0.6)";
 const RED = "#E24B4A";
 
-function ZoneLabel({ x, y, children, primary }: { x: number; y: number; children: string; primary?: boolean }) {
+function ZoneLabel({
+  x,
+  y,
+  children,
+  primary,
+}: {
+  x: number;
+  y: number;
+  children: string;
+  primary?: boolean;
+}) {
   return (
     <text
       x={x}
@@ -141,24 +163,49 @@ export function TrustBoundaryMap({ projectId, findings }: Props) {
             <marker id="tbm-end" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto">
               <path d="M0,0 L6.5,3 L0,6 z" style={{ fill: arrowStroke }} />
             </marker>
-            <marker id="tbm-start" markerWidth="9" markerHeight="9" refX="0" refY="3" orient="auto-start-reverse">
+            <marker
+              id="tbm-start"
+              markerWidth="9"
+              markerHeight="9"
+              refX="0"
+              refY="3"
+              orient="auto-start-reverse"
+            >
               <path d="M0,0 L6.5,3 L0,6 z" style={{ fill: arrowStroke }} />
             </marker>
-            <marker id="tbm-red" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
+            <marker
+              id="tbm-red"
+              markerWidth="10"
+              markerHeight="10"
+              refX="7"
+              refY="3.5"
+              orient="auto"
+            >
               <path d="M0,0 L7,3.5 L0,7 z" fill={RED} />
             </marker>
           </defs>
 
           {/* Trust boundary dashed rects */}
-          <g strokeDasharray="5 4" fill="none" strokeWidth={1.25} style={{ stroke: boundaryStroke }}>
+          <g
+            strokeDasharray="5 4"
+            fill="none"
+            strokeWidth={1.25}
+            style={{ stroke: boundaryStroke }}
+          >
             <rect x={64} y={40} width={242} height={126} rx={4} />
             <rect x={374} y={40} width={242} height={126} rx={4} />
             <rect x={28} y={378} width={624} height={116} rx={4} />
           </g>
           <g style={{ ...muted, fontSize: "10.5px", fontWeight: 600 }}>
-            <text x={70} y={35}>TB-1 · LLM ↔ MCP server</text>
-            <text x={380} y={35}>TB-2 · Client ↔ MCP server</text>
-            <text x={34} y={373}>TB-3 · MCP server ↔ External tools</text>
+            <text x={70} y={35}>
+              TB-1 · LLM ↔ MCP server
+            </text>
+            <text x={380} y={35}>
+              TB-2 · Client ↔ MCP server
+            </text>
+            <text x={34} y={373}>
+              TB-3 · MCP server ↔ External tools
+            </text>
           </g>
 
           {/* Zone boxes */}
@@ -171,18 +218,38 @@ export function TrustBoundaryMap({ projectId, findings }: Props) {
             <rect x={348} y={392} width={138} height={84} rx={3} style={zoneStyle} />
             <rect x={502} y={392} width={138} height={84} rx={3} style={zoneStyle} />
           </g>
-          <ZoneLabel x={185} y={106} primary>LLM / Agent runtime</ZoneLabel>
-          <ZoneLabel x={495} y={106} primary>Host app / User (client)</ZoneLabel>
-          <ZoneLabel x={340} y={261} primary>MCP Server</ZoneLabel>
+          <ZoneLabel x={185} y={106} primary>
+            LLM / Agent runtime
+          </ZoneLabel>
+          <ZoneLabel x={495} y={106} primary>
+            Host app / User (client)
+          </ZoneLabel>
+          <ZoneLabel x={340} y={261} primary>
+            MCP Server
+          </ZoneLabel>
           <g style={{ ...ink, fontSize: "11.5px", fontWeight: 500 }}>
-            <text x={109} y={438} textAnchor="middle">File system</text>
-            <text x={263} y={438} textAnchor="middle">HTTP / APIs</text>
-            <text x={417} y={438} textAnchor="middle">Database</text>
-            <text x={571} y={438} textAnchor="middle">System cmds</text>
+            <text x={109} y={438} textAnchor="middle">
+              File system
+            </text>
+            <text x={263} y={438} textAnchor="middle">
+              HTTP / APIs
+            </text>
+            <text x={417} y={438} textAnchor="middle">
+              Database
+            </text>
+            <text x={571} y={438} textAnchor="middle">
+              System cmds
+            </text>
           </g>
 
           {/* Bidirectional arrows */}
-          <g fill="none" strokeWidth={1.4} style={{ stroke: arrowStroke }} markerEnd="url(#tbm-end)" markerStart="url(#tbm-start)">
+          <g
+            fill="none"
+            strokeWidth={1.4}
+            style={{ stroke: arrowStroke }}
+            markerEnd="url(#tbm-end)"
+            markerStart="url(#tbm-start)"
+          >
             <line x1={244} y1={148} x2={300} y2={210} />
             <line x1={436} y1={148} x2={380} y2={210} />
             <line x1={330} y1={302} x2={132} y2={392} />
@@ -265,7 +332,9 @@ export function TrustBoundaryMap({ projectId, findings }: Props) {
             <p className="mt-0.5 text-xs text-muted-foreground">
               {[
                 hover.f.threatVector?.trustBoundary
-                  ? TRUST_BOUNDARY_LABELS[hover.f.threatVector.trustBoundary.type as TrustBoundaryType]
+                  ? TRUST_BOUNDARY_LABELS[
+                      hover.f.threatVector.trustBoundary.type as TrustBoundaryType
+                    ]
                   : null,
                 hover.f.threatVector
                   ? STRIDE_LABELS[hover.f.threatVector.strideCategory as StrideCategory]

@@ -17,7 +17,9 @@ describe("redact", () => {
   });
 
   it("scrubs token-shaped strings inside values", () => {
-    const out = redact({ note: "failed with Bearer abc.def-123456 and sk-ant-api03-ABCDEFGH1234" }) as {
+    const out = redact({
+      note: "failed with Bearer abc.def-123456 and sk-ant-api03-ABCDEFGH1234",
+    }) as {
       note: string;
     };
     expect(out.note).not.toMatch(/abc\.def|sk-ant-api03/);
@@ -37,7 +39,10 @@ describe("redact", () => {
   });
 
   it("serialises errors without leaking secrets in the message", () => {
-    const out = redact(new Error("call failed: Bearer secretvalue12345")) as { name: string; message: string };
+    const out = redact(new Error("call failed: Bearer secretvalue12345")) as {
+      name: string;
+      message: string;
+    };
     expect(out.name).toBe("Error");
     expect(out.message).not.toContain("secretvalue12345");
   });
@@ -54,7 +59,9 @@ describe("formatLog", () => {
   });
 
   it("does not let a field overwrite the reserved keys", () => {
-    const line = parse(formatLog("info", "real", { level: "debug", msg: "fake", time: "never" }, T));
+    const line = parse(
+      formatLog("info", "real", { level: "debug", msg: "fake", time: "never" }, T),
+    );
     expect(line.level).toBe("info");
     expect(line.msg).toBe("real");
     expect(line.time).toBe("2026-01-02T03:04:05.000Z");

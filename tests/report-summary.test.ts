@@ -74,7 +74,15 @@ function input(vectors: V[], findings: F[], name = "Demo", policy = "OFF"): Asse
     owner: { name: "Ann", email: "ann@example.com" },
     members: [],
     boundaries: [
-      { id: "b1", label: "B", type: "AGENT_TO_SERVER", description: "", source: "MANUAL", createdAt: T0, vectors },
+      {
+        id: "b1",
+        label: "B",
+        type: "AGENT_TO_SERVER",
+        description: "",
+        source: "MANUAL",
+        createdAt: T0,
+        vectors,
+      },
     ],
     findings,
     audit: [],
@@ -140,7 +148,9 @@ describe("executiveSummary data", () => {
       bandLabel: "Critical",
       count: 1,
     });
-    expect(all.find((c) => c.likelihood === "LOW" && c.impact === "HIGH")?.bandLabel).toBe("Medium");
+    expect(all.find((c) => c.likelihood === "LOW" && c.impact === "HIGH")?.bandLabel).toBe(
+      "Medium",
+    );
   });
   it("status segments sum to the finding count", () => {
     expect(x.statuses.reduce((t, s) => t + s.count, 0)).toBe(a.summary.findingCount);
@@ -171,7 +181,13 @@ describe("attention list", () => {
     const x = executiveSummary(buildAssessment(input(v, fs), GEN));
     expect(x.attentionTotal).toBe(7);
     expect(x.attention).toHaveLength(5);
-    expect(x.attention.map((f) => f.severity)).toEqual(["CRITICAL", "HIGH", "HIGH", "MEDIUM", "LOW"]);
+    expect(x.attention.map((f) => f.severity)).toEqual([
+      "CRITICAL",
+      "HIGH",
+      "HIGH",
+      "MEDIUM",
+      "LOW",
+    ]);
     expect(x.attention.every((f) => f.isOpen)).toBe(true);
   });
   it("breaks ties by earliest due date, undated last", () => {
@@ -184,7 +200,11 @@ describe("attention list", () => {
       ]),
       GEN,
     );
-    expect(attentionOrder(a.findings).map((f) => f.dueDate)).toEqual(["2026-04-01", "2026-05-01", null]);
+    expect(attentionOrder(a.findings).map((f) => f.dueDate)).toEqual([
+      "2026-04-01",
+      "2026-05-01",
+      null,
+    ]);
   });
 });
 
@@ -200,7 +220,12 @@ describe("key observations", () => {
     const v = [vec(), vec(), vec({ source: "AI", confidence: "LOW" })];
     const a = buildAssessment(
       input(v, [
-        fnd(v[0].id, { owner: "", severity: "CRITICAL", evidence: "", dueDate: new Date("2026-02-28") }),
+        fnd(v[0].id, {
+          owner: "",
+          severity: "CRITICAL",
+          evidence: "",
+          dueDate: new Date("2026-02-28"),
+        }),
         fnd(v[0].id, { owner: " ", dueDate: new Date("2026-03-01") }),
         fnd(v[2].id, { status: "ACCEPTED", reviewDueAt: new Date("2026-03-20") }),
         fnd(v[2].id, { status: "ACCEPTED", reviewDueAt: new Date("2026-05-20") }),
@@ -212,13 +237,19 @@ describe("key observations", () => {
     expect(o).toContain("2 open findings have no owner.");
     expect(o).toContain("1 open finding is past its due date, as at 2026-03-01.");
     expect(o).toContain("1 Critical or High finding has no evidence recorded.");
-    expect(o.some((t) => t.startsWith("1 AI-suggested item") && t.includes("not been confirmed by a person"))).toBe(true);
+    expect(
+      o.some(
+        (t) => t.startsWith("1 AI-suggested item") && t.includes("not been confirmed by a person"),
+      ),
+    ).toBe(true);
     expect(o).toContain("1 accepted risk comes up for review within 30 days.");
   });
   it("computes overdue from generatedAt, not the viewer's clock", () => {
     const v = [vec()];
     const fs = [fnd(v[0].id, { dueDate: new Date("2026-06-01") })];
-    const before = executiveSummary(buildAssessment(input(v, fs), new Date("2026-05-31T23:00:00Z")));
+    const before = executiveSummary(
+      buildAssessment(input(v, fs), new Date("2026-05-31T23:00:00Z")),
+    );
     const after = executiveSummary(buildAssessment(input(v, fs), new Date("2026-06-02T01:00:00Z")));
     expect(before.observations.join(" ")).not.toMatch(/past/);
     expect(after.observations.join(" ")).toMatch(/1 open finding is past its due date/);
@@ -234,8 +265,22 @@ const snapInfo = (over: Partial<SnapshotInfo> = {}): SnapshotInfo => ({
   requirement: "DUAL",
   status: "APPROVED",
   signoffs: [
-    { userId: "u1", side: "ASSESSOR", decision: "APPROVED", comment: "", by: "ann@example.com", at: "2026-02-02T09:30:00.000Z" },
-    { userId: "u2", side: "CLIENT", decision: "APPROVED", comment: "<img src=x onerror=1>", by: "<b>Cli</b>", at: "2026-02-03T09:30:00.000Z" },
+    {
+      userId: "u1",
+      side: "ASSESSOR",
+      decision: "APPROVED",
+      comment: "",
+      by: "ann@example.com",
+      at: "2026-02-02T09:30:00.000Z",
+    },
+    {
+      userId: "u2",
+      side: "CLIENT",
+      decision: "APPROVED",
+      comment: "<img src=x onerror=1>",
+      by: "<b>Cli</b>",
+      at: "2026-02-03T09:30:00.000Z",
+    },
   ],
   integrity: "VERIFIED",
   ...over,
@@ -322,7 +367,9 @@ describe("cover and executive summary output", () => {
 
   it("contains no em dashes in summary wording", () => {
     const x = executiveSummary(live);
-    expect([x.headline, ...x.observations, x.noObservationsText, x.observationsNote].join(" ")).not.toContain("—");
+    expect(
+      [x.headline, ...x.observations, x.noObservationsText, x.observationsNote].join(" "),
+    ).not.toContain("—");
   });
 
   it("is self-contained", () => {

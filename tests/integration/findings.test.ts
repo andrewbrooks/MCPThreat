@@ -5,7 +5,10 @@ import { addMember, json, makeProject, makeUser, params, prisma, request } from 
 import { signInAs } from "./session";
 
 const patch = (projectId: string, fid: string, body: unknown) =>
-  PATCH(request("PATCH", `/api/projects/${projectId}/findings/${fid}`, body), params({ id: projectId, fid }));
+  PATCH(
+    request("PATCH", `/api/projects/${projectId}/findings/${fid}`, body),
+    params({ id: projectId, fid }),
+  );
 
 describe("risk acceptance cannot be bypassed by editing status", () => {
   it("rejects setting ACCEPTED or PENDING_ACCEPTANCE directly when a policy is active", async () => {
@@ -16,7 +19,9 @@ describe("risk acceptance cannot be bypassed by editing status", () => {
       const res = await patch(project.id, project.findingId!, { status });
       expect(res.status).toBe(400);
     }
-    expect((await prisma.finding.findUniqueOrThrow({ where: { id: project.findingId! } })).status).toBe("OPEN");
+    expect(
+      (await prisma.finding.findUniqueOrThrow({ where: { id: project.findingId! } })).status,
+    ).toBe("OPEN");
   });
 
   it("allows ACCEPTED when the policy is off", async () => {
@@ -30,7 +35,9 @@ describe("risk acceptance cannot be bypassed by editing status", () => {
     const owner = await makeUser();
     const project = await makeProject(owner, { policy: "DUAL", complete: true });
     signInAs(owner);
-    expect((await patch(project.id, project.findingId!, { status: "IN_PROGRESS" })).status).toBe(200);
+    expect((await patch(project.id, project.findingId!, { status: "IN_PROGRESS" })).status).toBe(
+      200,
+    );
   });
 });
 
@@ -41,7 +48,9 @@ describe("finding updates are scoped to the project", () => {
     const b = await makeProject(owner, { complete: true });
     signInAs(owner);
     expect((await patch(b.id, a.findingId!, { status: "CLOSED" })).status).toBe(404);
-    expect((await prisma.finding.findUniqueOrThrow({ where: { id: a.findingId! } })).status).toBe("OPEN");
+    expect((await prisma.finding.findUniqueOrThrow({ where: { id: a.findingId! } })).status).toBe(
+      "OPEN",
+    );
   });
 
   it("forbids viewers from editing", async () => {
@@ -70,6 +79,9 @@ describe("health check", () => {
   it("reports the database as up", async () => {
     const res = await health();
     expect(res.status).toBe(200);
-    expect(await json<{ status: string; db: string }>(res)).toMatchObject({ status: "ok", db: "up" });
+    expect(await json<{ status: string; db: string }>(res)).toMatchObject({
+      status: "ok",
+      db: "up",
+    });
   });
 });

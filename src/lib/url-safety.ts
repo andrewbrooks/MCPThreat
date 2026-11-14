@@ -9,10 +9,7 @@ export interface UrlCheckResult {
   normalized?: string;
 }
 
-const BLOCKED_HOSTNAMES = new Set([
-  "localhost",
-  "metadata.google.internal",
-]);
+const BLOCKED_HOSTNAMES = new Set(["localhost", "metadata.google.internal"]);
 
 // Cloud metadata + common local service addresses that must always be blocked.
 const BLOCKED_EXACT_IPS = new Set(["169.254.169.254", "0.0.0.0", "::", "::1", "[::1]"]);
@@ -85,7 +82,10 @@ export function checkMcpServerUrl(input: string, allowLoopback = false): UrlChec
     return { ok: false, reason: `Scheme "${scheme}" is not allowed. Use https://.` };
   }
   if (scheme === "http" && !(allowLoopback && isLoopback)) {
-    return { ok: false, reason: "Use https:// (http:// is only allowed for loopback in development)." };
+    return {
+      ok: false,
+      reason: "Use https:// (http:// is only allowed for loopback in development).",
+    };
   }
 
   if (allowLoopback && isLoopback) {

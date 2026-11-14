@@ -20,9 +20,7 @@ export const metadata: Metadata = {
     "Model trust boundaries, map STRIDE and MCP-specific threat vectors, track findings, and generate threat-model reports for Model Context Protocol servers.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     // The font variables must be defined on <html>: Tailwind sets font-family there, and a
     // variable defined on <body> is invisible to its parent.

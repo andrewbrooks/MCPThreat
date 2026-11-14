@@ -209,7 +209,8 @@ const findings: FindingSeed[] = [
     status: "IN_PROGRESS",
     owner: "platform@example.com",
     dueInDays: 30,
-    evidence: "Code review of downstream.ts confirms Authorization header is passed through verbatim.",
+    evidence:
+      "Code review of downstream.ts confirms Authorization header is passed through verbatim.",
     reminderIntervalDays: 14,
   },
   {
@@ -223,7 +224,8 @@ const findings: FindingSeed[] = [
     status: "MITIGATED",
     owner: "platform@example.com",
     dueInDays: -5,
-    evidence: "Egress allowlist and private-range blocklist deployed in v2.3.1; verified against metadata endpoint.",
+    evidence:
+      "Egress allowlist and private-range blocklist deployed in v2.3.1; verified against metadata endpoint.",
   },
   {
     vectorKey: "rogue-server",
@@ -249,7 +251,8 @@ const findings: FindingSeed[] = [
     status: "ACCEPTED",
     owner: "ciso@example.com",
     dueInDays: null,
-    evidence: "Risk formally accepted for Q3 pending SIEM rollout; compensating manual review in place.",
+    evidence:
+      "Risk formally accepted for Q3 pending SIEM rollout; compensating manual review in place.",
     reviewIntervalDays: 90,
   },
   {
@@ -263,7 +266,8 @@ const findings: FindingSeed[] = [
     status: "CLOSED",
     owner: "platform@example.com",
     dueInDays: -20,
-    evidence: "Depth cap (max 5) and per-session rate limit shipped in v2.2.0; load test confirms no runaway.",
+    evidence:
+      "Depth cap (max 5) and per-session rate limit shipped in v2.2.0; load test confirms no runaway.",
   },
 ];
 
@@ -352,9 +356,7 @@ async function main() {
     const vectorId = vectorIdByKey.get(f.vectorKey);
     if (!vectorId) continue;
     const dueDate =
-      f.dueInDays === null
-        ? null
-        : new Date(Date.now() + f.dueInDays * 24 * 60 * 60 * 1000);
+      f.dueInDays === null ? null : new Date(Date.now() + f.dueInDays * 24 * 60 * 60 * 1000);
     const reviewIntervalDays = f.reviewIntervalDays ?? null;
     const reviewDueAt = reviewIntervalDays
       ? new Date(Date.now() + reviewIntervalDays * 24 * 60 * 60 * 1000)

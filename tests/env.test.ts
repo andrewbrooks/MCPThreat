@@ -32,7 +32,9 @@ describe("productionEnvProblems", () => {
 
   it("requires NEXTAUTH_URL unless the platform provides one", () => {
     expect(productionEnvProblems({ ...GOOD, NEXTAUTH_URL: undefined })[0]).toMatch(/NEXTAUTH_URL/);
-    expect(productionEnvProblems({ ...GOOD, NEXTAUTH_URL: undefined, VERCEL_URL: "x.vercel.app" })).toEqual([]);
+    expect(
+      productionEnvProblems({ ...GOOD, NEXTAUTH_URL: undefined, VERCEL_URL: "x.vercel.app" }),
+    ).toEqual([]);
   });
 
   it("requires DATABASE_URL", () => {
@@ -51,11 +53,15 @@ describe("assertProductionEnv", () => {
   });
 
   it("does nothing while next build collects pages", () => {
-    expect(() => assertProductionEnv({ NODE_ENV: "production", NEXT_PHASE: "phase-production-build" })).not.toThrow();
+    expect(() =>
+      assertProductionEnv({ NODE_ENV: "production", NEXT_PHASE: "phase-production-build" }),
+    ).not.toThrow();
   });
 
   it("throws in production with every problem listed", () => {
-    expect(() => assertProductionEnv({ NODE_ENV: "production" })).toThrow(/NEXTAUTH_SECRET[\s\S]*NEXTAUTH_URL[\s\S]*DATABASE_URL/);
+    expect(() => assertProductionEnv({ NODE_ENV: "production" })).toThrow(
+      /NEXTAUTH_SECRET[\s\S]*NEXTAUTH_URL[\s\S]*DATABASE_URL/,
+    );
   });
 
   it("passes in production with a good configuration", () => {

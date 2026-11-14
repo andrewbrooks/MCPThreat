@@ -44,10 +44,7 @@ export async function PATCH(req: Request, { params }: Params) {
         );
       }
       if (before.status === "PENDING_ACCEPTANCE") {
-        throw new AuthzError(
-          400,
-          "Resolve the pending acceptance request before changing status.",
-        );
+        throw new AuthzError(400, "Resolve the pending acceptance request before changing status.");
       }
     }
 

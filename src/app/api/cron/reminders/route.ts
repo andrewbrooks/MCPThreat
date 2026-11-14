@@ -11,10 +11,7 @@ import { safeEqual } from "@/lib/secure-compare";
 async function run(req: Request): Promise<NextResponse> {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
-    return NextResponse.json(
-      { error: "CRON_SECRET is not configured." },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "CRON_SECRET is not configured." }, { status: 503 });
   }
   // The secret is accepted only in the Authorization header. A query-string secret would
   // end up in access logs, proxies and browser history.

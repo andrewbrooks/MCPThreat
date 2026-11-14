@@ -101,7 +101,11 @@ export function mapFindingRow(f: RawFinding, displayId = "") {
         }
       : null,
     threatVector: f.threatVector
-      ? { id: f.threatVector.id, title: f.threatVector.title, mcpCategory: f.threatVector.mcpCategory }
+      ? {
+          id: f.threatVector.id,
+          title: f.threatVector.title,
+          mcpCategory: f.threatVector.mcpCategory,
+        }
       : null,
   };
 }

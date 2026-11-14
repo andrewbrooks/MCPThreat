@@ -54,7 +54,8 @@ export default async function ArchitecturePage({ params }: { params: { id: strin
             rel="noopener noreferrer"
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
-            <GitBranch className="size-4" /> {project.repoUrl.replace(/^https:\/\/github\.com\//, "")}
+            <GitBranch className="size-4" />{" "}
+            {project.repoUrl.replace(/^https:\/\/github\.com\//, "")}
           </Link>
           {project.analyzedAt ? (
             <span className="text-xs text-muted-foreground">
@@ -69,7 +70,9 @@ export default async function ArchitecturePage({ params }: { params: { id: strin
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
           <div>
             <p className="font-medium">Analysis failed</p>
-            <p className="text-xs">{project.analysisError ?? "The analysis run did not complete."}</p>
+            <p className="text-xs">
+              {project.analysisError ?? "The analysis run did not complete."}
+            </p>
           </div>
         </div>
       ) : null}

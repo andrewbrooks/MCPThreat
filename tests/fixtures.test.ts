@@ -64,7 +64,11 @@ describe("assessment fixture", () => {
   const a = buildAssessment(input, GENERATED_AT);
 
   it("numbers items by creation order", () => {
-    expect(a.findings.map((f) => [f.id, f.uid])).toEqual([["F-001", "f1"], ["F-002", "f2"], ["F-003", "f3"]]);
+    expect(a.findings.map((f) => [f.id, f.uid])).toEqual([
+      ["F-001", "f1"],
+      ["F-002", "f2"],
+      ["F-003", "f3"],
+    ]);
     expect(a.vectors.map((v) => v.id)).toEqual(["T-01", "T-02", "T-03"]);
     expect(a.boundaries.map((b) => b.id)).toEqual(["B-01", "B-02"]);
   });
@@ -77,14 +81,32 @@ describe("assessment fixture", () => {
 
   it("carries the dual-approval record for the accepted finding", () => {
     const accepted = a.findings.find((f) => f.id === "F-002")!;
-    expect(accepted.acceptance?.approvals.map((x) => x.side).sort()).toEqual(["ASSESSOR", "CLIENT"]);
+    expect(accepted.acceptance?.approvals.map((x) => x.side).sort()).toEqual([
+      "ASSESSOR",
+      "CLIENT",
+    ]);
   });
 
   it("produces a stable content hash that ignores the audit trail and generation time", () => {
     const later = buildAssessment(input, new Date("2027-01-01T00:00:00.000Z"));
     expect(assessmentContentHash(a)).toBe(assessmentContentHash(later));
     const withAudit = buildAssessment(
-      { ...input, audit: [{ id: "e1", findingId: "f1", actorLabel: "x", action: "UPDATED", field: null, oldValue: null, newValue: null, detail: null, createdAt: "2026-03-09T00:00:00.000Z" }] },
+      {
+        ...input,
+        audit: [
+          {
+            id: "e1",
+            findingId: "f1",
+            actorLabel: "x",
+            action: "UPDATED",
+            field: null,
+            oldValue: null,
+            newValue: null,
+            detail: null,
+            createdAt: "2026-03-09T00:00:00.000Z",
+          },
+        ],
+      },
       GENERATED_AT,
     );
     expect(assessmentModelHash(withAudit)).toBe(assessmentModelHash(a));

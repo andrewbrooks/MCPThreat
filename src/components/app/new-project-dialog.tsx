@@ -63,15 +63,15 @@ export function NewProjectDialog({ variant = "default" }: { variant?: "default" 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogHeader>
           <DialogTitle>New Project</DialogTitle>
-          <DialogDescription>
-            Create a threat model for an MCP server deployment.
-          </DialogDescription>
+          <DialogDescription>Create a threat model for an MCP server deployment.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input id="name" placeholder="Payment MCP Server" {...register("name")} />
-            {errors.name ? <p className="text-xs text-red-600 dark:text-red-400">{errors.name.message}</p> : null}
+            {errors.name ? (
+              <p className="text-xs text-red-600 dark:text-red-400">{errors.name.message}</p>
+            ) : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="description">Description</Label>
@@ -89,7 +89,9 @@ export function NewProjectDialog({ variant = "default" }: { variant?: "default" 
               {...register("mcpServerUrl")}
             />
             {errors.mcpServerUrl ? (
-              <p className="text-xs text-red-600 dark:text-red-400">{errors.mcpServerUrl.message}</p>
+              <p className="text-xs text-red-600 dark:text-red-400">
+                {errors.mcpServerUrl.message}
+              </p>
             ) : null}
           </div>
           <div className="space-y-1.5">

@@ -1,11 +1,10 @@
-import { frameworksForCategories, frameworksForCategory, type FrameworkItem } from "@/lib/frameworks";
-import { getKnowledge } from "@/lib/mcp-knowledge-base";
 import {
-  completionPct,
-  isOpenStatus,
-  openFindingCount,
-  statusBreakdown,
-} from "@/lib/metrics";
+  frameworksForCategories,
+  frameworksForCategory,
+  type FrameworkItem,
+} from "@/lib/frameworks";
+import { getKnowledge } from "@/lib/mcp-knowledge-base";
+import { completionPct, isOpenStatus, openFindingCount, statusBreakdown } from "@/lib/metrics";
 import { RISK_BAND_LABELS, residualScore, riskBand, riskScore, type RiskBand } from "@/lib/risk";
 import {
   ACCEPTANCE_POLICY_LABELS,
@@ -456,9 +455,7 @@ function toAcceptance(
     requestedBy: r.requestedByLabel,
     requestedAt: iso(r.createdAt),
     approvals,
-    rejection: r.rejectedByLabel
-      ? { by: r.rejectedByLabel, reason: r.rejectedReason ?? "" }
-      : null,
+    rejection: r.rejectedByLabel ? { by: r.rejectedByLabel, reason: r.rejectedReason ?? "" } : null,
     resolvedAt: iso(r.resolvedAt),
     expiresAt: iso(r.expiresAt),
   };
@@ -603,7 +600,11 @@ export function buildAssessment(input: AssessmentInput, generatedAt = new Date()
   const owner = input.owner;
   const people: Assessment["record"]["people"] = [];
   if (owner) {
-    people.push({ label: owner.name ? `${owner.name} <${owner.email}>` : owner.email, role: "Owner", side: "ASSESSOR" });
+    people.push({
+      label: owner.name ? `${owner.name} <${owner.email}>` : owner.email,
+      role: "Owner",
+      side: "ASSESSOR",
+    });
   }
   for (const m of input.members) {
     people.push({

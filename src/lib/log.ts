@@ -10,7 +10,8 @@ type Threshold = LogLevel | "silent";
 
 const ORDER: Record<Threshold, number> = { debug: 10, info: 20, warn: 30, error: 40, silent: 100 };
 
-const SENSITIVE_KEY = /pass(word)?|secret|token|authorization|cookie|api[-_]?key|credential|session/i;
+const SENSITIVE_KEY =
+  /pass(word)?|secret|token|authorization|cookie|api[-_]?key|credential|session/i;
 const TOKEN_SHAPES: RegExp[] = [
   /Bearer\s+[A-Za-z0-9._~+/=-]{8,}/g,
   /sk-ant-[A-Za-z0-9_-]{8,}/g,

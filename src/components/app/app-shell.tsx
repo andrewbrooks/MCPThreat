@@ -82,13 +82,22 @@ export function AppShell({ user, projects, children }: AppShellProps) {
 
   const projectNav: NavItem[] = activeProjectId
     ? [
-        { href: `/projects/${activeProjectId}`, label: "Overview", icon: FolderKanban, exact: true },
+        {
+          href: `/projects/${activeProjectId}`,
+          label: "Overview",
+          icon: FolderKanban,
+          exact: true,
+        },
         { href: `/projects/${activeProjectId}/model`, label: "Threat Model", icon: Boxes },
         { href: `/projects/${activeProjectId}/architecture`, label: "Architecture", icon: Network },
         { href: `/projects/${activeProjectId}/dataflow`, label: "Dataflow", icon: Workflow },
         { href: `/projects/${activeProjectId}/findings`, label: "Findings", icon: ShieldAlert },
         { href: `/projects/${activeProjectId}/activity`, label: "Activity", icon: History },
-        { href: `/projects/${activeProjectId}/review`, label: "Review and sign-off", icon: ClipboardCheck },
+        {
+          href: `/projects/${activeProjectId}/review`,
+          label: "Review and sign-off",
+          icon: ClipboardCheck,
+        },
         { href: `/projects/${activeProjectId}/report`, label: "Live report", icon: FileText },
       ]
     : [];
@@ -137,9 +146,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
           <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Shield className="size-[18px]" aria-hidden="true" />
           </div>
-          {mini ? null : (
-            <span className="text-lg font-semibold tracking-tight">MCPThreat</span>
-          )}
+          {mini ? null : <span className="text-lg font-semibold tracking-tight">MCPThreat</span>}
         </Link>
         {/* Collapse toggle (desktop only) */}
         <Button
@@ -149,11 +156,7 @@ export function AppShell({ user, projects, children }: AppShellProps) {
           onClick={toggleCollapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? (
-            <PanelLeftOpen className="size-4" />
-          ) : (
-            <PanelLeftClose className="size-4" />
-          )}
+          {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
         </Button>
       </div>
 

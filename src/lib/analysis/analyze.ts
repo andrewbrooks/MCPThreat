@@ -140,8 +140,14 @@ const toolInputSchema = {
             properties: {
               from: { type: "string", description: "Source node id." },
               to: { type: "string", description: "Target node id." },
-              label: { type: "string", description: "What flows (e.g. 'tool call', 'API response')." },
-              dataClass: { type: "string", description: "Data classification, e.g. 'credentials', 'PII', 'public'." },
+              label: {
+                type: "string",
+                description: "What flows (e.g. 'tool call', 'API response').",
+              },
+              dataClass: {
+                type: "string",
+                description: "Data classification, e.g. 'credentials', 'PII', 'public'.",
+              },
               crossesBoundary: {
                 type: "boolean",
                 description: "True if this flow crosses a trust boundary.",
@@ -175,7 +181,10 @@ const toolInputSchema = {
       items: {
         type: "object",
         properties: {
-          boundaryLabel: { type: "string", description: "Exact label of the boundary this vector belongs to." },
+          boundaryLabel: {
+            type: "string",
+            description: "Exact label of the boundary this vector belongs to.",
+          },
           title: { type: "string" },
           description: { type: "string" },
           strideCategory: enumProp(STRIDE_CATEGORIES, "STRIDE category."),
@@ -195,7 +204,10 @@ const toolInputSchema = {
       items: {
         type: "object",
         properties: {
-          vectorTitle: { type: "string", description: "Exact title of the vector this finding relates to." },
+          vectorTitle: {
+            type: "string",
+            description: "Exact title of the vector this finding relates to.",
+          },
           title: { type: "string" },
           description: { type: "string" },
           recommendation: { type: "string" },
@@ -233,10 +245,7 @@ function buildUserPrompt(bundle: RepoBundle): string {
     .join("\n");
 
   const fileBlocks = bundle.files
-    .map(
-      (f) =>
-        `----- FILE: ${f.path}${f.truncated ? " (truncated)" : ""} -----\n${f.content}`,
-    )
+    .map((f) => `----- FILE: ${f.path}${f.truncated ? " (truncated)" : ""} -----\n${f.content}`)
     .join("\n\n");
 
   return `${header}\n\nBelow are the most relevant files from the repository.\n\n${fileBlocks}\n\nAnalyze this repository and call ${TOOL_NAME} once with the structured threat model.`;

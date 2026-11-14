@@ -68,7 +68,11 @@ export async function POST(req: Request, { params }: Params) {
     const now = new Date();
     const signoff =
       side === "ASSESSOR"
-        ? { assessorApproverId: actor.id, assessorApproverLabel: actor.label, assessorApprovedAt: now }
+        ? {
+            assessorApproverId: actor.id,
+            assessorApproverLabel: actor.label,
+            assessorApprovedAt: now,
+          }
         : { clientApproverId: actor.id, clientApproverLabel: actor.label, clientApprovedAt: now };
 
     const updated = await prisma.acceptanceRequest.update({

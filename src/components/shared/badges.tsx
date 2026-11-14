@@ -89,12 +89,7 @@ export function ProjectStatusBadge({ status, className }: { status: string; clas
 export function StrideBadge({ category, className }: { category: string; className?: string }) {
   const c = category as StrideCategory;
   return (
-    <Badge
-      className={cn(
-        "border-border bg-muted/60 text-foreground/80",
-        className,
-      )}
-    >
+    <Badge className={cn("border-border bg-muted/60 text-foreground/80", className)}>
       {STRIDE_LABELS[c] ?? category}
     </Badge>
   );
@@ -137,12 +132,7 @@ export function McpCategoryBadge({
 }) {
   const c = category as McpCategory;
   return (
-    <Badge
-      className={cn(
-        "border-border bg-muted/60 text-foreground/80",
-        className,
-      )}
-    >
+    <Badge className={cn("border-border bg-muted/60 text-foreground/80", className)}>
       {MCP_CATEGORY_LABELS[c] ?? category}
     </Badge>
   );

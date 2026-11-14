@@ -61,7 +61,9 @@ describe("reminders endpoint behaviour", () => {
 
     const after = await prisma.finding.findUniqueOrThrow({ where: { id: project.findingId! } });
     expect(after.reminderNextAt!.getTime()).toBeGreaterThan(Date.now());
-    const audit = await prisma.auditEvent.count({ where: { projectId: project.id, action: "REMINDER_SENT" } });
+    const audit = await prisma.auditEvent.count({
+      where: { projectId: project.id, action: "REMINDER_SENT" },
+    });
     expect(audit).toBe(1);
   });
 
@@ -70,9 +72,16 @@ describe("reminders endpoint behaviour", () => {
     const project = await makeProject(owner, { complete: true });
     await prisma.finding.update({
       where: { id: project.findingId! },
-      data: { status: "CLOSED", owner: owner.email, reminderIntervalDays: 7, reminderNextAt: new Date("2020-01-01T00:00:00.000Z") },
+      data: {
+        status: "CLOSED",
+        owner: owner.email,
+        reminderIntervalDays: 7,
+        reminderNextAt: new Date("2020-01-01T00:00:00.000Z"),
+      },
     });
     await GET(request("GET", URL_PATH, undefined, bearer(SECRET)));
-    expect(await prisma.auditEvent.count({ where: { projectId: project.id, action: "REMINDER_SENT" } })).toBe(0);
+    expect(
+      await prisma.auditEvent.count({ where: { projectId: project.id, action: "REMINDER_SENT" } }),
+    ).toBe(0);
   });
 });

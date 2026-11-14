@@ -44,7 +44,10 @@ export function RiskMatrix({ vectors }: { vectors: (RiskVector & { title?: strin
           {RISK_BAND_ORDER.slice()
             .reverse()
             .map((b) => (
-              <span key={b} className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <span
+                key={b}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+              >
                 <span className={cn("inline-block size-2.5 rounded-sm", RISK_BAND_CELL[b])} />
                 {RISK_BAND_LABELS[b]} {counts[b]}
               </span>
@@ -65,7 +68,10 @@ export function RiskMatrix({ vectors }: { vectors: (RiskVector & { title?: strin
             {/* top-left spacer */}
             <div />
             {LIKELIHOODS.map((l) => (
-              <div key={l} className="pb-1 text-center text-[11px] font-medium text-muted-foreground">
+              <div
+                key={l}
+                className="pb-1 text-center text-[11px] font-medium text-muted-foreground"
+              >
                 {RISK_LEVEL_LABELS[l]}
               </div>
             ))}

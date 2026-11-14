@@ -68,7 +68,12 @@ export class PaymentProcessorClient {
 export class LedgerClient {
   constructor(private cfg: Config) {}
 
-  async record(entry: { transactionId: string; merchantId: string; amount: number; kind: "charge" | "refund" }): Promise<void> {
+  async record(entry: {
+    transactionId: string;
+    merchantId: string;
+    amount: number;
+    kind: "charge" | "refund";
+  }): Promise<void> {
     assertAllowed(this.cfg.ledgerUrl, this.cfg);
     await fetch(`${this.cfg.ledgerUrl}/v1/entries`, {
       method: "POST",

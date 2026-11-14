@@ -41,7 +41,8 @@ export async function makeProject(
       acceptancePolicy: opts.policy ?? "OFF",
     },
   });
-  if (!opts.complete) return { id: project.id, name, boundaryId: null, vectorId: null, findingId: null };
+  if (!opts.complete)
+    return { id: project.id, name, boundaryId: null, vectorId: null, findingId: null };
 
   const tm = await prisma.threatModel.create({ data: { projectId: project.id } });
   const boundary = await prisma.trustBoundary.create({
@@ -68,7 +69,13 @@ export async function makeProject(
       owner: owner.email,
     },
   });
-  return { id: project.id, name, boundaryId: boundary.id, vectorId: vector.id, findingId: finding.id };
+  return {
+    id: project.id,
+    name,
+    boundaryId: boundary.id,
+    vectorId: vector.id,
+    findingId: finding.id,
+  };
 }
 
 export async function addMember(
@@ -83,7 +90,12 @@ export async function addMember(
 }
 
 /** A Request for a route handler. */
-export function request(method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Request {
+export function request(
+  method: string,
+  path: string,
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Request {
   return new Request(`http://localhost${path}`, {
     method,
     headers: { ...(body === undefined ? {} : { "content-type": "application/json" }), ...headers },

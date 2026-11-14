@@ -111,7 +111,8 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
   else if (s.openCount === 0) openSentence = "No findings are open.";
   else {
     openSentence = `${count(s.openCount, "finding")} ${verb(s.openCount, "is", "are")} open`;
-    if (standout.length) openSentence += `, including ${standout.map((x) => `${x.n} ${x.label}`).join(" and ")}`;
+    if (standout.length)
+      openSentence += `, including ${standout.map((x) => `${x.n} ${x.label}`).join(" and ")}`;
     openSentence += ".";
   }
   const headline =
@@ -120,7 +121,9 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
 
   // Statuses
   const statuses: StatusSegment[] = s.byStatus
-    .filter((x) => x.count > 0 || x.status !== "PENDING_ACCEPTANCE" || r.acceptancePolicy.value !== "OFF")
+    .filter(
+      (x) => x.count > 0 || x.status !== "PENDING_ACCEPTANCE" || r.acceptancePolicy.value !== "OFF",
+    )
     .map((x) => ({
       status: x.status,
       label: x.label,
@@ -157,10 +160,14 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
   const observations: string[] = [];
   const noFinding = a.vectors.filter((v) => v.findingIds.length === 0).length;
   if (noFinding)
-    observations.push(`${count(noFinding, "threat vector")} ${verb(noFinding, "has", "have")} no finding.`);
+    observations.push(
+      `${count(noFinding, "threat vector")} ${verb(noFinding, "has", "have")} no finding.`,
+    );
   const noOwner = open.filter((f) => !f.owner.trim()).length;
   if (noOwner)
-    observations.push(`${count(noOwner, "open finding")} ${verb(noOwner, "has", "have")} no owner.`);
+    observations.push(
+      `${count(noOwner, "open finding")} ${verb(noOwner, "has", "have")} no owner.`,
+    );
   const overdue = open.filter((f) => f.dueDate && f.dueDate < today).length;
   if (overdue)
     observations.push(
@@ -168,7 +175,9 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
     );
   const noEvidence = a.findings.filter(
     (f) =>
-      (f.severity === "CRITICAL" || f.severity === "HIGH") && !f.evidence.trim() && f.attachments.length === 0,
+      (f.severity === "CRITICAL" || f.severity === "HIGH") &&
+      !f.evidence.trim() &&
+      f.attachments.length === 0,
   ).length;
   if (noEvidence)
     observations.push(
@@ -182,7 +191,11 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
     );
   const horizon = addDays(today, REVIEW_WINDOW_DAYS);
   const reviewSoon = a.findings.filter(
-    (f) => f.status === "ACCEPTED" && f.reviewDueAt && f.reviewDueAt >= today && f.reviewDueAt <= horizon,
+    (f) =>
+      f.status === "ACCEPTED" &&
+      f.reviewDueAt &&
+      f.reviewDueAt >= today &&
+      f.reviewDueAt <= horizon,
   ).length;
   if (reviewSoon)
     observations.push(
@@ -191,7 +204,12 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
 
   return {
     headline,
-    tiles: s.bySeverity.map((x) => ({ severity: x.severity, label: x.label, total: x.total, open: x.open })),
+    tiles: s.bySeverity.map((x) => ({
+      severity: x.severity,
+      label: x.label,
+      total: x.total,
+      open: x.open,
+    })),
     statuses,
     findingCount: s.findingCount,
     matrix: {
@@ -214,7 +232,9 @@ export function executiveSummary(a: Assessment): ExecutiveSummary {
 /** "Live draft", or "Snapshot v3, Approved". */
 export function statusLine(a: Assessment): string {
   const sn = a.snapshot;
-  return sn ? `Snapshot v${sn.version}, ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status}` : "Live draft";
+  return sn
+    ? `Snapshot v${sn.version}, ${SNAPSHOT_STATUS_LABELS[sn.status] ?? sn.status}`
+    : "Live draft";
 }
 
 /** The snapshot issuer, or for a live report the project owner from the people list. */

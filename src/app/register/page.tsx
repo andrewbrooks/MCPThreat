@@ -68,12 +68,16 @@ export default function RegisterPage() {
             <div className="space-y-1.5">
               <Label htmlFor="name">Name</Label>
               <Input id="name" autoComplete="name" {...register("name")} />
-              {errors.name ? <p className="text-xs text-red-600 dark:text-red-400">{errors.name.message}</p> : null}
+              {errors.name ? (
+                <p className="text-xs text-red-600 dark:text-red-400">{errors.name.message}</p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" autoComplete="email" {...register("email")} />
-              {errors.email ? <p className="text-xs text-red-600 dark:text-red-400">{errors.email.message}</p> : null}
+              {errors.email ? (
+                <p className="text-xs text-red-600 dark:text-red-400">{errors.email.message}</p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>

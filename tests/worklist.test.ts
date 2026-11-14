@@ -42,7 +42,11 @@ const kinds = (items: { kind: string }[]) => items.map((i) => i.kind);
 
 describe("finding deadlines", () => {
   it("flags overdue findings owned by the viewer, matching email case-insensitively", () => {
-    const items = buildWorklist([project({ findings: [finding({ dueDate: new Date("2026-11-08T12:00:00Z") })] })], ME, NOW);
+    const items = buildWorklist(
+      [project({ findings: [finding({ dueDate: new Date("2026-11-08T12:00:00Z") })] })],
+      ME,
+      NOW,
+    );
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({
       id: "FINDING_OVERDUE:f1",
@@ -60,7 +64,11 @@ describe("finding deadlines", () => {
   });
   it("flags findings due within 14 days as p2", () => {
     const items = buildWorklist(
-      [project({ findings: [finding({ dueDate: day(5) }), finding({ id: "f2", dueDate: day(15) })] })],
+      [
+        project({
+          findings: [finding({ dueDate: day(5) }), finding({ id: "f2", dueDate: day(15) })],
+        }),
+      ],
       ME,
       NOW,
     );
@@ -88,8 +96,18 @@ describe("finding deadlines", () => {
       [
         project({
           findings: [
-            finding({ id: "late", title: "Later", dueDate: day(-1), createdAt: new Date("2026-02-01T00:00:00Z") }),
-            finding({ id: "early", title: "Earlier", owner: "x", createdAt: new Date("2026-01-01T00:00:00Z") }),
+            finding({
+              id: "late",
+              title: "Later",
+              dueDate: day(-1),
+              createdAt: new Date("2026-02-01T00:00:00Z"),
+            }),
+            finding({
+              id: "early",
+              title: "Earlier",
+              owner: "x",
+              createdAt: new Date("2026-01-01T00:00:00Z"),
+            }),
           ],
         }),
       ],
@@ -103,12 +121,27 @@ describe("finding deadlines", () => {
 describe("unowned findings", () => {
   it("is one aggregated p3 item per project", () => {
     const items = buildWorklist(
-      [project({ ownerId: "me", members: [], findings: [finding({ id: "a", owner: "" }), finding({ id: "b", owner: " " }), finding({ id: "c", owner: "", status: "MITIGATED" })] })],
+      [
+        project({
+          ownerId: "me",
+          members: [],
+          findings: [
+            finding({ id: "a", owner: "" }),
+            finding({ id: "b", owner: " " }),
+            finding({ id: "c", owner: "", status: "MITIGATED" }),
+          ],
+        }),
+      ],
       ME,
       NOW,
     );
     expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({ id: "FINDING_UNOWNED:p1", kind: "FINDING_UNOWNED", priority: 3, dueDate: null });
+    expect(items[0]).toMatchObject({
+      id: "FINDING_UNOWNED:p1",
+      kind: "FINDING_UNOWNED",
+      priority: 3,
+      dueDate: null,
+    });
     expect(items[0].title).toBe("2 open findings with no owner");
   });
   it("uses the singular", () => {
@@ -141,13 +174,28 @@ describe("acceptance requests", () => {
     expect(buildWorklist([withAcc(pending({ clientApprovedAt: day(-1) }))], ME, NOW)).toEqual([]);
   });
   it("DUAL: the client sees it until the client slot is filled", () => {
-    expect(buildWorklist([withAcc(pending({ requireBothSides: true, assessorApprovedAt: day(-1) }))], ME, NOW)).toHaveLength(1);
-    expect(buildWorklist([withAcc(pending({ requireBothSides: true, clientApprovedAt: day(-1) }))], ME, NOW)).toEqual([]);
+    expect(
+      buildWorklist(
+        [withAcc(pending({ requireBothSides: true, assessorApprovedAt: day(-1) }))],
+        ME,
+        NOW,
+      ),
+    ).toHaveLength(1);
+    expect(
+      buildWorklist(
+        [withAcc(pending({ requireBothSides: true, clientApprovedAt: day(-1) }))],
+        ME,
+        NOW,
+      ),
+    ).toEqual([]);
   });
   it("DUAL: the assessor side is tracked separately", () => {
-    const p = withAcc(pending({ requireBothSides: true, clientApprovedAt: day(-1), requestedById: "me" }), {
-      members: [{ userId: "me", email: "me@example.com", role: "MEMBER", side: "ASSESSOR" }],
-    });
+    const p = withAcc(
+      pending({ requireBothSides: true, clientApprovedAt: day(-1), requestedById: "me" }),
+      {
+        members: [{ userId: "me", email: "me@example.com", role: "MEMBER", side: "ASSESSOR" }],
+      },
+    );
     expect(buildWorklist([p], ME, NOW)).toHaveLength(1);
   });
   it("ignores decided requests", () => {
@@ -161,15 +209,33 @@ describe("expiring acceptances", () => {
   it("goes to the finding owner", () => {
     const items = buildWorklist([project({ findings: [accepted()] })], ME, NOW);
     expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({ kind: "ACCEPTANCE_EXPIRING", priority: 2, detail: "Acceptance review due 2026-11-23, in 10 days" });
+    expect(items[0]).toMatchObject({
+      kind: "ACCEPTANCE_EXPIRING",
+      priority: 2,
+      detail: "Acceptance review due 2026-11-23, in 10 days",
+    });
   });
   it("goes to the project owner", () => {
-    const items = buildWorklist([project({ ownerId: "me", members: [], findings: [accepted({ owner: "other@example.com" })] })], ME, NOW);
+    const items = buildWorklist(
+      [
+        project({
+          ownerId: "me",
+          members: [],
+          findings: [accepted({ owner: "other@example.com" })],
+        }),
+      ],
+      ME,
+      NOW,
+    );
     expect(kinds(items)).toEqual(["ACCEPTANCE_EXPIRING"]);
   });
   it("skips other members and reviews beyond 30 days", () => {
-    expect(buildWorklist([project({ findings: [accepted({ owner: "other@example.com" })] })], ME, NOW)).toEqual([]);
-    expect(buildWorklist([project({ findings: [accepted({ reviewDueAt: day(31) })] })], ME, NOW)).toEqual([]);
+    expect(
+      buildWorklist([project({ findings: [accepted({ owner: "other@example.com" })] })], ME, NOW),
+    ).toEqual([]);
+    expect(
+      buildWorklist([project({ findings: [accepted({ reviewDueAt: day(31) })] })], ME, NOW),
+    ).toEqual([]);
   });
 });
 
@@ -184,16 +250,30 @@ describe("snapshots", () => {
   });
   it("awaiting me: SINGLE, issued by someone else", () => {
     const items = buildWorklist([project({ snapshots: [snap()] })], ME, NOW);
-    expect(items[0]).toMatchObject({ id: "SNAPSHOT_AWAITING_ME:s1", priority: 1, href: "/projects/p1/review" });
+    expect(items[0]).toMatchObject({
+      id: "SNAPSHOT_AWAITING_ME:s1",
+      priority: 1,
+      href: "/projects/p1/review",
+    });
   });
   it("the issuer cannot sign a SINGLE snapshot", () => {
-    expect(buildWorklist([project({ snapshots: [snap({ createdById: "me" })] })], ME, NOW)).toEqual([]);
+    expect(buildWorklist([project({ snapshots: [snap({ createdById: "me" })] })], ME, NOW)).toEqual(
+      [],
+    );
   });
   it("DUAL: only the side still needed is asked", () => {
-    const s = snap({ requirement: "DUAL", signoffs: [{ side: "CLIENT", decision: "APPROVED", userId: "c" }] });
+    const s = snap({
+      requirement: "DUAL",
+      signoffs: [{ side: "CLIENT", decision: "APPROVED", userId: "c" }],
+    });
     expect(buildWorklist([project({ snapshots: [s] })], ME, NOW)).toEqual([]);
-    const s2 = snap({ requirement: "DUAL", signoffs: [{ side: "ASSESSOR", decision: "APPROVED", userId: "a" }] });
-    expect(kinds(buildWorklist([project({ snapshots: [s2] })], ME, NOW))).toEqual(["SNAPSHOT_AWAITING_ME"]);
+    const s2 = snap({
+      requirement: "DUAL",
+      signoffs: [{ side: "ASSESSOR", decision: "APPROVED", userId: "a" }],
+    });
+    expect(kinds(buildWorklist([project({ snapshots: [s2] })], ME, NOW))).toEqual([
+      "SNAPSHOT_AWAITING_ME",
+    ]);
   });
   it("only the latest snapshot counts", () => {
     const old = snap({ id: "old", version: 1 });
@@ -201,10 +281,15 @@ describe("snapshots", () => {
     expect(buildWorklist([project({ snapshots: [old, latest] })], ME, NOW)).toEqual([]);
   });
   it("returned: shown to the issuer only", () => {
-    const returned = snap({ createdById: "me", signoffs: [{ side: "CLIENT", decision: "RETURNED", userId: "c" }] });
+    const returned = snap({
+      createdById: "me",
+      signoffs: [{ side: "CLIENT", decision: "RETURNED", userId: "c" }],
+    });
     const items = buildWorklist([project({ snapshots: [returned] })], ME, NOW);
     expect(items.map((i) => i.id)).toEqual(["SNAPSHOT_RETURNED:s1"]);
-    expect(buildWorklist([project({ snapshots: [{ ...returned, createdById: "owner" }] })], ME, NOW)).toEqual([]);
+    expect(
+      buildWorklist([project({ snapshots: [{ ...returned, createdById: "owner" }] })], ME, NOW),
+    ).toEqual([]);
   });
 });
 
@@ -212,11 +297,15 @@ describe("access and exclusions", () => {
   const busy = (over: Partial<WorklistProject> = {}) =>
     project({
       findings: [finding({ dueDate: day(-2) }), finding({ id: "u", owner: "" })],
-      snapshots: [{ id: "s1", version: 1, requirement: "SINGLE", createdById: "owner", signoffs: [] }],
+      snapshots: [
+        { id: "s1", version: 1, requirement: "SINGLE", createdById: "owner", signoffs: [] },
+      ],
       ...over,
     });
   it("excludes viewer-role members entirely", () => {
-    const p = busy({ members: [{ userId: "me", email: "me@example.com", role: "VIEWER", side: "CLIENT" }] });
+    const p = busy({
+      members: [{ userId: "me", email: "me@example.com", role: "VIEWER", side: "CLIENT" }],
+    });
     expect(buildWorklist([p], ME, NOW)).toEqual([]);
   });
   it("excludes archived projects", () => {
@@ -226,7 +315,9 @@ describe("access and exclusions", () => {
     expect(buildWorklist([busy({ members: [] })], ME, NOW)).toEqual([]);
   });
   it("matches a member by email when the invite has no user yet", () => {
-    const p = busy({ members: [{ userId: null, email: "ME@example.com", role: "MEMBER", side: "CLIENT" }] });
+    const p = busy({
+      members: [{ userId: null, email: "ME@example.com", role: "MEMBER", side: "CLIENT" }],
+    });
     expect(buildWorklist([p], ME, NOW).length).toBeGreaterThan(0);
   });
 });
@@ -241,7 +332,9 @@ describe("ordering", () => {
         finding({ id: "c", title: "Soon", dueDate: day(2) }),
         finding({ id: "d", title: "Nobody", owner: "" }),
       ],
-      snapshots: [{ id: "s1", version: 1, requirement: "SINGLE", createdById: "owner", signoffs: [] }],
+      snapshots: [
+        { id: "s1", version: 1, requirement: "SINGLE", createdById: "owner", signoffs: [] },
+      ],
     });
     const items = buildWorklist([p], ME, NOW);
     expect(items.map((i) => i.id)).toEqual([

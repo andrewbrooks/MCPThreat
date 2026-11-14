@@ -50,7 +50,8 @@ export function ReanalyzeButton({
 
   return (
     <Button variant={variant} size={size} onClick={run} disabled={busy}>
-      <RefreshCw className={busy ? "size-4 animate-spin" : "size-4"} /> {busy ? "Analyzing…" : label}
+      <RefreshCw className={busy ? "size-4 animate-spin" : "size-4"} />{" "}
+      {busy ? "Analyzing…" : label}
     </Button>
   );
 }

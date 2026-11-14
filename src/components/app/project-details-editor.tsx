@@ -38,9 +38,10 @@ export function ProjectDetailsEditor({ projectId, initial }: Props) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(initial);
 
-  const set = (k: keyof typeof form) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set =
+    (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function save() {
     setSaving(true);
@@ -131,7 +132,11 @@ export function ProjectDetailsEditor({ projectId, initial }: Props) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="acceptancePolicy">Risk-acceptance policy</Label>
-        <Select id="acceptancePolicy" value={form.acceptancePolicy} onChange={set("acceptancePolicy")}>
+        <Select
+          id="acceptancePolicy"
+          value={form.acceptancePolicy}
+          onChange={set("acceptancePolicy")}
+        >
           {ACCEPTANCE_POLICIES.map((p) => (
             <option key={p} value={p}>
               {ACCEPTANCE_POLICY_LABELS[p]}

@@ -48,12 +48,7 @@ function HashCopy({ hash, version }: { hash: string; version: number }) {
       <code className="break-all rounded-sm bg-muted px-1.5 py-0.5 text-xs">
         {hash.slice(0, 12)}
       </code>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={copy}
-      >
+      <Button type="button" variant="outline" size="sm" onClick={copy}>
         {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
         {copied ? (
           "Copied"
@@ -67,13 +62,7 @@ function HashCopy({ hash, version }: { hash: string; version: number }) {
   );
 }
 
-function SignoffPanel({
-  projectId,
-  snapshot,
-}: {
-  projectId: string;
-  snapshot: SnapshotSummary;
-}) {
+function SignoffPanel({ projectId, snapshot }: { projectId: string; snapshot: SnapshotSummary }) {
   const router = useRouter();
   const { toast } = useToast();
   const [comment, setComment] = useState("");
@@ -101,7 +90,10 @@ function SignoffPanel({
         setError(data.error ?? `The decision could not be recorded (HTTP ${res.status}).`);
         return;
       }
-      toast(decision === "APPROVE" ? "Approval recorded." : "Snapshot returned for changes.", "success");
+      toast(
+        decision === "APPROVE" ? "Approval recorded." : "Snapshot returned for changes.",
+        "success",
+      );
       setComment("");
       router.refresh();
     } catch {

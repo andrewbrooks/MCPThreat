@@ -45,9 +45,7 @@ export function openFindingCount(findings: FindingLike[]): number {
 }
 
 /** Open-finding counts per severity, for dashboard breakdown badges. */
-export function openSeverityBreakdown(
-  findings: FindingLike[],
-): Record<Severity, number> {
+export function openSeverityBreakdown(findings: FindingLike[]): Record<Severity, number> {
   const out: Record<Severity, number> = {
     CRITICAL: 0,
     HIGH: 0,
@@ -82,8 +80,7 @@ export function statusBreakdown(findings: FindingLike[]): Record<FindingStatus, 
 export function sortBySeverityDesc<T extends { severity: string }>(items: T[]): T[] {
   return [...items].sort(
     (a, b) =>
-      (SEVERITY_RANK[b.severity as Severity] ?? 0) -
-      (SEVERITY_RANK[a.severity as Severity] ?? 0),
+      (SEVERITY_RANK[b.severity as Severity] ?? 0) - (SEVERITY_RANK[a.severity as Severity] ?? 0),
   );
 }
 

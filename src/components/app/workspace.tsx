@@ -135,8 +135,8 @@ export function Workspace({
             <div>
               <h2 className="text-lg font-semibold">Step 4 · Review &amp; assign</h2>
               <p className="text-sm text-muted-foreground">
-                Assign an owner and due date to each finding, and confirm statuses. Edit a
-                finding to set its owner and due date.
+                Assign an owner and due date to each finding, and confirm statuses. Edit a finding
+                to set its owner and due date.
               </p>
             </div>
             <FindingsTable

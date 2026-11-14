@@ -17,7 +17,12 @@ export function isReportFormat(s: string): s is ReportFormat {
 }
 
 export function fileSlug(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project";
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "project"
+  );
 }
 
 export function renderReportBody(a: Assessment, format: ReportFormat): string {
@@ -46,10 +51,12 @@ export function reportResponse(
     "Cache-Control": "private, no-store",
   };
   if (format === "html") {
-    headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'";
+    headers["Content-Security-Policy"] =
+      "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'";
   }
   if (download) {
-    headers["Content-Disposition"] = `attachment; filename="${filenameBase}.${REPORT_FORMATS[format].ext}"`;
+    headers["Content-Disposition"] =
+      `attachment; filename="${filenameBase}.${REPORT_FORMATS[format].ext}"`;
   }
   return new NextResponse(renderReportBody(a, format), { headers });
 }

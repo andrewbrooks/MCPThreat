@@ -31,7 +31,9 @@ function stripVolatile(a: Assessment): Record<string, unknown> {
 
 /** sha256 (hex) of the assessed content. */
 export function assessmentContentHash(a: Assessment): string {
-  return createHash("sha256").update(canonicalJson(stripVolatile(a))).digest("hex");
+  return createHash("sha256")
+    .update(canonicalJson(stripVolatile(a)))
+    .digest("hex");
 }
 
 // Change detection compares the live model with the latest snapshot. It must ignore
