@@ -104,7 +104,7 @@ Switch the `datasource` provider in `prisma/schema.prisma` to `postgresql` and p
 | Script | Purpose |
 | --- | --- |
 | `npm run dev` | Start the dev server |
-| `npm run build` | Production build (typecheck + eslint) |
+| `npm run build` | Production build (typecheck) |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript type check |
 | `npm run check` | Lint, type check and unit tests |
@@ -125,7 +125,7 @@ Integration tests (`npm run test:integration`) run the real API routes against a
 
 ## Tech stack
 
-Next.js 14 (App Router) · TypeScript · Prisma (SQLite in dev, Postgres-portable) · NextAuth v4 · Tailwind CSS + hand-rolled shadcn-style primitives · React Hook Form + Zod · Vitest · `@anthropic-ai/sdk`.
+Next.js 16 (App Router) · TypeScript · Prisma (SQLite in dev, Postgres-portable) · NextAuth v4 · Tailwind CSS + hand-rolled shadcn-style primitives · React Hook Form + Zod · Vitest · `@anthropic-ai/sdk`.
 
 ## License
 [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
