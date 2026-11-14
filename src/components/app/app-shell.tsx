@@ -134,8 +134,8 @@ export function AppShell({ user, projects, children }: AppShellProps) {
           className={cn("flex items-center gap-2", mini ? "" : "px-2")}
           onClick={() => setMobileOpen(false)}
         >
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary/15 text-primary">
-            <Shield className="size-5" />
+          <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Shield className="size-[18px]" aria-hidden="true" />
           </div>
           {mini ? null : (
             <span className="text-lg font-semibold tracking-tight">MCPThreat</span>
