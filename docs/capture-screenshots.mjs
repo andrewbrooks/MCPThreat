@@ -8,13 +8,19 @@
 
 import { chromium } from "playwright";
 import { PrismaClient } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+
+// Prisma 7 no longer loads .env on its own.
+if (typeof process.loadEnvFile === "function") process.loadEnvFile(".env");
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "screenshots");
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL }),
+});
 const project = await prisma.project.findFirst({
   where: { name: "Example Payment MCP" },
   select: { id: true },
