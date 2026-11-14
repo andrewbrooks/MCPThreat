@@ -123,6 +123,8 @@ Unit tests (Vitest, in `tests/`) cover the pure, security-critical logic: risk s
 
 Integration tests (`npm run test:integration`) run the real API routes against a temporary SQLite database that is created and deleted for each run. Sample data lives in `tests/fixtures/`.
 
+CI (`.github/workflows/ci.yml`) runs lint, type check, format check, both test suites, a production build, shellcheck on the shell scripts, a secret scan, and a dependency audit. The audit reports known vulnerabilities but does not block merges yet. `npm run check` runs lint, type check, format check and the unit tests locally. A pre-commit hook (enabled by `npm run setup`, or `git config core.hooksPath .githooks`) refuses `.env` files and stray mockup or scratch files, scans staged changes for secrets with gitleaks when it is installed, and checks formatting and lint on staged files.
+
 
 ## Tech stack
 
