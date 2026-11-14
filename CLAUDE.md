@@ -2,13 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-MCPThreat is a threat-modeling SaaS for MCP (Model Context Protocol) servers: model trust boundaries, map STRIDE + MCP-specific threat vectors, track findings to mitigation, and generate reports. Next.js 14 (App Router) + TypeScript + Prisma + NextAuth + Tailwind.
+MCPThreat is a threat-modeling SaaS for MCP (Model Context Protocol) servers: model trust boundaries, map STRIDE + MCP-specific threat vectors, track findings to mitigation, and generate reports. Next.js 16 (App Router) + TypeScript + Prisma + NextAuth + Tailwind.
 
 ## Commands
 
 ```bash
 npm run dev                         # dev server (http://localhost:3000)
-npm run build                       # prod build — runs typecheck + eslint; use this to validate changes
+npm run build                       # prod build — runs typecheck only (no lint); use `npm run check` to validate changes
 npm run lint                        # eslint only
 npx tsc --noEmit                    # typecheck only (faster than build)
 npm run seed                        # seed the "Example Payment MCP" sample (DUAL policy).
@@ -69,7 +69,7 @@ A finding can only reach `ACCEPTED` through an approval workflow when the projec
 - No token passthrough; sessions are NextAuth JWT.
 
 ### Auth
-`src/lib/auth.ts` — NextAuth v4, Credentials (bcrypt) always on; GitHub provider registered only when `GITHUB_ID`/`GITHUB_SECRET` are set (app still boots without them). JWT session strategy (required for Credentials). `authorize()` uses a non-strict schema because NextAuth injects extra fields (`csrfToken`, `json`). `src/middleware.ts` protects app pages and redirects to `/login`; API routes enforce their own auth so they can return JSON 401/403 instead of an HTML redirect.
+`src/lib/auth.ts` — NextAuth v4, Credentials (bcrypt) always on; GitHub provider registered only when `GITHUB_ID`/`GITHUB_SECRET` are set (app still boots without them). JWT session strategy (required for Credentials). `authorize()` uses a non-strict schema because NextAuth injects extra fields (`csrfToken`, `json`). `src/proxy.ts` (formerly `middleware.ts`) protects app pages and redirects to `/login`; API routes enforce their own auth so they can return JSON 401/403 instead of an HTML redirect.
 
 ### MCP knowledge base
 `src/lib/mcp-knowledge-base.ts` maps each MCP category to a threat summary, mitigations, and clickable source `references` (label + URL, rendered as data in the UI). **Convention:** citations belong in this data and in UI, not as attribution comments in code — don't add "// per OWASP…"-style references in source.
