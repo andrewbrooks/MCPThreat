@@ -40,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# working files that never belong in the repo
+/scratch/
+/designs/
+/mockups/
+*.bak
+*.orig
+*.artifact.html

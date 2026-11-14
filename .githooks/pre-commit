@@ -22,7 +22,24 @@ for f in "${staged[@]}"; do
   esac
 done
 
-# 2. Scan what is staged for secrets.
+# 2. Never add working files (mockups, scratch output, backups) to the repo. Only newly added
+#    files are checked, so files already tracked are never affected.
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in
+    scratch/* | designs/* | mockups/* | *.bak | *.orig | *.artifact.html | *mockup* | *hybrid*)
+      reason="looks like a working file" ;;
+    docs/* | src/*) continue ;;
+    *.html)
+      reason="HTML outside docs/ and src/ is usually a generated page" ;;
+    *) continue ;;
+  esac
+  echo "pre-commit: refusing to add '$f' ($reason)." >&2
+  echo "            Keep working files outside the repo. If it is intentional: git commit --no-verify" >&2
+  exit 1
+done < <(git diff --cached --name-only --diff-filter=A)
+
+# 3. Scan what is staged for secrets.
 if command -v gitleaks > /dev/null 2>&1; then
   gitleaks protect --staged --redact --no-banner
 else
@@ -30,11 +47,11 @@ else
   echo "            Install it from https://github.com/gitleaks/gitleaks#installing" >&2
 fi
 
-# 3. Check formatting of staged files. Files Prettier ignores (see .prettierignore) are skipped.
+# 4. Check formatting of staged files. Files Prettier ignores (see .prettierignore) are skipped.
 #    Fix with: npm run format
 npx --no-install prettier --check --ignore-unknown --no-error-on-unmatched-pattern "${staged[@]}"
 
-# 4. Lint staged TypeScript, with the same rules as CI.
+# 5. Lint staged TypeScript, with the same rules as CI.
 source_files=()
 for f in "${staged[@]}"; do
   case "$f" in
