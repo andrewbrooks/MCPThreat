@@ -20,6 +20,10 @@ jobs:
     name: Lint, types, tests, build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # Prisma 7 reads the database url from prisma.config.ts for every CLI command,
+      # including generate. Nothing connects to this file in CI.
+      DATABASE_URL: file:./ci.db
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -36,7 +40,6 @@ jobs:
       - run: npm run build
         env:
           # Values only so the build can load configuration; nothing connects or signs here.
-          DATABASE_URL: file:./ci.db
           NEXTAUTH_SECRET: ci-build-only-secret-0123456789abcdef0123456789
           NEXTAUTH_URL: http://localhost:3000
 
