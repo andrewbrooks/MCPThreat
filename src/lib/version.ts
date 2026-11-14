@@ -1,0 +1,4 @@
+import pkg from "../../package.json";
+
+export const TOOL_NAME = "MCPThreat";
+export const TOOL_VERSION: string = pkg.version;
