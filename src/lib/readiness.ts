@@ -68,49 +68,12 @@ function check(s: Spec): ReadinessCheck {
 const have = (n: number, one: string, many = `${one}s`) =>
   `${count(n, one, many)} ${n === 1 ? "has" : "have"}`;
 
-export function evaluateReadiness(input: ReadinessInput): Readiness {
-  const { assessment: a, snapshots, liveHash, now, latestSnapshotModelHash } = input;
-  const nowMs = now.getTime();
-  const latest = snapshots[0] ?? null;
-  const findings = a.findings;
-  const open = findings.filter((f) => f.isOpen);
-
+/** SCOPE: does the record say what system it covers? */
+function scopeChecks(a: Assessment): ReadinessCheck[] {
   const noDescription = blank(a.record.projectDescription) ? 1 : 0;
   const noUrl = blank(a.record.mcpServerUrl) ? 1 : 0;
 
-  const emptyBoundaries = a.boundaries.filter((b) => b.vectorIds.length === 0).length;
-  const noBoundaries = a.boundaries.length === 0 ? 1 : 0;
-  const noVectors = a.boundaries.length > 0 && a.vectors.length === 0 ? 1 : 0;
-  const ai = a.record.aiSuggested;
-  const aiCount = ai.boundaries + ai.vectors + ai.findings;
-
-  const unassessed = a.vectors.filter((v) => v.findingIds.length === 0).length;
-  const noRationale = findings.filter((f) => blank(f.description)).length;
-  const noRecommendation = findings.filter((f) => blank(f.recommendation)).length;
-  const noEvidence = findings.filter(
-    (f) => isHigh(f) && blank(f.evidence) && f.attachments.length === 0,
-  ).length;
-
-  const noOwner = open.filter((f) => blank(f.owner)).length;
-  const noDue = open.filter((f) => isHigh(f) && !f.dueDate).length;
-  const overdue = open.filter((f) => {
-    const t = dueTime(f);
-    return t !== null && t < nowMs;
-  }).length;
-  const openCritical = open.filter((f) => f.severity === "CRITICAL").length;
-  const pending = findings.filter((f) => f.status === "PENDING_ACCEPTANCE").length;
-  const limit = nowMs + EXPIRY_WINDOW_DAYS * DAY_MS;
-  const expiring = findings.filter((f) => {
-    if (f.status !== "ACCEPTED" || !f.reviewDueAt) return false;
-    const t = Date.parse(f.reviewDueAt);
-    return !Number.isNaN(t) && t <= limit;
-  }).length;
-
-  const changed = latest ? liveHash !== (latestSnapshotModelHash ?? latest.contentHash) : null;
-  const awaitingText = latest?.awaiting.length ? latest.awaiting.join(" and ") : "a reviewer";
-
-  const checks: ReadinessCheck[] = [
-    // SCOPE
+  return [
     check({
       id: "project-description",
       stage: "SCOPE",
@@ -131,7 +94,18 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       pass: "An MCP server URL is recorded",
       detail: "Recording the server URL makes the scope of the assessment unambiguous.",
     }),
-    // MODEL
+  ];
+}
+
+/** MODEL: are there trust boundaries and threat vectors, and has a person confirmed the AI's? */
+function modelChecks(a: Assessment): ReadinessCheck[] {
+  const emptyBoundaries = a.boundaries.filter((b) => b.vectorIds.length === 0).length;
+  const noBoundaries = a.boundaries.length === 0 ? 1 : 0;
+  const noVectors = a.boundaries.length > 0 && a.vectors.length === 0 ? 1 : 0;
+  const ai = a.record.aiSuggested;
+  const aiCount = ai.boundaries + ai.vectors + ai.findings;
+
+  return [
     check({
       id: "has-boundaries",
       stage: "MODEL",
@@ -176,7 +150,20 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       detail:
         "Review each AI-suggested item and keep, edit or delete it so a person stands behind the record.",
     }),
-    // ASSESS
+  ];
+}
+
+/** ASSESS: is every vector assessed, and is each finding explained and evidenced? */
+function assessChecks(a: Assessment): ReadinessCheck[] {
+  const findings = a.findings;
+  const unassessed = a.vectors.filter((v) => v.findingIds.length === 0).length;
+  const noRationale = findings.filter((f) => blank(f.description)).length;
+  const noRecommendation = findings.filter((f) => blank(f.recommendation)).length;
+  const noEvidence = findings.filter(
+    (f) => isHigh(f) && blank(f.evidence) && f.attachments.length === 0,
+  ).length;
+
+  return [
     check({
       id: "has-findings",
       stage: "ASSESS",
@@ -228,7 +215,29 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       pass: "Every Critical or High finding has evidence",
       detail: "Add notes or an attachment showing how the issue was observed.",
     }),
-    // REMEDIATE
+  ];
+}
+
+/** REMEDIATE: do open findings have owners and dates, and are acceptances in order? */
+function remediateChecks(a: Assessment, nowMs: number): ReadinessCheck[] {
+  const findings = a.findings;
+  const open = findings.filter((f) => f.isOpen);
+  const noOwner = open.filter((f) => blank(f.owner)).length;
+  const noDue = open.filter((f) => isHigh(f) && !f.dueDate).length;
+  const overdue = open.filter((f) => {
+    const t = dueTime(f);
+    return t !== null && t < nowMs;
+  }).length;
+  const openCritical = open.filter((f) => f.severity === "CRITICAL").length;
+  const pending = findings.filter((f) => f.status === "PENDING_ACCEPTANCE").length;
+  const limit = nowMs + EXPIRY_WINDOW_DAYS * DAY_MS;
+  const expiring = findings.filter((f) => {
+    if (f.status !== "ACCEPTED" || !f.reviewDueAt) return false;
+    const t = Date.parse(f.reviewDueAt);
+    return !Number.isNaN(t) && t <= limit;
+  }).length;
+
+  return [
     check({
       id: "open-findings-without-owner",
       stage: "REMEDIATE",
@@ -290,7 +299,14 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       pass: `No accepted finding is due for review within ${EXPIRY_WINDOW_DAYS} days`,
       detail: "Accepted risks reopen when their review date passes, so revisit them in good time.",
     }),
-    // SIGN_OFF
+  ];
+}
+
+/** SIGN_OFF: is there a current snapshot, and has it been decided? */
+function signOffChecks(latest: SnapshotSummary | null, changed: boolean | null): ReadinessCheck[] {
+  const awaitingText = latest?.awaiting.length ? latest.awaiting.join(" and ") : "a reviewer";
+
+  return [
     check({
       id: "snapshot-issued",
       stage: "SIGN_OFF",
@@ -333,7 +349,14 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       detail: "Issue a new snapshot so the reviewed record matches the current model.",
     }),
   ];
+}
 
+/** Group checks into stages. A stage is done once the stages before it are and it has no
+ *  failed BLOCKER or WARNING; the first stage that is not done is the current one. */
+function buildStages(checks: ReadinessCheck[]): {
+  stages: StageState[];
+  currentStage: StageKey | "COMPLETE";
+} {
   const stages: StageState[] = [];
   let earlierDone = true;
   let currentStage: StageKey | "COMPLETE" = "COMPLETE";
@@ -357,14 +380,34 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
       outstanding,
     });
   }
+  return { stages, currentStage };
+}
 
-  const nextActions =
-    currentStage === "COMPLETE"
-      ? []
-      : checks
-          .filter((c) => c.stage === currentStage && !c.passed)
-          .sort((x, y) => LEVEL_ORDER[x.level] - LEVEL_ORDER[y.level])
-          .slice(0, 5);
+/** The failing checks of the current stage, most severe first, capped at five. */
+function pickNextActions(
+  checks: ReadinessCheck[],
+  currentStage: StageKey | "COMPLETE",
+): ReadinessCheck[] {
+  if (currentStage === "COMPLETE") return [];
+  return checks
+    .filter((c) => c.stage === currentStage && !c.passed)
+    .sort((x, y) => LEVEL_ORDER[x.level] - LEVEL_ORDER[y.level])
+    .slice(0, 5);
+}
+
+export function evaluateReadiness(input: ReadinessInput): Readiness {
+  const { assessment: a, snapshots, liveHash, now, latestSnapshotModelHash } = input;
+  const latest = snapshots[0] ?? null;
+  const changed = latest ? liveHash !== (latestSnapshotModelHash ?? latest.contentHash) : null;
+
+  const checks: ReadinessCheck[] = [
+    ...scopeChecks(a),
+    ...modelChecks(a),
+    ...assessChecks(a),
+    ...remediateChecks(a, now.getTime()),
+    ...signOffChecks(latest, changed),
+  ];
+  const { stages, currentStage } = buildStages(checks);
 
   const canIssue = !checks.some(
     (c) => ISSUE_STAGES.includes(c.stage) && c.level === "BLOCKER" && !c.passed,
@@ -373,7 +416,7 @@ export function evaluateReadiness(input: ReadinessInput): Readiness {
   return {
     stages,
     currentStage,
-    nextActions,
+    nextActions: pickNextActions(checks, currentStage),
     canIssue,
     changedSinceSnapshot: changed,
     latestSnapshot: latest,
